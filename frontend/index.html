@@ -59,9 +59,44 @@
     .pill.sell { background: #fef2f2; color: var(--bad); border: 1px solid #fecaca; }
     .pill.wait { background: #fffbeb; color: var(--warn); border: 1px solid #fde68a; }
     .table-wrap { margin-top: 18px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: auto; box-shadow: var(--shadow-card); }
+    .table-wrap.scanner-scroll {
+      max-height: min(72vh, 780px);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .table-wrap.history-scroll { max-height: min(65vh, 640px); overflow: auto; }
     table { width: 100%; border-collapse: collapse; min-width: 900px; }
     th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); }
-    th { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: none; cursor: pointer; user-select: none; background: var(--bg-elev); }
+    th {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: none;
+      cursor: pointer;
+      user-select: none;
+      background: var(--bg-elev);
+      white-space: nowrap;
+    }
+    thead.sticky-head th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-bottom: 1px solid #334155;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+    }
+    thead.sticky-head th.th-nosort { cursor: default; }
+    thead.sticky-head th.th-active { color: #5eead4; }
+    .th-sort-icon {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 10px;
+      opacity: 0.45;
+      vertical-align: middle;
+    }
+    thead.sticky-head th.th-active .th-sort-icon { opacity: 1; color: #5eead4; }
     th.th-nosort { cursor: default; }
     td { font-size: 14px; }
     tr:hover td { background: rgba(15, 118, 110, 0.06); }
@@ -304,6 +339,9 @@
       line-height: 1.35;
     }
     .chart-cell canvas { max-height: 220px !important; }
+    .chart-cell--breadth { min-height: 280px; }
+    .chart-cell--breadth canvas { min-height: 240px !important; max-height: 260px !important; }
+    .chart-breadth-hint { font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
     /* Top-10 horizontal bar: compact height + autoSkip off so each ticker shows. */
     .chart-cell--rank {
       min-height: 270px;
@@ -373,9 +411,19 @@
     .arc-fall { background: rgba(120, 113, 108, 0.16); color: #57534e; }
     .arc-neutral { background: rgba(245, 158, 11, 0.12); color: #b45309; }
     .band-icon { font-size: 1.15rem; line-height: 1; text-align: center; cursor: default; }
-    .pnl-pos { color: var(--ok); font-weight: 600; }
-    .pnl-neg { color: var(--bad); font-weight: 600; }
-    .pnl-flat { color: var(--muted); }
+    .pnl-chip {
+      display: inline-block;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .pnl-pos { color: #166534; background: rgba(34, 197, 94, 0.16); }
+    .pnl-neg { color: #991b1b; background: rgba(239, 68, 68, 0.12); }
+    .pnl-flat { color: var(--muted); background: rgba(120, 113, 108, 0.1); font-weight: 500; }
+    tr.row-pnl-win td { background: rgba(34, 197, 94, 0.04); }
+    tr.row-pnl-loss td { background: rgba(239, 68, 68, 0.04); }
     .action-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
     .action-badge.buy_call { background: rgba(59,130,246,.14); color: #1d4ed8; }
     .action-badge.sell_put { background: rgba(34,197,94,.14); color: #15803d; }
@@ -410,7 +458,11 @@
       <div class="chart-grid-3">
         <div class="chart-cell"><div class="ttl">訊號分佈</div><canvas id="chSignalPie" aria-label="Signals pie chart"></canvas></div>
         <div class="chart-cell chart-cell--rank"><div class="ttl">強勢股綜合評分排行 (Top 10)</div><canvas id="chRsiBar" aria-label="Top 10 quant score ranking"></canvas></div>
-        <div class="chart-cell"><div class="ttl">每日訊號市寬（強勢 / 觀望 / 危險）</div><canvas id="chHistDaily" aria-label="Stacked daily signal breadth"></canvas></div>
+        <div class="chart-cell chart-cell--breadth">
+          <div class="ttl">每日訊號市寬（強勢 / 觀望 / 危險）</div>
+          <div id="breadthChartHint" class="chart-breadth-hint">資料來源：breadth_daily_history.json · 堆疊柱狀＋強勢佔比折線</div>
+          <canvas id="chHistDaily" aria-label="Stacked daily signal breadth"></canvas>
+        </div>
         <div class="chart-cell"><div class="ttl">尋寶象限圖：趨勢強度 vs 爆發量 (ADX vs RVOL)</div><canvas id="chScatter" aria-label="ADX vs RVOL quadrant"></canvas></div>
       </div>
       <p class="muted" style="margin:12px 0 0;font-size:11px;line-height:1.5;">
@@ -425,7 +477,7 @@
     </div>
 
     <section id="activeTab" class="tab-panel active">
-      <div class="table-wrap">
+      <div class="table-wrap scanner-scroll">
         <div class="toolbar">
           <input type="search" id="activeFilter" placeholder="篩選：代碼、評分、ADX、MACD+/-, RS、VWAP…" autocomplete="off">
           <label for="tableTopN" class="muted" style="font-size:12px;white-space:nowrap;">焦點列數（先按 Score 排序）</label>
@@ -439,7 +491,7 @@
         <div id="tableSliceHint" class="muted" style="font-size:12px;padding:0 12px 8px;display:none;"></div>
         <div id="scorePrevHint" class="muted" style="font-size:11px;padding:0 12px 8px;display:none;"></div>
         <table id="stocksTable">
-          <thead>
+          <thead class="sticky-head">
             <tr>
               <th data-key="ticker">Ticker · TV</th>
               <th data-key="hs_index" title="HSI = Hang Seng Index constituent. HSCEI = Hang Seng China Enterprises Index. N/A = neither (non‑HK tickers also N/A).">HSI / HSCEI</th>
@@ -468,7 +520,7 @@
     </section>
 
     <section id="historyTab" class="tab-panel">
-      <div class="table-wrap">
+      <div class="table-wrap history-scroll">
         <h3 class="section-title" style="padding: 12px 12px 0;">觸發式實盤覆盤（進場日 vs 現價）</h3>
         <p id="historyRulesHint" class="muted" style="padding: 0 12px 10px; margin: 0; font-size: 12px; line-height: 1.55;"></p>
         <div id="historySummary" class="muted" style="padding: 0 12px 10px; font-size: 12px; display: none;"></div>
@@ -479,7 +531,7 @@
           </label>
         </div>
         <table id="historyTable">
-          <thead>
+          <thead class="sticky-head">
             <tr>
               <th data-hist-key="entry_date">進場日</th>
               <th data-hist-key="ticker">Ticker</th>
@@ -487,7 +539,7 @@
               <th data-hist-key="score">Score</th>
               <th data-hist-key="entry_price">進場價</th>
               <th data-hist-key="latest_price">現價</th>
-              <th data-hist-key="pnl_pct">標的漲跌%</th>
+              <th data-hist-key="pnl_pct">Gain/Loss %</th>
               <th data-hist-key="holding_days">持有日</th>
               <th data-hist-key="macd_status">MACD</th>
               <th data-hist-key="rvol">RVOL</th>
@@ -582,6 +634,18 @@
     let rows = [];
     let sortKey = "tech_score";
     let sortAsc = false;
+    /** Columns that default to descending on first click (higher = better). */
+    const SORT_DESC_FIRST = new Set([
+      "tech_score",
+      "tech_score_d2",
+      "tech_score_d1",
+      "tech_score_delta",
+      "rvol",
+      "rs_20d",
+      "adx",
+      "mfi",
+      "close",
+    ]);
     let lastScanStrategy = "-";
     let activeScoreModel = "sell_put";
     let activeFilter = "";
@@ -800,6 +864,45 @@ ${tail}`;
       return Number.isFinite(v) && v > 0 ? v : 0;
     }
 
+    function calcPnlPct(entryPrice, latestPrice) {
+      const entry = num(entryPrice);
+      const latest = num(latestPrice);
+      if (!Number.isFinite(entry) || entry === 0 || !Number.isFinite(latest)) return NaN;
+      return ((latest - entry) / entry) * 100;
+    }
+
+    function syncSortHeaderUI(tableId, activeKey, asc, attrName) {
+      const table = document.getElementById(tableId);
+      if (!table) return;
+      const attr = attrName || "data-key";
+      table.querySelectorAll(`thead th[${attr}]`).forEach((th) => {
+        const key = th.getAttribute(attr);
+        let icon = th.querySelector(".th-sort-icon");
+        if (!icon) {
+          icon = document.createElement("span");
+          icon.className = "th-sort-icon";
+          icon.setAttribute("aria-hidden", "true");
+          th.appendChild(icon);
+        }
+        th.classList.toggle("th-active", key === activeKey);
+        if (key !== activeKey) {
+          icon.textContent = "↕";
+        } else {
+          icon.textContent = asc ? "↑" : "↓";
+        }
+      });
+    }
+
+    function onScannerSortClick(key) {
+      if (sortKey === key) sortAsc = !sortAsc;
+      else {
+        sortKey = key;
+        sortAsc = !SORT_DESC_FIRST.has(key);
+      }
+      syncSortHeaderUI("stocksTable", sortKey, sortAsc, "data-key");
+      renderTable();
+    }
+
     function renderTable() {
       const tbody = document.getElementById("stocksTbody");
       const empty = document.getElementById("emptyState");
@@ -886,6 +989,7 @@ ${tail}`;
         return;
       }
       empty.style.display = "none";
+      syncSortHeaderUI("stocksTable", sortKey, sortAsc, "data-key");
 
       for (const r of displayRows) {
         const tr = document.createElement("tr");
@@ -1264,6 +1368,124 @@ ${tail}`;
       return byDay;
     }
 
+    function renderBreadthChart(byDay, text) {
+      const lineEl = document.getElementById("chHistDaily");
+      const hintEl = document.getElementById("breadthChartHint");
+      if (!lineEl) return;
+      const days = Object.keys(byDay || {}).sort();
+      if (!days.length) {
+        if (hintEl) {
+          hintEl.textContent = "尚無市寬歷史。請執行掃描以產生 breadth_daily_history.json。";
+        }
+        return;
+      }
+      const last = days.slice(-90);
+      const strongPct = last.map((d) => {
+        const row = byDay[d];
+        const t = row.strong + row.watch + row.caution;
+        return t ? (row.strong / t) * 100 : 0;
+      });
+      if (hintEl) {
+        const src = breadthDailyHistory?.days?.length ? "breadth_daily_history.json" : "本輪掃描／signals 後備";
+        hintEl.textContent = `資料：${src} · ${last.length} 個交易日 · 柱狀＝數量 · 折線＝強勢佔比%`;
+      }
+      _chartsOverview.push(
+        new Chart(lineEl, {
+          type: "bar",
+          data: {
+            labels: last,
+            datasets: [
+              {
+                type: "bar",
+                label: BAND_CHART_LABEL.green,
+                data: last.map((d) => byDay[d].strong),
+                backgroundColor: "rgba(34,197,94,0.82)",
+                stack: "breadth",
+                order: 2,
+              },
+              {
+                type: "bar",
+                label: BAND_CHART_LABEL.yellow,
+                data: last.map((d) => byDay[d].watch),
+                backgroundColor: "rgba(249,115,22,0.82)",
+                stack: "breadth",
+                order: 2,
+              },
+              {
+                type: "bar",
+                label: BAND_CHART_LABEL.red,
+                data: last.map((d) => byDay[d].caution),
+                backgroundColor: "rgba(239,68,68,0.78)",
+                borderRadius: { topLeft: 3, topRight: 3 },
+                stack: "breadth",
+                order: 2,
+              },
+              {
+                type: "line",
+                label: "強勢佔比 %",
+                data: strongPct,
+                yAxisID: "yPct",
+                borderColor: "rgba(15, 118, 110, 0.95)",
+                backgroundColor: "rgba(15, 118, 110, 0.08)",
+                borderWidth: 2,
+                pointRadius: 2,
+                tension: 0.25,
+                order: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+              legend: { position: "top", labels: { color: text, boxWidth: 12, font: { size: 10 }, padding: 8 } },
+              tooltip: {
+                mode: "index",
+                intersect: false,
+                callbacks: {
+                  footer(items) {
+                    const i = items[0]?.dataIndex;
+                    if (i == null) return "";
+                    const d = last[i];
+                    const row = byDay[d];
+                    if (!row) return "";
+                    const t = row.strong + row.watch + row.caution;
+                    if (!t) return "";
+                    const pct = ((row.strong / t) * 100).toFixed(1);
+                    return `合計 ${t} · 強勢 ${pct}% · 觀望 ${((row.watch / t) * 100).toFixed(1)}% · 危險 ${((row.caution / t) * 100).toFixed(1)}%`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                stacked: true,
+                ticks: { maxRotation: 55, font: { size: 9 }, color: text, maxTicksLimit: 16 },
+                grid: { color: CHART_THEME.grid },
+              },
+              y: {
+                stacked: true,
+                position: "left",
+                beginAtZero: true,
+                ticks: { color: text, precision: 0 },
+                grid: { color: CHART_THEME.grid },
+                title: { display: true, text: "訊號數", color: text, font: { size: 11 } },
+              },
+              yPct: {
+                position: "right",
+                beginAtZero: true,
+                max: 100,
+                grid: { drawOnChartArea: false },
+                ticks: { color: text, callback: (v) => v + "%" },
+                title: { display: true, text: "強勢 %", color: text, font: { size: 10 } },
+              },
+            },
+          },
+        }),
+      );
+    }
+
     function renderOverviewCharts(scanRows, signals, breadthHistory) {
       if (typeof Chart === "undefined") return;
       destroyCharts(_chartsOverview);
@@ -1376,78 +1598,8 @@ ${tail}`;
         }
       }
 
-      const lineEl = document.getElementById("chHistDaily");
       const byDay = buildBreadthByDay(scanRows, signals, breadthHistory);
-      const days = Object.keys(byDay).sort();
-      if (lineEl && days.length) {
-        const last = days.slice(-120);
-        if (last.length) {
-          _chartsOverview.push(
-            new Chart(lineEl, {
-              type: "bar",
-              data: {
-                labels: last,
-                datasets: [
-                  {
-                    label: BAND_CHART_LABEL.green,
-                    data: last.map((d) => byDay[d].strong),
-                    backgroundColor: "rgba(34,197,94,0.82)",
-                    stack: "breadth",
-                  },
-                  {
-                    label: BAND_CHART_LABEL.yellow,
-                    data: last.map((d) => byDay[d].watch),
-                    backgroundColor: "rgba(249,115,22,0.82)",
-                    stack: "breadth",
-                  },
-                  {
-                    label: BAND_CHART_LABEL.red,
-                    data: last.map((d) => byDay[d].caution),
-                    backgroundColor: "rgba(239,68,68,0.78)",
-                    borderRadius: { topLeft: 3, topRight: 3, bottomLeft: 0, bottomRight: 0 },
-                    stack: "breadth",
-                  },
-                ],
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: { position: "top", labels: { color: text, boxWidth: 12, font: { size: 10 }, padding: 8 } },
-                  tooltip: {
-                    mode: "index",
-                    intersect: false,
-                    callbacks: {
-                      footer(items) {
-                        const i = items[0].dataIndex;
-                        const d = last[i];
-                        const row = byDay[d];
-                        if (!row) return "";
-                        const t = row.strong + row.watch + row.caution;
-                        return t ? `當日合計: ${t}` : "";
-                      },
-                    },
-                  },
-                },
-                scales: {
-                  x: {
-                    stacked: true,
-                    ticks: { maxRotation: 55, font: { size: 9 }, color: text, maxTicksLimit: 14 },
-                    grid: { color: CHART_THEME.grid },
-                  },
-                  y: {
-                    stacked: true,
-                    beginAtZero: true,
-                    ticks: { color: text, precision: 0 },
-                    grid: { color: CHART_THEME.grid },
-                    title: { display: true, text: "訊號數", color: text, font: { size: 11 } },
-                  },
-                },
-              },
-            }),
-          );
-        }
-      }
+      renderBreadthChart(byDay, text);
 
       const scEl = document.getElementById("chScatter");
       if (scEl && scanRows && scanRows.length) {
@@ -1679,10 +1831,8 @@ ${tail}`;
         const entry = num(s.entry_price ?? s.close);
         let latest = num(s.latest_price ?? s.close);
         if (px[sym] != null) latest = px[sym];
-        let pnl = num(s.pnl_pct);
-        if (Number.isFinite(entry) && entry !== 0 && Number.isFinite(latest)) {
-          pnl = ((latest - entry) / entry) * 100;
-        }
+        let pnl = calcPnlPct(entry, latest);
+        if (!Number.isFinite(pnl)) pnl = num(s.pnl_pct);
         const entryDate = String(s.entry_date || (s.date ? String(s.date).slice(0, 10) : ""));
         let holding = num(s.holding_days);
         if (!Number.isFinite(holding) && entryDate) {
@@ -1715,10 +1865,10 @@ ${tail}`;
     }
 
     function fmtPnlCell(pnl) {
-      if (!Number.isFinite(pnl)) return '<span class="pnl-flat">—</span>';
+      if (!Number.isFinite(pnl)) return '<span class="pnl-chip pnl-flat">—</span>';
       const cls = pnl > 0.05 ? "pnl-pos" : pnl < -0.05 ? "pnl-neg" : "pnl-flat";
       const sign = pnl > 0 ? "+" : "";
-      return `<span class="${cls}">${sign}${pnl.toFixed(2)}%</span>`;
+      return `<span class="pnl-chip ${cls}" title="((現價 − 進場價) ÷ 進場價) × 100">${sign}${pnl.toFixed(2)}%</span>`;
     }
 
     function actionBadgeHtml(action) {
@@ -1793,6 +1943,7 @@ ${tail}`;
         summary.style.display = "block";
         summary.textContent = `共 ${list.length} 筆觸發 · 現價正報酬 ${wins} 筆 · 平均標的漲跌 ${avg >= 0 ? "+" : ""}${avg.toFixed(2)}%（相對進場價）`;
       }
+      syncSortHeaderUI("historyTable", histSortKey, histSortAsc, "data-hist-key");
       for (const s of list) {
         const tr = document.createElement("tr");
         const ht = s.ticker ?? "N/A";
@@ -1802,14 +1953,21 @@ ${tail}`;
           : escapeHtml(ht);
         const entryD = s.entry_date ? String(s.entry_date).slice(0, 10) : String(s.date || "").slice(0, 10);
         const trackTag = s.trigger_track === "A" ? " A" : s.trigger_track === "B" ? " B" : "";
+        const entryPx = num(s.entry_price ?? s.close);
+        const latestPx = num(s.latest_price ?? s.close);
+        const pnl = calcPnlPct(entryPx, latestPx);
+        if (Number.isFinite(pnl)) s.pnl_pct = Math.round(pnl * 100) / 100;
+        if (pnl > 0.05) tr.classList.add("row-pnl-win");
+        else if (pnl < -0.05) tr.classList.add("row-pnl-loss");
+        const liveTag = s._live_scan ? ' <span class="muted" style="font-size:10px;">· 即時</span>' : "";
         tr.innerHTML = `
           <td>${escapeHtml(entryD || "—")}</td>
-          <td>${htCell}</td>
+          <td>${htCell}${liveTag}</td>
           <td>${actionBadgeHtml(s.action)}${trackTag ? `<span class="muted" style="font-size:10px;">${trackTag}</span>` : ""}</td>
           <td>${s.score != null && Number.isFinite(num(s.score)) ? String(s.score) : "—"}</td>
-          <td>${fmtNum(s.entry_price ?? s.close, 2)}</td>
-          <td>${fmtNum(s.latest_price ?? s.close, 2)}</td>
-          <td>${fmtPnlCell(num(s.pnl_pct))}</td>
+          <td>${fmtNum(entryPx, 2)}</td>
+          <td>${fmtNum(latestPx, 2)}</td>
+          <td>${fmtPnlCell(pnl)}</td>
           <td>${s.holding_days != null && Number.isFinite(num(s.holding_days)) ? String(s.holding_days) : "—"}</td>
           <td class="muted" style="font-size:12px;">${escapeHtml(s.macd_status || "—")}</td>
           <td>${fmtNum(s.rvol, 2)}</td>
@@ -2682,6 +2840,7 @@ ${tail}`;
       breadthDailyHistory = await fetchJsonSafe("breadth_daily_history.json");
       await Promise.all([loadHistory(), loadFutureLog(), loadMacro()]);
       renderOverviewCharts(rows, historySignals, breadthDailyHistory);
+      if (dailyScanJsonOk) renderHistoryTable();
     }
 
     document.getElementById("reloadBtn").addEventListener("click", loadData);
@@ -2712,13 +2871,13 @@ ${tail}`;
         loadData();
       });
     }
-    document.querySelectorAll("th[data-key]").forEach((th) => {
+    document.querySelectorAll("#stocksTable th[data-key]").forEach((th) => {
       th.addEventListener("click", () => {
         const key = th.getAttribute("data-key");
-        if (sortKey === key) sortAsc = !sortAsc; else { sortKey = key; sortAsc = true; }
-        renderTable();
+        if (key) onScannerSortClick(key);
       });
     });
+    syncSortHeaderUI("stocksTable", sortKey, sortAsc, "data-key");
 
     const af = document.getElementById("activeFilter");
     if (af) {
@@ -2757,13 +2916,14 @@ ${tail}`;
       });
     }
 
-    document.querySelectorAll("th[data-hist-key]").forEach((th) => {
+    document.querySelectorAll("#historyTable th[data-hist-key]").forEach((th) => {
       th.addEventListener("click", () => {
         const key = th.getAttribute("data-hist-key");
+        if (!key) return;
         if (histSortKey === key) histSortAsc = !histSortAsc;
         else {
           histSortKey = key;
-          histSortAsc = !["entry_date", "date", "pnl_pct", "holding_days"].includes(key);
+          histSortAsc = !["entry_date", "date", "pnl_pct", "holding_days", "score", "rvol"].includes(key);
         }
         renderHistoryTable();
       });
