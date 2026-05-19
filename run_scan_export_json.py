@@ -8,7 +8,7 @@ strategy text — no empty dashboard when strict signals miss.
 Examples:
   python3 run_scan_export_json.py
       → HK list (same source as Streamlit «HK stock list»: hkstocklist.csv when present,
-        else hk_top200.txt, else Tech+HSI+HKCEI). Universe mode; strategy tag «CLI Export».
+        else hk_top200.txt, else Tech+HSI+HKCEI). Universe mode; strategy label from score model.
 
   python3 run_scan_export_json.py GREEDY_HK
       → HK list plus optional hk_universe_extra.txt (one ticker per line in repo root)
@@ -58,6 +58,11 @@ from daily_scanner import (  # noqa: E402
     technical_universe_row,
     HK_UNIVERSE_TAG,
 )
+from schema_versioning import (  # noqa: E402
+    reset_export_schema_version,
+    schema_version_for_export,
+    strategy_display_name,
+)
 
 try:
     import yfinance_bootstrap  # noqa: E402
@@ -68,7 +73,7 @@ except Exception:
 
 
 def parse_args(argv: list[str]):
-    strategy = "CLI Export"
+    strategy = ""
     signals_only = False
     sleep_s = 0.12
     macro_only = False
@@ -194,8 +199,12 @@ def main() -> int:
 
     if macro_only:
         exporters = load_exporters()
-        ok = exporters.export_macro_snapshot_to_json()
-        print(f"Macro-only export → macro_snapshot.json | success={ok} | ROOT={ROOT}")
+        reset_export_schema_version()
+        schema_ver = schema_version_for_export(bump=True)
+        ok = exporters.export_macro_snapshot_to_json(schema_version=schema_ver)
+        print(
+            f"Macro-only export → macro_snapshot.json | schema={schema_ver} | success={ok} | ROOT={ROOT}"
+        )
         return 0 if ok else 1
 
     if not pos:
@@ -227,16 +236,22 @@ def main() -> int:
     )
 
     exporters = load_exporters()
+    reset_export_schema_version()
+    schema_ver = schema_version_for_export(bump=True)
     mirror: str | None = None
     if signals_only:
         results = gather_results_signals(tickers, sleep_s)
         universe_mode = False
         df = pd.DataFrame(results) if results else pd.DataFrame()
-        exporters.export_results_to_json(df, strategy)
+        exporters.export_results_to_json(df, strategy, schema_version=schema_ver)
         hist_df = _ancillary_subset(df, universe_mode=universe_mode)
-        exporters.export_signals_history_to_json(hist_df if hist_df is not None else pd.DataFrame(), strategy)
+        exporters.export_signals_history_to_json(
+            hist_df if hist_df is not None else pd.DataFrame(), strategy, schema_version=schema_ver
+        )
         log_df = _future_log_subset(df, universe_mode=universe_mode)
-        exporters.append_future_log_to_json(log_df if log_df is not None else pd.DataFrame(), strategy)
+        exporters.append_future_log_to_json(
+            log_df if log_df is not None else pd.DataFrame(), strategy, schema_version=schema_ver
+        )
     else:
         model_runs = (
             [
@@ -254,15 +269,21 @@ def main() -> int:
             results = gather_results_universe(tickers, sleep_s, score_model=m)
             df_m = pd.DataFrame(results) if results else pd.DataFrame()
             dfs_by_model[m] = df_m
-            strategy_m = f"{strategy} | ScoreModel={m}"
-            exporters.export_results_to_json(df_m, strategy_m, filename=out_name, score_model_slug=m)
+            strategy_m = strategy_display_name(m, strategy)
+            exporters.export_results_to_json(
+                df_m, strategy_m, filename=out_name, score_model_slug=m, schema_version=schema_ver
+            )
         mirror = os.environ.get("DAILY_SCAN_PRIMARY_MODEL", "sell_put").strip().lower()
         if mirror not in dfs_by_model:
             mirror = "sell_put" if "sell_put" in dfs_by_model else next(iter(dfs_by_model.keys()))
         df_primary_scan = dfs_by_model[mirror]
-        strategy_primary = f"{strategy} | ScoreModel={mirror}"
+        strategy_primary = strategy_display_name(mirror, strategy)
         exporters.export_results_to_json(
-            df_primary_scan, strategy_primary, filename="daily_scan.json", score_model_slug=mirror
+            df_primary_scan,
+            strategy_primary,
+            filename="daily_scan.json",
+            score_model_slug=mirror,
+            schema_version=schema_ver,
         )
         exported_first_df = dfs_by_model.get("sell_put")
         if exported_first_df is None or exported_first_df.empty:
@@ -271,10 +292,10 @@ def main() -> int:
         universe_mode = True
         trade_logged = 0
         for m, df_m in dfs_by_model.items():
-            strategy_m = f"{strategy} | ScoreModel={m}"
+            strategy_m = strategy_display_name(m, strategy)
             try:
                 trade_logged += exporters.export_trade_signals_history_to_json(
-                    df_m, strategy_m, score_model_slug=m
+                    df_m, strategy_m, score_model_slug=m, schema_version=schema_ver
                 )
             except Exception as e:
                 print(f"[warn] trade history export failed ({m}): {e}", file=sys.stderr)
@@ -291,14 +312,19 @@ def main() -> int:
             except Exception as e:
                 print(f"[warn] breadth backfill failed ({out_name}): {e}", file=sys.stderr)
         log_df = _future_log_subset(df, universe_mode=universe_mode)
-        exporters.append_future_log_to_json(log_df if log_df is not None else pd.DataFrame(), strategy)
+        exporters.append_future_log_to_json(
+            log_df if log_df is not None else pd.DataFrame(), strategy, schema_version=schema_ver
+        )
     if not skip_macro:
-        exporters.export_macro_snapshot_to_json()
+        exporters.export_macro_snapshot_to_json(schema_version=schema_ver)
     else:
         print("Skipped macro_snapshot export (--skip-macro).")
 
     n_ok = int(df["data_ok"].sum()) if universe_mode and not df.empty and "data_ok" in df.columns else len(df)
-    print(f"Done. Rows: {len(df)} | data_ok≈{n_ok} | daily_scan.json primary={mirror!r} | ROOT={ROOT}")
+    print(
+        f"Done. Rows: {len(df)} | data_ok≈{n_ok} | schema={schema_ver} | "
+        f"daily_scan.json primary={mirror!r} | ROOT={ROOT}"
+    )
     return 0
 
 

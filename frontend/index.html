@@ -780,6 +780,31 @@
       "close",
     ]);
     let lastScanStrategy = "-";
+    const SCORE_MODEL_LABELS = {
+      sell_put: "Sell Put 穩健收租",
+      buy_stock: "Buy Stock 極限爆發",
+      buy_put: "Buy Put 恐慌破底",
+    };
+
+    function cleanStrategyName(raw) {
+      let s = String(raw ?? "").trim();
+      if (!s) return "";
+      s = s.replace(/^CLI\s*Export\s*\|?\s*/i, "").trim();
+      s = s.replace(/\s*\|\s*ScoreModel\s*=\s*\S+/gi, "").trim();
+      s = s.replace(/\s*\|\s*AutoDual\s*=\s*\S+/gi, "").trim();
+      if (!s || /^CLI\s*Export$/i.test(s)) return "";
+      const cn = s.match(/[\u4e00-\u9fff]{2,}(?:[\u4e00-\u9fff\s·]*)?/);
+      if (cn) return cn[0].trim();
+      const head = s.split("|")[0].trim();
+      return /^CLI\s*Export$/i.test(head) ? "" : head;
+    }
+
+    function formatStrategyDisplay(data) {
+      const slug = String(data?.scan?.score_model || activeScoreModel || "sell_put").toLowerCase();
+      const cleaned = cleanStrategyName(data?.scan?.strategy);
+      if (cleaned) return cleaned;
+      return SCORE_MODEL_LABELS[slug] || SCORE_MODEL_LABELS.sell_put;
+    }
     let activeScoreModel = "sell_put";
     let activeFilter = "";
     /** True after `daily_scan.json` was fetched and parsed successfully (file exists; may still have 0 rows). */
@@ -2932,14 +2957,7 @@ ${tail}`;
         setEmptyState("emptyState", false);
         document.getElementById("schemaVersion").textContent = data.schema_version ?? "-";
         document.getElementById("lastUpdated").textContent = fmtDateLocal(data.last_updated);
-        const modeTag = data.scan?.mode ? `[${data.scan.mode}] ` : "";
-        const modelTag =
-          activeScoreModel === "buy_stock"
-            ? "[Buy Stock 極限爆發] "
-            : activeScoreModel === "buy_put"
-              ? "[Buy Put 恐慌破底] "
-              : "[Sell Put 穩健收租] ";
-        document.getElementById("strategy").textContent = modelTag + modeTag + (data.scan?.strategy ?? "-");
+        document.getElementById("strategy").textContent = formatStrategyDisplay(data);
         const sph = document.getElementById("scorePrevHint");
         if (sph) {
           const d2d = data.scan?.score_d2_date;
@@ -2974,7 +2992,7 @@ ${tail}`;
           ph.style.display = "block";
         }
 
-        lastScanStrategy = data.scan?.strategy ?? "-";
+        lastScanStrategy = formatStrategyDisplay(data);
         rows = stockList;
         renderTable();
       }

@@ -12,6 +12,11 @@ import sys
 import os
 from datetime import datetime
 
+_repo_root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if _repo_root_path not in sys.path:
+    sys.path.insert(0, _repo_root_path)
+from schema_versioning import schema_version_for_export, strategy_display_name  # noqa: E402
+
 # Version information
 VERSION = "2.0.1"
 
@@ -125,6 +130,7 @@ def export_results_to_json(
     filename="daily_scan.json",
     *,
     score_model_slug: str | None = None,
+    schema_version: str | None = None,
 ):
     """
     Export scanner results with a stable JSON contract for SSG frontend.
@@ -134,6 +140,7 @@ def export_results_to_json(
         if omitted, inferred from dataframe column `score_model` when present.
     """
     now_str = _now_iso()
+    schema_ver = schema_version or schema_version_for_export(bump=False)
 
     if not os.path.isabs(filename):
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -143,20 +150,23 @@ def export_results_to_json(
     score_hist = None
     inferred_slug = score_model_slug
 
+    empty_slug = (score_model_slug or "sell_put").strip().lower()
+    display_strategy = strategy_display_name(empty_slug, strategy_name)
+
     if df is None or df.empty:
         scan_empty: dict = {
-            "strategy": strategy_name,
+            "strategy": display_strategy,
             "mode": "empty",
             "total": 0,
             "buy_count": 0,
             "sell_count": 0,
             "wait_count": 0,
-            "score_model": score_model_slug,
+            "score_model": empty_slug,
         }
         if prev_asof:
             scan_empty["score_prev_asof"] = prev_asof
         export_data = {
-            "schema_version": "1.3",
+            "schema_version": schema_ver,
             "last_updated": now_str,
             "scan": scan_empty,
             "stocks": [],
@@ -229,8 +239,9 @@ def export_results_to_json(
             wait_count = max(len(stocks) - buy_count - sell_count, 0)
             mode = "signals"
 
+        display_strategy = strategy_display_name(inferred_slug, strategy_name)
         scan_block = {
-            "strategy": strategy_name,
+            "strategy": display_strategy,
             "mode": mode,
             "total": len(stocks),
             "buy_count": buy_count,
@@ -247,7 +258,7 @@ def export_results_to_json(
         scan_block["score_today_date"] = today_date
         scan_block["score_arc_mode"] = "trading_days"
         export_data = {
-            "schema_version": "1.3",
+            "schema_version": schema_ver,
             "last_updated": now_str,
             "scan": scan_block,
             "stocks": stocks,
@@ -267,6 +278,7 @@ def export_results_to_json(
                     strong=int(sc.get("buy_count") or 0),
                     watch=int(sc.get("wait_count") or 0),
                     caution=int(sc.get("sell_count") or 0),
+                    schema_version=schema_ver,
                 )
         return True
     except Exception as e:
@@ -679,6 +691,7 @@ def export_daily_breadth_snapshot(
     watch: int,
     caution: int,
     filename: str = "breadth_daily_history.json",
+    schema_version: str | None = None,
 ) -> bool:
     """Append/replace one calendar day's band counts for a score model (feeds 每日訊號市寬 chart)."""
     out_path = _resolve_repo_json_path(filename)
@@ -687,11 +700,12 @@ def export_daily_breadth_snapshot(
     model = str(score_model or "sell_put").strip().lower()
     if len(day) != 10:
         day = _entry_date_from_iso(now_str)
+    schema_ver = schema_version or schema_version_for_export(bump=False)
     payload = _read_json_file(
-        out_path, {"schema_version": "1.0", "last_updated": now_str, "days": []}
+        out_path, {"schema_version": schema_ver, "last_updated": now_str, "days": []}
     )
     if not isinstance(payload, dict):
-        payload = {"schema_version": "1.0", "last_updated": now_str, "days": []}
+        payload = {"schema_version": schema_ver, "last_updated": now_str, "days": []}
     days = payload.get("days")
     if not isinstance(days, list):
         days = []
@@ -710,7 +724,7 @@ def export_daily_breadth_snapshot(
         days = days[-400:]
     payload["days"] = days
     payload["last_updated"] = now_str
-    payload["schema_version"] = "1.0"
+    payload["schema_version"] = schema_ver
     try:
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
@@ -763,6 +777,7 @@ def export_trade_signals_history_to_json(
     filename: str = "signals_history.json",
     max_entries: int = 5000,
     retention_days: int = 180,
+    schema_version: str | None = None,
 ) -> int:
     """
     Log only rows that pass model-specific entry triggers; update mark-to-market on each run.
@@ -783,11 +798,13 @@ def export_trade_signals_history_to_json(
     out_path = _resolve_repo_json_path(filename)
     now_str = _now_iso()
     today = _entry_date_from_iso(now_str)
+    schema_ver = schema_version or schema_version_for_export(bump=False)
+    strat_label = strategy_display_name(score_model_slug, strategy_name)
     payload = _read_json_file(
-        out_path, {"schema_version": "1.1", "last_updated": now_str, "signals": []}
+        out_path, {"schema_version": schema_ver, "last_updated": now_str, "signals": []}
     )
     if not isinstance(payload, dict):
-        payload = {"schema_version": "1.1", "last_updated": now_str, "signals": []}
+        payload = {"schema_version": schema_ver, "last_updated": now_str, "signals": []}
     if "signals" not in payload or not isinstance(payload["signals"], list):
         payload["signals"] = []
 
@@ -853,7 +870,7 @@ def export_trade_signals_history_to_json(
                 "ticker": sym,
                 "action": action,
                 "score_model": model_slug,
-                "strategy": strategy_name,
+                "strategy": strat_label,
                 "signal": row.get("Signal", "N/A"),
                 "score": score_i,
                 "entry_price": round(float(entry_px), 4),
@@ -883,7 +900,7 @@ def export_trade_signals_history_to_json(
     if max_entries and len(payload["signals"]) > max_entries:
         payload["signals"] = payload["signals"][-max_entries:]
     payload["last_updated"] = now_str
-    payload["schema_version"] = "1.1"
+    payload["schema_version"] = schema_ver
     try:
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=4)
@@ -893,13 +910,23 @@ def export_trade_signals_history_to_json(
     return new_count
 
 
-def export_signals_history_to_json(df, strategy_name, filename="signals_history.json", max_entries=5000, retention_days=180):
+def export_signals_history_to_json(
+    df,
+    strategy_name,
+    filename="signals_history.json",
+    max_entries=5000,
+    retention_days=180,
+    schema_version: str | None = None,
+    score_model_slug: str | None = None,
+):
     """Append this run's signals into a historical signal store with dedupe + retention."""
     out_path = _resolve_repo_json_path(filename)
     now_str = _now_iso()
-    payload = _read_json_file(out_path, {"schema_version": "1.0", "last_updated": now_str, "signals": []})
+    schema_ver = schema_version or schema_version_for_export(bump=False)
+    strat_label = strategy_display_name(score_model_slug or "sell_put", strategy_name)
+    payload = _read_json_file(out_path, {"schema_version": schema_ver, "last_updated": now_str, "signals": []})
     if not isinstance(payload, dict):
-        payload = {"schema_version": "1.0", "last_updated": now_str, "signals": []}
+        payload = {"schema_version": schema_ver, "last_updated": now_str, "signals": []}
     if "signals" not in payload or not isinstance(payload["signals"], list):
         payload["signals"] = []
 
@@ -913,7 +940,7 @@ def export_signals_history_to_json(df, strategy_name, filename="signals_history.
                 {
                     "date": now_str,
                     "ticker": row.get("Ticker", "N/A"),
-                    "strategy": strategy_name,
+                    "strategy": strat_label,
                     "signal": row.get("Signal", "N/A"),
                     "close": _to_number(row.get("Close", row.get("Price"))),
                 }
@@ -927,6 +954,7 @@ def export_signals_history_to_json(df, strategy_name, filename="signals_history.
     if max_entries and len(payload["signals"]) > max_entries:
         payload["signals"] = payload["signals"][-max_entries:]
     payload["last_updated"] = now_str
+    payload["schema_version"] = schema_ver
     try:
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=4)
@@ -936,13 +964,23 @@ def export_signals_history_to_json(df, strategy_name, filename="signals_history.
         return False
 
 
-def append_future_log_to_json(df, strategy_name, filename="future_log.json", max_entries=5000, retention_days=180):
+def append_future_log_to_json(
+    df,
+    strategy_name,
+    filename="future_log.json",
+    max_entries=5000,
+    retention_days=180,
+    schema_version: str | None = None,
+    score_model_slug: str | None = None,
+):
     """Append latest run snapshot rows into a future log with dedupe + retention."""
     out_path = _resolve_repo_json_path(filename)
     now_str = _now_iso()
-    payload = _read_json_file(out_path, {"schema_version": "1.0", "logs": []})
+    schema_ver = schema_version or schema_version_for_export(bump=False)
+    strat_label = strategy_display_name(score_model_slug or "sell_put", strategy_name)
+    payload = _read_json_file(out_path, {"schema_version": schema_ver, "logs": []})
     if not isinstance(payload, dict):
-        payload = {"schema_version": "1.0", "logs": []}
+        payload = {"schema_version": schema_ver, "logs": []}
     if "logs" not in payload or not isinstance(payload["logs"], list):
         payload["logs"] = []
 
@@ -956,7 +994,7 @@ def append_future_log_to_json(df, strategy_name, filename="future_log.json", max
                     "logged_at": now_str,
                     "trigger_date": now_str.split("T")[0],
                     "ticker": row.get("Ticker", "N/A"),
-                    "strategy": strategy_name,
+                    "strategy": strat_label,
                     "entry_price": _to_number(row.get("Close", row.get("Price"))),
                     "risk_notes": row.get("Why", "N/A"),
                 }
@@ -969,6 +1007,8 @@ def append_future_log_to_json(df, strategy_name, filename="future_log.json", max
     )
     if max_entries and len(payload["logs"]) > max_entries:
         payload["logs"] = payload["logs"][-max_entries:]
+    payload["last_updated"] = now_str
+    payload["schema_version"] = schema_ver
 
     try:
         with open(out_path, "w", encoding="utf-8") as f:
@@ -1087,10 +1127,11 @@ def export_trade_signals_from_scan_files(
     return total
 
 
-def export_macro_snapshot_to_json(filename="macro_snapshot.json"):
+def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version: str | None = None):
     """Export lightweight macro snapshot with live values when available."""
     out_path = _resolve_repo_json_path(filename)
     now_str = _now_iso()
+    schema_ver = schema_version or schema_version_for_export(bump=True)
     try:
         import yfinance_bootstrap  # noqa: E402
 
@@ -1259,7 +1300,7 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json"):
         score_history = sorted(score_history, key=lambda x: x["d"])[-365:]
 
     payload = {
-        "schema_version": "1.4",
+        "schema_version": schema_ver,
         "last_updated": now_str,
         "metrics": [
             {"name": "VIX", "value": _fmt(vix_val), "change": _fmt_chg(vix_chg)},
