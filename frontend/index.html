@@ -58,13 +58,49 @@
     .pill.buy { background: #ecfdf5; color: var(--ok); border: 1px solid #bbf7d0; }
     .pill.sell { background: #fef2f2; color: var(--bad); border: 1px solid #fecaca; }
     .pill.wait { background: #fffbeb; color: var(--warn); border: 1px solid #fde68a; }
-    .table-wrap { margin-top: 18px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: auto; box-shadow: var(--shadow-card); }
+    .table-wrap {
+      margin-top: 18px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
     .table-wrap.scanner-scroll {
       max-height: min(72vh, 780px);
-      overflow: auto;
+      overflow-y: auto;
+      overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
     }
-    .table-wrap.history-scroll { max-height: min(65vh, 640px); overflow: auto; }
+    .table-wrap.history-scroll {
+      max-height: min(65vh, 640px);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    /* Horizontal swipe zone — page width stays fixed on mobile */
+    .table-x-scroll {
+      width: 100%;
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+    }
+    .table-x-scroll table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+    .table-x-scroll th,
+    .table-x-scroll td {
+      white-space: nowrap;
+    }
+    .table-x-scroll-hint {
+      display: none;
+      padding: 6px 12px 8px;
+      font-size: 11px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+    }
     table { width: 100%; border-collapse: collapse; min-width: 900px; }
     th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); }
     th {
@@ -121,13 +157,56 @@
     .tab-panel.active { display: block; }
     .section-title { margin: 0 0 8px 0; font-size: 16px; }
     .toolbar {
-      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
-      padding: 12px; border-bottom: 1px solid var(--line);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
     }
-    .toolbar input {
-      flex: 1; min-width: 200px; max-width: 420px;
-      background: #ffffff; border: 1px solid var(--line); color: var(--text);
-      border-radius: 8px; padding: 8px 10px; font-size: 14px;
+    .toolbar.toolbar-responsive {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .toolbar.toolbar-responsive .toolbar-input {
+      width: 100%;
+      max-width: none;
+      flex: none;
+    }
+    .toolbar.toolbar-responsive .toolbar-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .toolbar.toolbar-responsive .toolbar-controls label {
+      flex: 1;
+      min-width: 0;
+    }
+    .toolbar.toolbar-responsive .toolbar-select {
+      width: 100%;
+      flex: 1 1 120px;
+    }
+    .toolbar input,
+    .toolbar-input {
+      flex: 1;
+      min-width: 200px;
+      max-width: 420px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+    .toolbar-select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 14px;
     }
     .btn-sm {
       font-size: 12px; padding: 6px 10px; border-radius: 8px;
@@ -392,14 +471,26 @@
       max-height: 186px !important;
       display: block;
     }
+    .col-ticker {
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .col-ticker .ticker-sym {
+      font-weight: 600;
+      margin-right: 6px;
+    }
     .lnk-tv {
-      margin-left: 8px;
       font-size: 11px;
       color: var(--accent);
       text-decoration: none;
       font-weight: 600;
+      white-space: nowrap;
+      display: inline-block;
+      vertical-align: middle;
     }
     .lnk-tv:hover { text-decoration: underline; color: #0d9488; }
+    .tv-link-mobile { display: none; }
+    .tv-link-desktop { display: inline; }
     .mode-switch { display: inline-flex; gap: 8px; margin-left: 8px; flex-wrap: wrap; justify-content: flex-end; }
     .mode-btn { border: 1px solid var(--line); background: var(--card); color: #44403c; border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: var(--shadow-sm); }
     .mode-btn:hover { background: var(--bg-elev); }
@@ -428,6 +519,38 @@
     .action-badge.buy_call { background: rgba(59,130,246,.14); color: #1d4ed8; }
     .action-badge.sell_put { background: rgba(34,197,94,.14); color: #15803d; }
     @media (max-width: 960px) { .cards { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 639px) {
+      .container { padding: 16px 12px 24px; max-width: 100%; }
+      body { overflow-x: hidden; }
+      .header { flex-direction: column; align-items: stretch; }
+      .mode-switch { justify-content: flex-start; }
+      .title { font-size: 1.25rem; }
+      .table-x-scroll-hint { display: block; }
+      .tv-link-mobile { display: inline; }
+      .tv-link-desktop { display: none; }
+      th, td { padding: 10px 12px; font-size: 13px; }
+      .table-x-scroll table { min-width: 820px; }
+    }
+    @media (min-width: 640px) {
+      .toolbar.toolbar-responsive {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .toolbar.toolbar-responsive .toolbar-input {
+        flex: 1;
+        min-width: 200px;
+        max-width: 420px;
+        width: auto;
+      }
+      .toolbar.toolbar-responsive .toolbar-controls {
+        width: auto;
+        flex: 0 0 auto;
+      }
+      .toolbar.toolbar-responsive .toolbar-select {
+        width: auto;
+      }
+    }
   </style>
 </head>
 <body>
@@ -478,18 +601,21 @@
 
     <section id="activeTab" class="tab-panel active">
       <div class="table-wrap scanner-scroll">
-        <div class="toolbar">
-          <input type="search" id="activeFilter" placeholder="篩選：代碼、評分、ADX、MACD+/-, RS、VWAP…" autocomplete="off">
-          <label for="tableTopN" class="muted" style="font-size:12px;white-space:nowrap;">焦點列數（先按 Score 排序）</label>
-          <select id="tableTopN" class="btn-sm" style="padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;">
+        <div class="toolbar toolbar-responsive">
+          <input type="search" id="activeFilter" class="toolbar-input" placeholder="篩選：代碼、評分、ADX、MACD+/-, RS、VWAP…" autocomplete="off">
+          <div class="toolbar-controls">
+          <label for="tableTopN" class="muted" style="font-size:12px;">焦點列數（先按 Score 排序）</label>
+          <select id="tableTopN" class="toolbar-select btn-sm">
             <option value="0" selected>全部</option>
             <option value="20">Top 20</option>
             <option value="35">Top 35</option>
             <option value="50">Top 50</option>
           </select>
+          </div>
         </div>
         <div id="tableSliceHint" class="muted" style="font-size:12px;padding:0 12px 8px;display:none;"></div>
         <div id="scorePrevHint" class="muted" style="font-size:11px;padding:0 12px 8px;display:none;"></div>
+        <div class="table-x-scroll" role="region" aria-label="股票掃描表（可左右滑動）">
         <table id="stocksTable">
           <thead class="sticky-head">
             <tr>
@@ -515,6 +641,8 @@
           </thead>
           <tbody id="stocksTbody"></tbody>
         </table>
+        </div>
+        <p class="table-x-scroll-hint muted">← 左右滑動查看更多欄位 →</p>
         <div id="emptyState" class="empty" style="display:none;">No stocks in current scan.</div>
       </div>
     </section>
@@ -524,12 +652,15 @@
         <h3 class="section-title" style="padding: 12px 12px 0;">觸發式實盤覆盤（進場日 vs 現價）</h3>
         <p id="historyRulesHint" class="muted" style="padding: 0 12px 10px; margin: 0; font-size: 12px; line-height: 1.55;"></p>
         <div id="historySummary" class="muted" style="padding: 0 12px 10px; font-size: 12px; display: none;"></div>
-        <div class="toolbar">
-          <input type="search" id="historyFilter" placeholder="篩選：代碼、動作、MACD、評分…" autocomplete="off">
-          <label class="muted" style="font-size:12px;white-space:nowrap;">
-            <input type="checkbox" id="historyTriggersOnly" checked> 只顯示觸發訊號
-          </label>
+        <div class="toolbar toolbar-responsive">
+          <input type="search" id="historyFilter" class="toolbar-input" placeholder="篩選：代碼、動作、MACD、評分…" autocomplete="off">
+          <div class="toolbar-controls">
+            <label class="muted" style="font-size:12px;">
+              <input type="checkbox" id="historyTriggersOnly" checked> 只顯示觸發訊號
+            </label>
+          </div>
         </div>
+        <div class="table-x-scroll" role="region" aria-label="歷史訊號表（可左右滑動）">
         <table id="historyTable">
           <thead class="sticky-head">
             <tr>
@@ -547,6 +678,8 @@
           </thead>
           <tbody id="historyTbody"></tbody>
         </table>
+        </div>
+        <p class="table-x-scroll-hint muted">← 左右滑動查看更多欄位 →</p>
         <div id="historyEmpty" class="empty" style="display:none;">No `signals_history.json` yet.</div>
       </div>
     </section>
@@ -999,10 +1132,7 @@ ${tail}`;
       for (const r of displayRows) {
         const tr = document.createElement("tr");
         const rawT = r.ticker ?? r.Ticker ?? "N/A";
-        const tv = tradingViewUrl(rawT);
-        const tvHtml = tv
-          ? `<a class="lnk-tv" href="${escapeHtml(tv)}" target="_blank" rel="noopener noreferrer">TradingView →</a>`
-          : "";
+        const tvHtml = tradingViewLinkHtml(tradingViewUrl(rawT));
         const sc0 =
           typeof r.tech_score === "number" && Number.isFinite(r.tech_score) ? String(r.tech_score) : "—";
         const sc1 =
@@ -1026,7 +1156,7 @@ ${tail}`;
         const bandCell = bandIconHtml(r.signal ?? r.Signal ?? "N/A");
         const hsIx = escapeHtml(String(r.hs_index ?? r.HS_Index ?? "N/A").trim() || "N/A");
         tr.innerHTML = `
-          <td>${escapeHtml(rawT)}<br>${tvHtml}</td>
+          <td class="col-ticker"><span class="ticker-sym">${escapeHtml(rawT)}</span>${tvHtml}</td>
           <td class="muted" style="font-size:12px;white-space:nowrap;" title="HSI / HSCEI vs built-in index lists">${hsIx}</td>
           <td class="muted" title="Score 2（前 2 交易日）">${sc2}</td>
           <td class="muted" title="Score 1（前 1 交易日）">${sc1}</td>
@@ -1204,6 +1334,16 @@ ${tail}`;
         }
       }
       return "https://www.tradingview.com/chart/?symbol=" + encodeURIComponent(t) + "&interval=1D";
+    }
+
+    function tradingViewLinkHtml(url, desktopLabel) {
+      if (!url) return "";
+      const label = desktopLabel || "TradingView →";
+      return (
+        `<a class="lnk-tv" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="TradingView">` +
+        `<span class="tv-link-desktop">${escapeHtml(label)}</span>` +
+        `<span class="tv-link-mobile" aria-hidden="true">🔗</span></a>`
+      );
     }
 
     /** tech_score from scan row */
@@ -1952,10 +2092,7 @@ ${tail}`;
       for (const s of list) {
         const tr = document.createElement("tr");
         const ht = s.ticker ?? "N/A";
-        const htv = tradingViewUrl(ht);
-        const htCell = htv
-          ? `${escapeHtml(ht)}<br><a class="lnk-tv" href="${escapeHtml(htv)}" target="_blank" rel="noopener noreferrer">TV →</a>`
-          : escapeHtml(ht);
+        const htCell = `<span class="ticker-sym">${escapeHtml(ht)}</span>${tradingViewLinkHtml(tradingViewUrl(ht), "TV →")}`;
         const entryD = s.entry_date ? String(s.entry_date).slice(0, 10) : String(s.date || "").slice(0, 10);
         const trackTag = s.trigger_track === "A" ? " A" : s.trigger_track === "B" ? " B" : "";
         const entryPx = num(s.entry_price ?? s.close);
@@ -1967,7 +2104,7 @@ ${tail}`;
         const liveTag = s._live_scan ? ' <span class="muted" style="font-size:10px;">· 即時</span>' : "";
         tr.innerHTML = `
           <td>${escapeHtml(entryD || "—")}</td>
-          <td>${htCell}${liveTag}</td>
+          <td class="col-ticker">${htCell}${liveTag}</td>
           <td>${actionBadgeHtml(s.action)}${trackTag ? `<span class="muted" style="font-size:10px;">${trackTag}</span>` : ""}</td>
           <td>${s.score != null && Number.isFinite(num(s.score)) ? String(s.score) : "—"}</td>
           <td>${fmtNum(entryPx, 2)}</td>
