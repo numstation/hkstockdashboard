@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCSP神器 - 交易策略分析器</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', '微軟正黑體', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #0d0d0d 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px 40px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            font-size: 1.1em;
+            color: #ffffff;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #10b981;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stock-header {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .stock-info h2 {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .stock-code {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .stock-price {
+            text-align: right;
+        }
+
+        .price-value {
+            font-size: 3em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .price-value.positive {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .price-value.negative {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .price-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .price-change {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .price-change.positive {
+            color: #10b981;
+        }
+
+        .price-change.negative {
+            color: #ef4444;
+        }
+
+        .price-change.neutral {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .chart-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 20px;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .result.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .result.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .signal-box {
+            text-align: center;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .signal-text {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .signal-type.buy .signal-text {
+            color: #10b981;
+        }
+
+        .signal-type.sell .signal-text {
+            color: #ef4444;
+        }
+
+        .signal-type.wait .signal-text {
+            color: #9ca3af;
+        }
+
+        .signal-type.warning .signal-text {
+            color: #f59e0b;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .detail-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .detail-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .detail-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            color: #ffffff;
+            font-size: 1.4em;
+            font-weight: 700;
+        }
+
+        .strike-price-box {
+            margin-top: 25px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .strike-price-box h3 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .strike-price-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .strike-put {
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid rgba(16, 185, 129, 0.5);
+            color: #10b981;
+        }
+
+        .strike-call {
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid rgba(16, 185, 129, 0.5);
+            color: #10b981;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .loading p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 15px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timestamp {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9em;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 1.2em;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .market-analysis {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .market-analysis h3 {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .market-analysis-content {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.05em;
+            line-height: 1.8;
+        }
+
+        .market-analysis-content strong {
+            color: #10b981;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SCSP神器</h1>
+            <p class="subtitle">趨勢跟隨 + 均值回歸交易策略分析器</p>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="stockCode">股票代碼</label>
+                    <input 
+                        type="text" 
+                        id="stockCode" 
+                        placeholder="輸入股票代碼（例如：700, AAPL, 1）"
+                        value="700"
+                    >
+                </div>
+
+                <button id="analyzeBtn" onclick="analyzeStock()">🔍 分析股票</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在分析股票數據...</p>
+        </div>
+
+        <div id="stockHeader" style="display: none;"></div>
+        <div id="chartSection" style="display: none;"></div>
+        <div class="result" id="result">
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let priceChart = null;
+
+        function analyzeStock() {
+            const stockCode = document.getElementById('stockCode').value.trim();
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+            const stockHeader = document.getElementById('stockHeader');
+            const chartSection = document.getElementById('chartSection');
+
+            if (!stockCode) {
+                alert('請輸入股票代碼');
+                return;
+            }
+
+            // Hide previous results
+            analyzeBtn.disabled = true;
+            loading.classList.add('show');
+            result.classList.remove('show');
+            stockHeader.style.display = 'none';
+            chartSection.style.display = 'none';
+            if (priceChart) {
+                priceChart.destroy();
+                priceChart = null;
+            }
+
+            // Make API request
+            fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ stock_code: stockCode })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.classList.remove('show');
+                analyzeBtn.disabled = false;
+
+                if (data.success) {
+                    displayStockHeader(data);
+                    displayChart(data);
+                    displayResult(data);
+                } else {
+                    displayError(data.error || '發生未知錯誤');
+                }
+            })
+            .catch(error => {
+                loading.classList.remove('show');
+                analyzeBtn.disabled = false;
+                displayError('網絡錯誤: ' + error.message);
+            });
+        }
+
+        function displayStockHeader(data) {
+            const stockHeader = document.getElementById('stockHeader');
+            const stockName = data.stock_name || data.stock_code;
+            const stockCode = data.stock_code;
+            const currentPrice = data.current_price || 0;
+            const priceChange = data.price_change;
+            const priceChangePercent = data.price_change_percent;
+            
+            // Determine color based on price change
+            let changeClass = 'neutral';
+            let changeSymbol = '';
+            if (priceChange !== null && priceChange !== undefined) {
+                if (priceChange > 0) {
+                    changeClass = 'positive';
+                    changeSymbol = '+';
+                } else if (priceChange < 0) {
+                    changeClass = 'negative';
+                    changeSymbol = '';
+                }
+            }
+            
+            // Build price change display
+            let priceChangeHtml = '';
+            if (priceChange !== null && priceChange !== undefined && priceChangePercent !== null && priceChangePercent !== undefined) {
+                priceChangeHtml = `
+                    <div class="price-change ${changeClass}">
+                        <span>${changeSymbol}${priceChange.toFixed(2)}</span>
+                        <span>(${changeSymbol}${priceChangePercent.toFixed(2)}%)</span>
+                    </div>
+                `;
+            }
+            
+            stockHeader.innerHTML = `
+                <div class="stock-header">
+                    <div class="stock-info">
+                        <h2>${stockName}</h2>
+                        <div class="stock-code">${stockCode}</div>
+                    </div>
+                    <div class="stock-price">
+                        <div class="price-value ${changeClass === 'positive' ? 'positive' : changeClass === 'negative' ? 'negative' : ''}">${currentPrice.toFixed(2)}</div>
+                        ${priceChangeHtml}
+                        <div class="price-label">當前價格</div>
+                    </div>
+                </div>
+            `;
+            stockHeader.style.display = 'block';
+        }
+
+        function displayChart(data) {
+            const chartSection = document.getElementById('chartSection');
+            const chartData = data.chart_data || {};
+            
+            if (!chartData.close_prices || chartData.close_prices.length === 0) {
+                return;
+            }
+
+            chartSection.innerHTML = `
+                <div class="chart-container">
+                    <div class="chart-title">📊 布林通道與價格圖表</div>
+                    <canvas id="priceChart" style="max-height: 400px;"></canvas>
+                </div>
+            `;
+            chartSection.style.display = 'block';
+
+            // Wait for canvas to be rendered
+            setTimeout(() => {
+                const ctx = document.getElementById('priceChart').getContext('2d');
+                
+                const labels = chartData.dates || Array.from({length: chartData.close_prices.length}, (_, i) => `第 ${i + 1} 天`);
+                const closePrices = chartData.close_prices || [];
+                const bbUpper = chartData.bb_upper || [];
+                const bbMiddle = chartData.bb_middle || [];
+                const bbLower = chartData.bb_lower || [];
+
+                if (priceChart) {
+                    priceChart.destroy();
+                }
+
+                priceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: '收盤價',
+                                data: closePrices,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                borderWidth: 3,
+                                fill: false,
+                                tension: 0.4,
+                                pointRadius: 0,
+                            },
+                            {
+                                label: '布林上軌',
+                                data: bbUpper,
+                                borderColor: '#ffffff',
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                            },
+                            {
+                                label: '布林中線',
+                                data: bbMiddle,
+                                borderColor: '#9ca3af',
+                                backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                                borderWidth: 1,
+                                borderDash: [3, 3],
+                                fill: false,
+                                pointRadius: 0,
+                            },
+                            {
+                                label: '布林下軌',
+                                data: bbLower,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'rgba(255, 255, 255, 0.9)',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#ffffff',
+                                bodyColor: '#ffffff',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    maxTicksLimit: 10
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }, 100);
+        }
+
+        function displayResult(data) {
+            const result = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+            const signal = data.signal;
+
+            // Determine result class based on signal type
+            result.className = 'result show';
+            if (signal.signal_type === 'error') {
+                result.classList.add('error');
+            } else if (signal.signal_type === 'warning') {
+                result.classList.add('warning');
+            } else {
+                result.classList.add('success');
+            }
+
+            // Build HTML
+            let html = `
+                <div class="signal-box signal-type ${signal.signal_type}">
+                    <div class="signal-text">${signal.advice}</div>
+                </div>
+            `;
+
+            // Add Smart Analyst Commentary Section (Priority: analyst_commentary > market_analysis)
+            const commentary = data.analyst_commentary || data.market_analysis;
+            if (commentary) {
+                // Convert markdown-style formatting to HTML
+                // Split by double newlines first, then process each paragraph
+                let paragraphs = commentary.split('\n\n');
+                let analysisHtml = paragraphs.map(para => {
+                    // Convert **text** to <strong>text</strong>
+                    para = para.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    // Convert single newlines to <br> within paragraphs
+                    para = para.replace(/\n/g, '<br>');
+                    return `<p>${para}</p>`;
+                }).join('');
+                
+                // Determine strategy type for styling
+                const strategyType = signal.strategy_type || 'none';
+                let strategyLabel = '';
+                if (strategyType === 'trend_following') {
+                    strategyLabel = '📈 趨勢跟隨策略';
+                } else if (strategyType === 'mean_reversion') {
+                    strategyLabel = '📊 均值回歸策略';
+                } else if (strategyType === 'transition') {
+                    strategyLabel = '⚡ 趨勢轉換期';
+                }
+                
+                html += `
+                    <div class="market-analysis">
+                        <h3>💡 智能分析師評論 ${strategyLabel ? `(${strategyLabel})` : ''}</h3>
+                        <div class="market-analysis-content">${analysisHtml}</div>
+                    </div>
+                `;
+            }
+
+            if (signal.details && Object.keys(signal.details).length > 0) {
+                const details = signal.details;
+                html += `
+                    <div class="details">
+                        <div class="detail-item">
+                            <div class="detail-label">RSI</div>
+                            <div class="detail-value">${details.rsi.toFixed(2)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">ADX</div>
+                            <div class="detail-value">${details.adx.toFixed(2)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">ADX 斜率</div>
+                            <div class="detail-value">${details.adx_slope.toFixed(2)}</div>
+                        </div>
+                        <div class="detail-item" style="background: rgba(16, 185, 129, 0.15); border: 2px solid rgba(16, 185, 129, 0.3);">
+                            <div class="detail-label">PDI (DMI+)</div>
+                            <div class="detail-value" style="color: #10b981;">${details.dmi_plus.toFixed(2)}</div>
+                        </div>
+                        <div class="detail-item" style="background: rgba(16, 185, 129, 0.15); border: 2px solid rgba(16, 185, 129, 0.3);">
+                            <div class="detail-label">MDI (DMI-)</div>
+                            <div class="detail-value" style="color: #10b981;">${details.dmi_minus.toFixed(2)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">ATR</div>
+                            <div class="detail-value">${details.atr.toFixed(2)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">布林上軌</div>
+                            <div class="detail-value">${details.bb_upper.toFixed(2)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">布林下軌</div>
+                            <div class="detail-value">${details.bb_lower.toFixed(2)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">看漲針形</div>
+                            <div class="detail-value">${details.is_pin_bar ? '是' : '否'}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add Suggested Strike Price - ONLY for actionable signals
+                if (details.suggested_put_strike !== null) {
+                    html += `
+                        <div class="strike-price-box">
+                            <h3>🎯 建議行使價</h3>
+                            <div class="strike-price-value strike-put">
+                                <= ${details.suggested_put_strike.toFixed(1)}
+                            </div>
+                            <div style="text-align: center; color: rgba(255, 255, 255, 0.7); margin-top: 10px; font-size: 0.9em;">
+                                賣出認沽期權行使價
+                            </div>
+                        </div>
+                    `;
+                } else if (details.suggested_call_strike !== null) {
+                    html += `
+                        <div class="strike-price-box">
+                            <h3>🎯 建議行使價</h3>
+                            <div class="strike-price-value strike-call">
+                                >= ${details.suggested_call_strike.toFixed(1)}
+                            </div>
+                            <div style="text-align: center; color: rgba(255, 255, 255, 0.7); margin-top: 10px; font-size: 0.9em;">
+                                賣出認購期權行使價
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            html += `<div class="timestamp">分析時間: ${data.timestamp}</div>`;
+
+            resultContent.innerHTML = html;
+        }
+
+        function displayError(errorMessage) {
+            const result = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+
+            result.className = 'result show error';
+            resultContent.innerHTML = `
+                <div class="error-message">❌ ${errorMessage}</div>
+            `;
+        }
+
+        // Allow Enter key to trigger analysis
+        document.getElementById('stockCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzeStock();
+            }
+        });
+    </script>
+</body>
+</html>

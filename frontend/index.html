@@ -1,0 +1,2824 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>技術掃描 · Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Palette / tone inspired by editorial “晨報” sites (e.g. stockcast.tw): warm paper, 留白, ink + teal accent */
+    :root {
+      --bg: #fafaf9;
+      --bg-elev: #f5f5f4;
+      --card: #ffffff;
+      --muted: #78716c;
+      --text: #1c1917;
+      --accent: #0f766e;
+      --accent-soft: rgba(15, 118, 110, 0.12);
+      --ok: #15803d;
+      --warn: #b45309;
+      --bad: #b91c1c;
+      --line: #e7e5e4;
+      --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.05);
+      --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      background-image: linear-gradient(180deg, #fafaf9 0%, #f5f5f4 55%, #fafaf9 100%);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1120px; margin: 0 auto; padding: 24px 20px 32px; }
+    .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 4px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+    .title { font-size: 1.5rem; font-weight: 700; margin: 0; letter-spacing: -0.02em; color: var(--text); }
+    .sub { color: var(--muted); font-size: 13px; font-weight: 400; margin-top: 6px; max-width: 36em; line-height: 1.55; }
+    .btn {
+      border: 1px solid var(--line); background: var(--card); color: var(--text);
+      border-radius: 10px; padding: 8px 14px; cursor: pointer;
+      font-size: 13px; font-weight: 500; box-shadow: var(--shadow-sm);
+    }
+    .btn:hover { border-color: #d6d3d1; background: #fafaf9; }
+    .cards { margin-top: 20px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 14px 16px;
+      box-shadow: var(--shadow-card);
+    }
+    .k { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: none; }
+    .v { margin-top: 8px; font-weight: 700; font-size: 1.25rem; color: var(--text); letter-spacing: -0.02em; }
+    .pill { display: inline-block; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600; }
+    .pill.buy { background: #ecfdf5; color: var(--ok); border: 1px solid #bbf7d0; }
+    .pill.sell { background: #fef2f2; color: var(--bad); border: 1px solid #fecaca; }
+    .pill.wait { background: #fffbeb; color: var(--warn); border: 1px solid #fde68a; }
+    .table-wrap { margin-top: 18px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: auto; box-shadow: var(--shadow-card); }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: none; cursor: pointer; user-select: none; background: var(--bg-elev); }
+    th.th-nosort { cursor: default; }
+    td { font-size: 14px; }
+    tr:hover td { background: rgba(15, 118, 110, 0.06); }
+    .muted { color: var(--muted); }
+    .empty { padding: 24px; color: var(--muted); }
+    .footer { margin-top: 14px; color: var(--muted); font-size: 12px; }
+    .tabs { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .tab-btn {
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: #44403c;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+    }
+    .tab-btn:hover { background: var(--bg-elev); border-color: #d6d3d1; }
+    .tab-btn.active { background: var(--accent-soft); color: #115e59; border-color: rgba(15, 118, 110, 0.35); font-weight: 600; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .section-title { margin: 0 0 8px 0; font-size: 16px; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      padding: 12px; border-bottom: 1px solid var(--line);
+    }
+    .toolbar input {
+      flex: 1; min-width: 200px; max-width: 420px;
+      background: #ffffff; border: 1px solid var(--line); color: var(--text);
+      border-radius: 8px; padding: 8px 10px; font-size: 14px;
+    }
+    .btn-sm {
+      font-size: 12px; padding: 6px 10px; border-radius: 8px;
+      border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer;
+    }
+    .btn-sm:hover { border-color: rgba(15, 118, 110, 0.45); }
+    .macro-sub { padding: 0 12px 12px; color: var(--muted); font-size: 13px; }
+    .boss-macro-board {
+      margin: 0 12px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+      padding: 12px;
+    }
+    .boss-macro-title { font-size: 14px; font-weight: 700; color: var(--text); margin: 0 0 8px; }
+    .boss-macro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .boss-macro-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: var(--card);
+    }
+    .boss-macro-item .t { font-size: 12px; color: var(--muted); text-transform: none; letter-spacing: 0.03em; font-weight: 600; }
+    .boss-macro-item .s { margin-top: 6px; font-size: 18px; font-weight: 800; }
+    .boss-macro-item .d { margin-top: 5px; font-size: 12px; color: var(--muted); line-height: 1.4; }
+    .boss-macro-item.ok .s { color: #16a34a; }
+    .boss-macro-item.warn .s { color: #d97706; }
+    .boss-macro-item.bad .s { color: #dc2626; }
+    .boss-macro-final {
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      padding: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: #f8fafc;
+    }
+    .boss-macro-final.ok { border-color: rgba(34,197,94,.45); background: rgba(34,197,94,.1); }
+    .boss-macro-final.warn { border-color: rgba(245,158,11,.45); background: rgba(245,158,11,.12); }
+    .boss-macro-final.bad { border-color: rgba(239,68,68,.45); background: rgba(239,68,68,.1); }
+    @media (max-width: 980px) { .boss-macro-grid { grid-template-columns: 1fr; } }
+    .boss-macro-matrix {
+      width: 100%;
+      margin-top: 12px;
+      border-collapse: collapse;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .boss-macro-matrix th, .boss-macro-matrix td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .boss-macro-matrix th { background: var(--bg-elev); color: var(--muted); font-weight: 700; }
+    .boss-macro-matrix tr:last-child td { border-bottom: none; }
+    .boss-macro-matrix td:first-child { font-weight: 600; color: var(--text); white-space: nowrap; }
+    .macro-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 0 12px 14px;
+    }
+    .macro-kpi {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .macro-kpi .mk-k { font-size: 11px; color: var(--muted); text-transform: none; letter-spacing: 0.04em; font-weight: 600; }
+    .macro-kpi .mk-v { margin-top: 6px; font-size: 20px; font-weight: 700; }
+    .macro-kpi .mk-c { margin-top: 4px; font-size: 12px; color: var(--muted); }
+    .macro-kpi .mk-spark { margin-top: 8px; height: 30px; opacity: .95; }
+    .macro-kpi .mk-spark svg { width: 100%; height: 100%; display: block; }
+    .macro-kpi .mk-spark path { fill: none; stroke: #0d9488; stroke-width: 2; }
+    .macro-kpi .mk-spark path.area { fill: rgba(13, 148, 136, 0.15); stroke: none; }
+    .macro-tone {
+      margin: 0 12px 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(15, 118, 110, 0.08);
+      color: var(--text);
+      font-size: 13px;
+    }
+    .macro-tone.risk-on { background: rgba(34,197,94,.14); border-color: rgba(34,197,94,.45); }
+    .macro-tone.neutral { background: rgba(245,158,11,.14); border-color: rgba(245,158,11,.45); }
+    .macro-tone.defensive { background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.45); }
+    .macro-legend {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin: 0 12px 10px;
+    }
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--text);
+      background: var(--bg-elev);
+    }
+    .chip.risk-on { background: rgba(34,197,94,.17); border-color: rgba(34,197,94,.4); }
+    .chip.neutral { background: rgba(245,158,11,.18); border-color: rgba(245,158,11,.45); }
+    .chip.defensive { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.45); }
+    .macro-sticky-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--bg-elev);
+    }
+    .macro-score-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 300px) minmax(220px, 300px) 1fr;
+      gap: 12px;
+      padding: 0 12px 14px;
+    }
+    .macro-score-card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .macro-score-card .ttl { font-size: 11px; text-transform: none; letter-spacing: 0.03em; color: var(--muted); font-weight: 600; }
+    .macro-score-card .sv { margin-top: 8px; font-size: 30px; font-weight: 800; }
+    .macro-score-card .sm { margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.45; }
+    .macro-score-card .sv.risk-on { color: #4ade80; }
+    .macro-score-card .sv.neutral { color: #fbbf24; }
+    .macro-score-card .sv.defensive { color: #f87171; }
+    .macro-score-card .pill-mini {
+      display: inline-block;
+      margin-top: 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+    .macro-score-card .pill-mini.risk-on { background: rgba(34,197,94,.16); border-color: rgba(34,197,94,.4); }
+    .macro-score-card .pill-mini.neutral { background: rgba(245,158,11,.16); border-color: rgba(245,158,11,.4); }
+    .macro-score-card .pill-mini.defensive { background: rgba(239,68,68,.16); border-color: rgba(239,68,68,.4); }
+    .macro-gauge-wrap { margin-top: 8px; height: 94px; }
+    .macro-gauge-wrap canvas { max-height: 88px !important; }
+    .macro-score-chart {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      min-height: 200px;
+    }
+    .macro-score-chart canvas { max-height: 170px !important; }
+    .macro-details { margin: 0 12px 12px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .macro-details summary {
+      cursor: pointer;
+      padding: 10px 12px;
+      background: var(--bg-elev);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      list-style: none;
+    }
+    .macro-details summary::-webkit-details-marker { display: none; }
+    .macro-details[open] summary { border-bottom: 1px solid var(--line); }
+    @media (max-width: 1180px) { .macro-score-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 900px) { .macro-score-grid { grid-template-columns: 1fr; } }
+    th[data-hist-key], th[data-log-key] { cursor: pointer; user-select: none; }
+    .chart-dash {
+      margin-top: 22px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow-card);
+    }
+    .chart-dash h3 {
+      margin: 0 0 16px 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+      letter-spacing: -0.01em;
+    }
+    .chart-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    @media (max-width: 700px) { .chart-grid-3 { grid-template-columns: 1fr; } }
+    .chart-cell {
+      background: #fafaf9;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      min-height: 260px;
+    }
+    .chart-cell .ttl {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+      color: #57534e;
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+    .chart-cell canvas { max-height: 220px !important; }
+    /* Top-10 horizontal bar: compact height + autoSkip off so each ticker shows. */
+    .chart-cell--rank {
+      min-height: 270px;
+    }
+    .chart-cell--rank canvas {
+      min-height: 210px !important;
+      max-height: 240px !important;
+    }
+    @media (max-width: 700px) {
+      .chart-cell--rank { min-height: 250px; }
+      .chart-cell--rank canvas { min-height: 200px !important; max-height: 230px !important; }
+    }
+    .macro-chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+      padding: 0 12px 16px;
+    }
+    .macro-chart-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px 10px;
+    }
+    .macro-chart-toolbar select {
+      background: #ffffff;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+    .macro-chart-cell {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      height: 240px;
+      min-height: 240px;
+      max-height: 240px;
+      overflow: hidden;
+    }
+    .macro-chart-cell .mttl { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    .macro-chart-cell canvas {
+      width: 100% !important;
+      height: 186px !important;
+      max-height: 186px !important;
+      display: block;
+    }
+    .lnk-tv {
+      margin-left: 8px;
+      font-size: 11px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .lnk-tv:hover { text-decoration: underline; color: #0d9488; }
+    .mode-switch { display: inline-flex; gap: 8px; margin-left: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .mode-btn { border: 1px solid var(--line); background: var(--card); color: #44403c; border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: var(--shadow-sm); }
+    .mode-btn:hover { background: var(--bg-elev); }
+    .mode-btn.active { background: var(--accent-soft); border-color: rgba(15, 118, 110, 0.35); color: #115e59; font-weight: 600; }
+    .arc-badge { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 6px; white-space: nowrap; font-weight: 600; }
+    .arc-perfect { background: rgba(34, 197, 94, 0.18); color: #15803d; }
+    .arc-erratic { background: rgba(239, 68, 68, 0.14); color: #b91c1c; }
+    .arc-rise { background: rgba(59, 130, 246, 0.14); color: #1d4ed8; }
+    .arc-fall { background: rgba(120, 113, 108, 0.16); color: #57534e; }
+    .arc-neutral { background: rgba(245, 158, 11, 0.12); color: #b45309; }
+    .band-icon { font-size: 1.15rem; line-height: 1; text-align: center; cursor: default; }
+    .pnl-pos { color: var(--ok); font-weight: 600; }
+    .pnl-neg { color: var(--bad); font-weight: 600; }
+    .pnl-flat { color: var(--muted); }
+    .action-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+    .action-badge.buy_call { background: rgba(59,130,246,.14); color: #1d4ed8; }
+    .action-badge.sell_put { background: rgba(34,197,94,.14); color: #15803d; }
+    @media (max-width: 960px) { .cards { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1 class="title">技術掃描</h1>
+        <div class="sub">全市場 RVOL / ADX / MACD 與綜合評分 · JSON 驅動 · 晨報式留白編排（視覺靈感參考 stockcast.tw）</div>
+      </div>
+      <div class="mode-switch">
+        <button id="modeSellPutBtn" class="mode-btn active" type="button">Sell Put 穩健收租</button>
+        <button id="modeBuyStockBtn" class="mode-btn" type="button">Buy Stock 極限爆發</button>
+        <button id="modeBuyPutBtn" class="mode-btn" type="button">Buy Put 恐慌破底</button>
+        <button id="reloadBtn" class="btn">Reload Data</button>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card"><div class="k">Last Updated</div><div id="lastUpdated" class="v" style="font-size:16px">-</div></div>
+      <div class="card"><div class="k">Strategy</div><div id="strategy" class="v" style="font-size:16px">-</div></div>
+      <div class="card"><div class="k">Total</div><div id="total" class="v">0</div></div>
+      <div class="card"><div class="k">強弱分佈</div><div class="v" style="font-size:16px"><span id="buyPill" class="pill buy">強勢 0</span> <span id="waitPill" class="pill wait">觀望 0</span> <span id="sellPill" class="pill sell">危險 0</span></div><div id="pillHint" class="muted" style="font-size:11px;margin-top:6px">綠＝強勢 · 橙＝觀望 · 紅＝危險</div></div>
+      <div class="card"><div class="k">Schema Version</div><div id="schemaVersion" class="v" style="font-size:16px">-</div></div>
+    </div>
+
+    <div id="chartDashboard" class="chart-dash">
+      <h3>市場快照圖表（本輪掃描 · 訊號歷史）</h3>
+      <div class="chart-grid-3">
+        <div class="chart-cell"><div class="ttl">訊號分佈</div><canvas id="chSignalPie" aria-label="Signals pie chart"></canvas></div>
+        <div class="chart-cell chart-cell--rank"><div class="ttl">強勢股綜合評分排行 (Top 10)</div><canvas id="chRsiBar" aria-label="Top 10 quant score ranking"></canvas></div>
+        <div class="chart-cell"><div class="ttl">每日訊號市寬（強勢 / 觀望 / 危險）</div><canvas id="chHistDaily" aria-label="Stacked daily signal breadth"></canvas></div>
+        <div class="chart-cell"><div class="ttl">尋寶象限圖：趨勢強度 vs 爆發量 (ADX vs RVOL)</div><canvas id="chScatter" aria-label="ADX vs RVOL quadrant"></canvas></div>
+      </div>
+      <p class="muted" style="margin:12px 0 0;font-size:11px;line-height:1.5;">
+        VIX／DXY／市寬等由「大佬三原色」Macro 分頁讀取 <code>macro_snapshot.json</code>；走勢圖在該頁摺疊區內。</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="activeTab">🎯 技術儀表</button>
+      <button class="tab-btn" data-tab="historyTab">💯 Full Market History</button>
+      <button class="tab-btn" data-tab="logTab">📝 Future Log</button>
+      <button class="tab-btn" data-tab="macroTab">大佬三原色</button>
+    </div>
+
+    <section id="activeTab" class="tab-panel active">
+      <div class="table-wrap">
+        <div class="toolbar">
+          <input type="search" id="activeFilter" placeholder="篩選：代碼、評分、ADX、MACD+/-, RS、VWAP…" autocomplete="off">
+          <label for="tableTopN" class="muted" style="font-size:12px;white-space:nowrap;">焦點列數（先按 Score 排序）</label>
+          <select id="tableTopN" class="btn-sm" style="padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;">
+            <option value="0" selected>全部</option>
+            <option value="20">Top 20</option>
+            <option value="35">Top 35</option>
+            <option value="50">Top 50</option>
+          </select>
+        </div>
+        <div id="tableSliceHint" class="muted" style="font-size:12px;padding:0 12px 8px;display:none;"></div>
+        <div id="scorePrevHint" class="muted" style="font-size:11px;padding:0 12px 8px;display:none;"></div>
+        <table id="stocksTable">
+          <thead>
+            <tr>
+              <th data-key="ticker">Ticker · TV</th>
+              <th data-key="hs_index" title="HSI = Hang Seng Index constituent. HSCEI = Hang Seng China Enterprises Index. N/A = neither (non‑HK tickers also N/A).">HSI / HSCEI</th>
+              <th data-key="tech_score_d2" title="Score 2（前 2 個交易日）">Score 2</th>
+              <th data-key="tech_score_d1" title="Score 1（前 1 個交易日）">Score 1</th>
+              <th data-key="tech_score" title="Score 0（今日）">Score 0</th>
+              <th data-key="score_arc_label" title="連續性型態：完美加速、神經刀等。">連續性</th>
+              <th data-key="tech_score_delta" title="Score 0 − Score 1">Δ</th>
+              <th data-key="signal" title="強勢／觀望／危險">Band</th>
+              <th data-key="close">Close</th>
+              <th data-key="rvol">RVOL</th>
+              <th data-key="adx">ADX</th>
+              <th data-key="dmi_gap">DMI</th>
+              <th data-key="mfi">MFI</th>
+              <th data-key="macd_sign">MACD</th>
+              <th data-key="macd_hist">Hist #</th>
+              <th data-key="rs_20d">RS 20d</th>
+              <th data-key="vwap">VWAP</th>
+              <th class="th-nosort">策略／複製</th>
+            </tr>
+          </thead>
+          <tbody id="stocksTbody"></tbody>
+        </table>
+        <div id="emptyState" class="empty" style="display:none;">No stocks in current scan.</div>
+      </div>
+    </section>
+
+    <section id="historyTab" class="tab-panel">
+      <div class="table-wrap">
+        <h3 class="section-title" style="padding: 12px 12px 0;">觸發式實盤覆盤（進場日 vs 現價）</h3>
+        <p id="historyRulesHint" class="muted" style="padding: 0 12px 10px; margin: 0; font-size: 12px; line-height: 1.55;"></p>
+        <div id="historySummary" class="muted" style="padding: 0 12px 10px; font-size: 12px; display: none;"></div>
+        <div class="toolbar">
+          <input type="search" id="historyFilter" placeholder="篩選：代碼、動作、MACD、評分…" autocomplete="off">
+          <label class="muted" style="font-size:12px;white-space:nowrap;">
+            <input type="checkbox" id="historyTriggersOnly" checked> 只顯示觸發訊號
+          </label>
+        </div>
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th data-hist-key="entry_date">進場日</th>
+              <th data-hist-key="ticker">Ticker</th>
+              <th data-hist-key="action">動作</th>
+              <th data-hist-key="score">Score</th>
+              <th data-hist-key="entry_price">進場價</th>
+              <th data-hist-key="latest_price">現價</th>
+              <th data-hist-key="pnl_pct">標的漲跌%</th>
+              <th data-hist-key="holding_days">持有日</th>
+              <th data-hist-key="macd_status">MACD</th>
+              <th data-hist-key="rvol">RVOL</th>
+            </tr>
+          </thead>
+          <tbody id="historyTbody"></tbody>
+        </table>
+        <div id="historyEmpty" class="empty" style="display:none;">No `signals_history.json` yet.</div>
+      </div>
+    </section>
+
+    <section id="logTab" class="tab-panel">
+      <div class="table-wrap">
+        <h3 class="section-title" style="padding: 12px 12px 0;">Execution / Future Log</h3>
+        <div class="toolbar">
+          <input type="search" id="logFilter" placeholder="篩選日誌…" autocomplete="off">
+        </div>
+        <table id="logTable">
+          <thead>
+            <tr>
+              <th data-log-key="logged_at">Logged At</th>
+              <th data-log-key="trigger_date">Trigger Date</th>
+              <th data-log-key="ticker">Ticker</th>
+              <th data-log-key="strategy">Strategy</th>
+              <th data-log-key="entry_price">Entry</th>
+              <th data-log-key="risk_notes">Risk Notes</th>
+            </tr>
+          </thead>
+          <tbody id="logTbody"></tbody>
+        </table>
+        <div id="logEmpty" class="empty" style="display:none;">No `future_log.json` yet.</div>
+      </div>
+    </section>
+
+    <section id="macroTab" class="tab-panel">
+      <div class="table-wrap">
+        <h3 class="section-title" style="padding: 12px 12px 0;">大佬三原色</h3>
+        <p class="muted" style="padding: 0 12px 8px; margin: 0; font-size: 12px; line-height: 1.55;">
+          資金溫度計（VIX · DXY · US 10Y）→ 市場寬度（樣本股高於 50／200 日線比例）→ 商品與早兆（黃金、油、BTC）。下表為本頁即時規則摘要。
+        </p>
+        <div id="macroSub" class="macro-sub"></div>
+        <div id="bossMacroBoard" class="boss-macro-board" style="display:none;"></div>
+        <div id="macroKpiGrid" class="macro-kpi-grid" style="display:none;"></div>
+        <div id="macroTone" class="macro-tone" style="display:none;"></div>
+        <div id="macroLegend" class="macro-legend" style="display:none;"></div>
+        <details class="macro-details">
+          <summary>原始宏觀表格（VIX / 指數 / 息率）</summary>
+          <p class="muted" style="padding:10px 12px 8px;font-size:12px;">Quick (VIX / HSI / BTC)</p>
+          <table class="macro-sticky-table">
+            <thead>
+              <tr>
+                <th>Metric</th><th>Value</th><th>Change</th>
+              </tr>
+            </thead>
+            <tbody id="macroTbody"></tbody>
+          </table>
+          <h4 class="section-title" style="padding:16px 12px 0;font-size:14px;">Market dashboard (Stock Analysis parity)</h4>
+          <table class="macro-sticky-table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Price / level</th><th>Δ%</th><th>RSI14</th><th>vs SMA200</th><th>52w high DD</th>
+              </tr>
+            </thead>
+            <tbody id="macroAdvancedTbody"></tbody>
+          </table>
+        </details>
+        <details class="macro-details" id="macroChartsDetails">
+          <summary>主要指數／資產走勢（日線圖表）— 按此展開</summary>
+          <h4 class="section-title" style="padding:16px 12px 0;font-size:14px;">圖表</h4>
+          <div class="macro-chart-toolbar">
+            <label for="macroChartStyle" class="muted" style="font-size:12px;">Style</label>
+            <select id="macroChartStyle">
+              <option value="area" selected>Area</option>
+              <option value="line">Line</option>
+              <option value="minimal">Minimal</option>
+            </select>
+            <button id="macroChartResetBtn" type="button" class="btn-sm">Reset Charts</button>
+          </div>
+          <div id="macroChartGrid" class="macro-chart-grid"></div>
+        </details>
+        <div id="macroEmpty" class="empty" style="display:none;">No `macro_snapshot.json` yet.</div>
+      </div>
+    </section>
+
+    <div class="footer">
+      圖表 Chart.js · Macro（macro_snapshot）· TradingView 外連。
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <script>
+    let rows = [];
+    let sortKey = "tech_score";
+    let sortAsc = false;
+    let lastScanStrategy = "-";
+    let activeScoreModel = "sell_put";
+    let activeFilter = "";
+    /** True after `daily_scan.json` was fetched and parsed successfully (file exists; may still have 0 rows). */
+    let dailyScanJsonOk = false;
+
+    let historySignals = [];
+    let breadthDailyHistory = null;
+    let histSortKey = "entry_date";
+    let histSortAsc = false;
+    let historyFilter = "";
+
+    let logRows = [];
+    let logSortKey = "logged_at";
+    let logSortAsc = false;
+    let logFilter = "";
+
+    const fmtNum = (v, d = 2) => (typeof v === "number" && Number.isFinite(v) ? v.toFixed(d) : "N/A");
+    const fmtDateLocal = (v) => {
+      if (!v) return "N/A";
+      const raw = String(v).trim();
+      const normalized = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(raw) ? raw.replace(" ", "T") : raw;
+      const dt = new Date(normalized);
+      if (Number.isNaN(dt.getTime())) return raw;
+      return dt.toLocaleString("zh-Hant-HK", { hour12: false });
+    };
+
+    function escapeHtml(s) {
+      if (s == null) return "";
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function escapeAttr(s) {
+      if (s == null) return "";
+      return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+
+    function parseSortTime(v) {
+      const raw = String(v ?? "").trim();
+      if (!raw) return 0;
+      const normalized = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(raw) ? raw.replace(" ", "T") : raw;
+      const t = new Date(normalized).getTime();
+      return Number.isNaN(t) ? 0 : t;
+    }
+
+    function numOrNaN(v) {
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+      const n = parseFloat(String(v).replace(/,/g, ""));
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    function num(x) {
+      if (typeof x === "number" && Number.isFinite(x)) return x;
+      const n = parseFloat(String(x).replace(/,/g, "").replace("%", ""));
+      return Number.isFinite(n) ? n : null;
+    }
+
+    async function copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+        } finally {
+          document.body.removeChild(ta);
+        }
+      }
+    }
+
+    function buildAiPrompt(r) {
+      const strat = lastScanStrategy || "-";
+      const ticker = r.ticker ?? r.Ticker ?? "N/A";
+      const sig = r.signal ?? r.Signal ?? "N/A";
+      const close = typeof r.close === "number" && Number.isFinite(r.close) ? r.close.toFixed(2) : String(r.close ?? r.Close ?? "N/A");
+      const macd = fmtNum(r.macd_hist ?? r["MACD Hist"], 4);
+      const rvol = fmtNum(r.rvol ?? r.RVOL, 2);
+      const reason = String(r.reason ?? r.Reason ?? "N/A");
+      const score = typeof r.tech_score === "number" && Number.isFinite(r.tech_score) ? String(r.tech_score) : "—";
+      const arcLine =
+        r.score_arc && String(r.score_arc).trim()
+          ? `三日軌跡：${r.score_arc} ｜ 連續性：${r.score_arc_label || "—"}`
+          : "三日軌跡：—（資料不足）";
+      const prevLine =
+        typeof r.tech_score_d1 === "number" && Number.isFinite(r.tech_score_d1)
+          ? `Score 1：${r.tech_score_d1} ｜ Score 2：${typeof r.tech_score_d2 === "number" ? r.tech_score_d2 : "—"} ｜ Δ：${fmtTechScoreDelta(r)}`
+          : typeof r.tech_score_prev === "number" && Number.isFinite(r.tech_score_prev)
+            ? `上一匯出：${r.tech_score_prev} ｜ Δ：${fmtTechScoreDelta(r)}`
+            : "日線對照：—";
+      const adx = fmtNum(r.adx ?? r.ADX, 1);
+      const macdSt = String(r.macd_sign ?? r.MACD_Sign ?? "N/A");
+      const rs20v = numOrNaN(r.rs_20d ?? r.RS_20d);
+      const rs20 = Number.isFinite(rs20v) ? rs20v.toFixed(2) : "N/A";
+      const vwap = fmtNum(r.vwap ?? r.VWAP, 2);
+      const preset = String(r.ai_strategy_comment ?? "").trim();
+      const hsIx = String(r.hs_index ?? r.HS_Index ?? "N/A").trim();
+      const scoreModel =
+        activeScoreModel === "buy_stock" ? "buy_stock" : activeScoreModel === "buy_put" ? "buy_put" : "sell_put";
+      const tailSellPut = `請以專業量化交易員角度，僅依技術面（量／趨勢／MACD 動能）簡評：下行風險、支撐與 VWAP 安全墊、是否適合「賣 Put／收租」部署；嚴禁順勢追突破、加碼追價等買方用語（繁體中文）。`;
+      const tailBuyStock = `請以專業量化交易員角度，僅依技術面（量／趨勢／MACD 動能）簡評：爆發力、RVOL 資金流、ADX／RS 強度、MACD 是否水面爆發或仍水底橫盤（假突破風險）、跌穿 VWAP 時不宜急進；可提及 Buy Call／Bull Call Spread 或觀望等（繁體中文）。`;
+      const tailBuyPut = `請以專業量化交易員角度，僅依技術面簡評：弱勢 RS、放量下殺、MACD 空頭柱是否擴張、VWAP 是否成為上方阻力；嚴禁撈底、支撐、買入多方用語；可提及 Buy Put／Bear Put Spread 或觀望等（繁體中文）。`;
+      const tail =
+        scoreModel === "buy_stock" ? tailBuyStock : scoreModel === "buy_put" ? tailBuyPut : tailSellPut;
+      const modeLabel =
+        scoreModel === "buy_stock"
+          ? "極限爆發 (Buy Stock / Buy Call 視角)"
+          : scoreModel === "buy_put"
+            ? "恐慌破底 (Buy Put / 做淡 視角)"
+            : "穩健收租 (Sell Put 視角)";
+      return `【Stock Scanner · 技術覆核（非基本面）】
+模式：${modeLabel}
+策略執行：${strat}
+標的：${ticker}
+恒指系列（HSI／HSCEI）：${hsIx}
+評分：${score}/100 ｜ Band：${sig}
+${arcLine}
+${prevLine}
+收盤：${close}
+RVOL（量）：${rvol}
+ADX：${adx}
+MACD：${macdSt}
+MACD Hist 數值：${macd}
+RS(20d)：${rs20}${rs20 === "N/A" ? "" : "%"}
+VWAP：${vwap}
+規則引擎摘要：${reason}
+系統策略草稿：${preset || "—"}
+
+${tail}`;
+    }
+
+    function rowMatchesActiveFilter(r, q) {
+      if (!q) return true;
+      const blob = [
+        r.ticker, r.Ticker, r.signal, r.Signal, r.reason, r.Reason,
+        r.close, r.Close, r.rsi, r.RSI, r.mfi, r.MFI, r.dmi_gap, r.DMI_Gap, r.PDI, r.MDI,
+        r.macd_hist, r.rvol, r.RVOL, r.tech_score, r.tech_score_d2, r.tech_score_d1, r.tech_score_prev, r.tech_score_delta,
+        r.score_arc, r.score_arc_label, r.score_arc_pattern, r.adx, r.ADX, r.macd_sign, r.MACD_Sign,
+        r.rs_20d, r.RS_20d, r.vwap, r.VWAP, r.ai_strategy_comment,
+        r.hs_index, r.HS_Index,
+      ]
+        .map((x) => (x != null ? String(x) : ""))
+        .join(" ")
+        .toLowerCase();
+      return blob.includes(q);
+    }
+
+    /** Format tech_score_delta for display (+3, −2, 0, —). */
+    function fmtTechScoreDelta(r) {
+      const d = num(r.tech_score_delta);
+      if (!Number.isFinite(d)) return "—";
+      if (d === 0) return "0";
+      return (d > 0 ? "+" : "") + String(d);
+    }
+
+    function arcLabelClass(pattern) {
+      const p = String(pattern || "").toLowerCase();
+      if (p === "perfect_accel") return "arc-badge arc-perfect";
+      if (p === "erratic" || p === "volatile") return "arc-badge arc-erratic";
+      if (p === "steady_fall" || p === "fall") return "arc-badge arc-fall";
+      if (p === "rise" || p === "single_up") return "arc-badge arc-rise";
+      return "arc-badge arc-neutral";
+    }
+
+    /** Dates excluded from 每日訊號市寬 (old 693-stock universe distorts chart). */
+    const BREADTH_CHART_EXCLUDE_DATES = new Set(["2026-05-12", "2026-05-13", "2026-05-14"]);
+
+    const BAND_CHART_LABEL = { green: "強勢", yellow: "觀望", red: "危險" };
+
+    function classifySignal(raw) {
+      const sig = String(raw ?? "").toUpperCase();
+      if (sig.includes("STRONG") || sig.includes("BUY")) {
+        return {
+          key: "green",
+          icon: "🔥",
+          label: "強勢",
+          chartLabel: BAND_CHART_LABEL.green,
+          color: "rgba(34,197,94,0.78)",
+        };
+      }
+      if (sig.includes("CAUTION") || sig.includes("SELL") || sig.includes("PROFIT")) {
+        return {
+          key: "red",
+          icon: "⚠️",
+          label: "危險",
+          chartLabel: BAND_CHART_LABEL.red,
+          color: "rgba(239,68,68,0.78)",
+        };
+      }
+      return {
+        key: "yellow",
+        icon: "👀",
+        label: "觀望",
+        chartLabel: BAND_CHART_LABEL.yellow,
+        color: "rgba(245,158,11,0.85)",
+      };
+    }
+
+    function bandIconHtml(raw) {
+      const b = classifySignal(raw);
+      return `<span class="band-icon" title="${escapeHtml(b.label)}">${b.icon}</span>`;
+    }
+
+    function getTableTopLimit() {
+      const el = document.getElementById("tableTopN");
+      if (!el) return 0;
+      const v = parseInt(String(el.value), 10);
+      return Number.isFinite(v) && v > 0 ? v : 0;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("stocksTbody");
+      const empty = document.getElementById("emptyState");
+      tbody.innerHTML = "";
+
+      const q = activeFilter.trim().toLowerCase();
+      const filtered = q ? rows.filter((r) => rowMatchesActiveFilter(r, q)) : [...rows];
+
+      const sortVal = (row) => {
+        if (sortKey === "tech_score") {
+          if (typeof row?.tech_score === "number" && Number.isFinite(row.tech_score)) return row.tech_score;
+          const n = numOrNaN(row?.tech_score);
+          return Number.isFinite(n) ? n : -1;
+        }
+        if (sortKey === "tech_score_d2" || sortKey === "tech_score_d1" || sortKey === "tech_score_prev") {
+          const n = numOrNaN(row?.[sortKey]);
+          return Number.isFinite(n) ? n : -1e9;
+        }
+        if (sortKey === "tech_score_delta") {
+          const n = numOrNaN(row?.tech_score_delta);
+          return Number.isFinite(n) ? n : -1e9;
+        }
+        if (sortKey === "score_arc_label") {
+          return String(row?.score_arc_label ?? "");
+        }
+        if (sortKey === "close") return numOrNaN(row?.close ?? row?.Close);
+        if (sortKey === "hs_index") return String(row?.hs_index ?? row?.HS_Index ?? "");
+        if (sortKey === "rvol" || sortKey === "macd_hist" || sortKey === "adx" || sortKey === "rs_20d" || sortKey === "vwap" || sortKey === "mfi" || sortKey === "dmi_gap") {
+          const map = {
+            rvol: "RVOL",
+            macd_hist: "MACD_Hist",
+            adx: "ADX",
+            rs_20d: "RS_20d",
+            vwap: "VWAP",
+            mfi: "MFI",
+            dmi_gap: "DMI_Gap",
+          };
+          const n = numOrNaN(row?.[sortKey] ?? row?.[map[sortKey]]);
+          return Number.isFinite(n) ? n : NaN;
+        }
+        return row?.[sortKey];
+      };
+
+      const sorted = filtered.sort((a, b) => {
+        const av = sortVal(a);
+        const bv = sortVal(b);
+        if (typeof av === "number" && typeof bv === "number" && !Number.isNaN(av) && !Number.isNaN(bv)) {
+          if (av !== bv) return sortAsc ? av - bv : bv - av;
+          return String(a?.ticker ?? a?.Ticker ?? "").localeCompare(String(b?.ticker ?? b?.Ticker ?? ""));
+        }
+        return sortAsc
+          ? String(av ?? "").localeCompare(String(bv ?? ""))
+          : String(bv ?? "").localeCompare(String(av ?? ""));
+      });
+
+      const topN = getTableTopLimit();
+      const displayRows = topN > 0 ? sorted.slice(0, topN) : sorted;
+      const hint = document.getElementById("tableSliceHint");
+      if (hint) {
+        if (topN > 0 && sorted.length > 0) {
+          hint.style.display = "block";
+          hint.textContent = `焦點視圖：顯示 ${displayRows.length} 列（評分前 ${topN}）· 篩選後共 ${sorted.length} 列 · 全表 ${rows.length} 隻`;
+        } else {
+          hint.style.display = sorted.length && sorted.length !== rows.length ? "block" : "none";
+          hint.textContent = sorted.length && sorted.length !== rows.length
+            ? `篩選後共 ${sorted.length} 列（全表 ${rows.length} 隻）`
+            : "";
+        }
+      }
+
+      if (!rows.length) {
+        const hintEl = document.getElementById("tableSliceHint");
+        if (hintEl) { hintEl.style.display = "none"; hintEl.textContent = ""; }
+        empty.textContent = dailyScanJsonOk
+          ? "已載入 daily_scan.json，但 stocks 為空。請在專案根目錄執行：`python3 run_scan_export_json.py`（預設讀取 hkstocklist.csv）。"
+          : "尚無掃描表。請在專案根執行 `python3 run_scan_export_json.py` 產生 daily_scan.json（可設 cron／launchd 每 30 分鐘刷新）。";
+        empty.style.display = "block";
+        return;
+      }
+      if (!sorted.length) {
+        if (hint) { hint.style.display = "none"; hint.textContent = ""; }
+        empty.textContent = "沒有符合篩選的列。";
+        empty.style.display = "block";
+        return;
+      }
+      empty.style.display = "none";
+
+      for (const r of displayRows) {
+        const tr = document.createElement("tr");
+        const rawT = r.ticker ?? r.Ticker ?? "N/A";
+        const tv = tradingViewUrl(rawT);
+        const tvHtml = tv
+          ? `<a class="lnk-tv" href="${escapeHtml(tv)}" target="_blank" rel="noopener noreferrer">TradingView →</a>`
+          : "";
+        const sc0 =
+          typeof r.tech_score === "number" && Number.isFinite(r.tech_score) ? String(r.tech_score) : "—";
+        const sc1 =
+          typeof r.tech_score_d1 === "number" && Number.isFinite(r.tech_score_d1)
+            ? String(r.tech_score_d1)
+            : typeof r.tech_score_prev === "number" && Number.isFinite(r.tech_score_prev)
+              ? String(r.tech_score_prev)
+              : "—";
+        const sc2 =
+          typeof r.tech_score_d2 === "number" && Number.isFinite(r.tech_score_d2) ? String(r.tech_score_d2) : "—";
+        const arcLabel = escapeHtml(String(r.score_arc_label || "—").trim() || "—");
+        const arcPat = String(r.score_arc_pattern || "");
+        const deltaStr = escapeHtml(fmtTechScoreDelta(r));
+        const adxV = fmtNum(r.adx ?? r.ADX, 1);
+        const dmiGapV = fmtNum(r.dmi_gap ?? r.DMI_Gap ?? (numOrNaN(r.PDI) - numOrNaN(r.MDI)), 1);
+        const mfiV = fmtNum(r.mfi ?? r.MFI, 1);
+        const macdSt = escapeHtml(r.macd_sign ?? r.MACD_Sign ?? "N/A");
+        const rs20v = numOrNaN(r.rs_20d ?? r.RS_20d);
+        const rs20 = Number.isFinite(rs20v) ? rs20v.toFixed(2) : "N/A";
+        const vwap = fmtNum(r.vwap ?? r.VWAP, 2);
+        const bandCell = bandIconHtml(r.signal ?? r.Signal ?? "N/A");
+        const hsIx = escapeHtml(String(r.hs_index ?? r.HS_Index ?? "N/A").trim() || "N/A");
+        tr.innerHTML = `
+          <td>${escapeHtml(rawT)}<br>${tvHtml}</td>
+          <td class="muted" style="font-size:12px;white-space:nowrap;" title="HSI / HSCEI vs built-in index lists">${hsIx}</td>
+          <td class="muted" title="Score 2（前 2 交易日）">${sc2}</td>
+          <td class="muted" title="Score 1（前 1 交易日）">${sc1}</td>
+          <td><strong title="Score 0（今日）">${sc0}</strong></td>
+          <td><span class="${arcLabelClass(arcPat)}" title="${escapeHtml(arcPat)}">${arcLabel}</span></td>
+          <td class="muted" title="Score 0 − Score 1">${deltaStr}</td>
+          <td>${bandCell}</td>
+          <td>${fmtNum(r.close ?? r.Close, 2)}</td>
+          <td>${fmtNum(r.rvol ?? r.RVOL, 2)}</td>
+          <td>${adxV}</td>
+          <td>${dmiGapV}</td>
+          <td>${mfiV}</td>
+          <td class="muted" style="font-size:12px;max-width:160px;">${macdSt}</td>
+          <td>${fmtNum(r.macd_hist ?? r["MACD Hist"], 4)}</td>
+          <td>${rs20}${rs20 === "N/A" ? "" : "%"}</td>
+          <td>${vwap}</td>
+          <td></td>
+        `;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn-sm";
+        btn.textContent = "複製提示";
+        btn.title = "複製給 AI 的技術覆核提示詞";
+        btn.addEventListener("click", () => {
+          copyToClipboard(buildAiPrompt(r));
+          btn.textContent = "已複製";
+          setTimeout(() => { btn.textContent = "複製"; }, 1600);
+        });
+        tr.lastElementChild.appendChild(btn);
+        tbody.appendChild(tr);
+      }
+    }
+
+    const EMPTY_MESSAGES = {
+      emptyState: "No stocks in current scan.",
+      historyEmpty: "No `signals_history.json` yet.",
+      logEmpty: "No `future_log.json` yet.",
+      macroEmpty: "No `macro_snapshot.json` yet.",
+    };
+
+    function setEmptyState(id, show, text) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = show ? "block" : "none";
+      if (show) el.textContent = text ?? EMPTY_MESSAGES[id] ?? "";
+      else el.textContent = EMPTY_MESSAGES[id] ?? "";
+    }
+
+    /**
+     * JSON files live in the repo root next to `frontend/`. Absolute `/file.json`
+     * breaks when the app is under a path prefix; try parent-of-frontend first.
+     */
+    function jsonUrlCandidates(filename) {
+      const raw = [];
+      try {
+        raw.push(new URL("../" + filename, window.location.href).href);
+      } catch {
+        /* ignore */
+      }
+      const { origin, pathname } = window.location;
+      const m = pathname.match(/^(.*)\/frontend\//);
+      if (m && m[1] !== "") {
+        const base = m[1].replace(/\/?$/, "/");
+        raw.push(origin + base + filename);
+      }
+      raw.push(origin + "/" + filename);
+      return [...new Set(raw)];
+    }
+
+    function dailyScanFilenameByModel(model) {
+      if (String(model) === "buy_stock") return "daily_scan_buy_stock.json";
+      if (String(model) === "buy_put") return "daily_scan_buy_put.json";
+      return "daily_scan_sell_put.json";
+    }
+
+    /** Per-model export filenames from CLI / Streamlit — trust when fetch URL matches (avoids wrong_engine if scan.score_model is stale). */
+    function inferModelFromScanUrl(url) {
+      const path = String(url || "").split("?")[0].toLowerCase();
+      const base = path.split("/").pop() || "";
+      if (base === "daily_scan_buy_stock.json") return "buy_stock";
+      if (base === "daily_scan_buy_put.json") return "buy_put";
+      if (base === "daily_scan_sell_put.json") return "sell_put";
+      return null;
+    }
+
+    /** True if JSON payload matches the scoring engine the user selected (slug or legacy strategy string). */
+    function scanPayloadMatchesMode(data, model, sourceUrl) {
+      if (!data || !data.scan) return false;
+      const fromFile = inferModelFromScanUrl(sourceUrl);
+      if (fromFile && fromFile === String(model)) return true;
+      const st = String(data.scan.strategy ?? "");
+      const raw = data.scan.score_model != null ? String(data.scan.score_model).trim() : "";
+      const slug =
+        raw !== "" && raw.toLowerCase() !== "null" && raw.toLowerCase() !== "none" ? raw.toLowerCase() : "";
+      if (slug) return slug === model;
+      if (model === "buy_put") {
+        return /\b(buy_put|ScoreModel\s*=\s*buy_put)\b/i.test(st) || /恐慌破底/i.test(st);
+      }
+      if (model === "buy_stock") {
+        return /\b(buy_stock|ScoreModel\s*=\s*buy_stock)\b/i.test(st) || /極限爆發/i.test(st);
+      }
+      if (model === "sell_put") {
+        if (/\b(buy_put|ScoreModel\s*=\s*buy_put|buy_stock|ScoreModel\s*=\s*buy_stock)\b/i.test(st)) return false;
+        return /\b(sell_put|ScoreModel\s*=\s*sell_put)\b/i.test(st) || /穩健收租/i.test(st) || !/\bScoreModel\s*=/i.test(st);
+      }
+      return false;
+    }
+
+    /** Fetch order: prefer per-model file; allow legacy daily_scan.json only as last resort when it matches mode. */
+    function dailyScanUrlCandidatesForActiveModel() {
+      const m = String(activeScoreModel || "sell_put");
+      const tail = [];
+      if (m === "sell_put") {
+        tail.push("daily_scan_sell_put.json", "daily_scan.json");
+      } else if (m === "buy_stock") {
+        tail.push("daily_scan_buy_stock.json", "daily_scan.json");
+      } else if (m === "buy_put") {
+        tail.push("daily_scan_buy_put.json", "daily_scan.json");
+      }
+      const primary = dailyScanFilenameByModel(m);
+      return [...new Set([primary, ...tail])].flatMap((fn) => jsonUrlCandidates(fn));
+    }
+
+    function syncScoreModeButtons() {
+      const sellBtn = document.getElementById("modeSellPutBtn");
+      const buyBtn = document.getElementById("modeBuyStockBtn");
+      const putBtn = document.getElementById("modeBuyPutBtn");
+      if (sellBtn) sellBtn.classList.toggle("active", activeScoreModel === "sell_put");
+      if (buyBtn) buyBtn.classList.toggle("active", activeScoreModel === "buy_stock");
+      if (putBtn) putBtn.classList.toggle("active", activeScoreModel === "buy_put");
+    }
+
+    async function fetchJsonSafe(filename) {
+      for (const url of jsonUrlCandidates(filename)) {
+        try {
+          const sep = url.includes("?") ? "&" : "?";
+          const res = await fetch(url + sep + "ts=" + Date.now(), { cache: "no-store" });
+          if (!res.ok) continue;
+          return await res.json();
+        } catch {
+          /* try next */
+        }
+      }
+      return null;
+    }
+
+    const CHART_THEME = { tick: "#78716c", grid: "rgba(120, 113, 108, 0.14)" };
+    let _chartsOverview = [];
+    let _chartsMacro = [];
+    let _chartsMacroScore = [];
+    let _chartsMacroGauge = [];
+    let _lastMacroSeries = null;
+    let _macroChartStyle = "area";
+
+    function destroyCharts(list) {
+      while (list.length) {
+        const c = list.pop();
+        try {
+          if (c) c.destroy();
+        } catch (_) { /* noop */ }
+      }
+    }
+
+    function tradingViewUrl(sym) {
+      const t = String(sym || "").trim().toUpperCase();
+      if (!t) return "";
+      if (t.endsWith(".HK")) {
+        const num = parseInt(t.replace(".HK", ""), 10);
+        if (Number.isFinite(num)) {
+          return "https://www.tradingview.com/chart/?symbol=HKEX%3A" + num + "&interval=1D";
+        }
+      }
+      return "https://www.tradingview.com/chart/?symbol=" + encodeURIComponent(t) + "&interval=1D";
+    }
+
+    /** tech_score from scan row */
+    function rowTechScore(r) {
+      const s = num(r.tech_score);
+      return Number.isFinite(s) ? s : null;
+    }
+    /** RS 20d outperform (%) */
+    function rowRs20(r) {
+      let v = num(r.rs_20d);
+      if (Number.isFinite(v)) return v;
+      v = num(r.RS_20d);
+      return Number.isFinite(v) ? v : null;
+    }
+    function rowAdx(r) {
+      const v = num(r.adx ?? r.ADX);
+      return Number.isFinite(v) ? v : null;
+    }
+    function rowRvol(r) {
+      const v = num(r.rvol ?? r.RVOL);
+      return Number.isFinite(v) ? v : null;
+    }
+    /** Top-score bar: colors strictly by Band — STRONG green, WATCH orange, CAUTION red */
+    function scoreBandBarColor(r) {
+      const band = classifySignal(r.signal ?? r.Signal);
+      if (band.key === "green") return "rgba(34,197,94,0.88)"; // STRONG
+      if (band.key === "yellow") return "rgba(249,115,22,0.9)"; // WATCH
+      return "rgba(239,68,68,0.82)"; // CAUTION
+    }
+    /**
+     * ADX vs RVOL: faint quadrant fills + ref lines + labels (Chart.js plugin).
+     * Axes: ADX vertical split 20, RVOL horizontal split 1.0.
+     */
+    const adxRvolQuadrantPlugin = {
+      id: "adxRvolQuadrant",
+      beforeDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        const xS = scales.x;
+        const yS = scales.y;
+        if (!ctx || !chartArea || !xS || !yS) return;
+        const x20 = xS.getPixelForValue(20);
+        const y1 = yS.getPixelForValue(1.0);
+        if (!Number.isFinite(x20) || !Number.isFinite(y1)) return;
+        const L = chartArea.left;
+        const R = chartArea.right;
+        const T = chartArea.top;
+        const B = chartArea.bottom;
+        const clampX = (v) => Math.min(R, Math.max(L, v));
+        const clampY = (v) => Math.min(B, Math.max(T, v));
+        const xl = clampX(L);
+        const xr = clampX(R);
+        const yt = clampY(T);
+        const yb = clampY(B);
+        const xm = clampX(x20);
+        const ym = clampY(y1);
+        ctx.save();
+        const fills = [
+          { x: xl, y: yt, w: xm - xl, h: ym - yt, fill: "rgba(148,163,184,0.07)" }, // TL quiet chop
+          { x: xm, y: yt, w: xr - xm, h: ym - yt, fill: "rgba(34,197,94,0.07)" }, // TR breakout
+          { x: xl, y: ym, w: xm - xl, h: yb - ym, fill: "rgba(148,163,184,0.05)" }, // BL range
+          { x: xm, y: ym, w: xr - xm, h: yb - ym, fill: "rgba(245,158,11,0.06)" }, // BR trend quiet vol
+        ];
+        for (const q of fills) {
+          if (q.w <= 0 || q.h <= 0) continue;
+          ctx.fillStyle = q.fill;
+          ctx.fillRect(q.x, q.y, q.w, q.h);
+        }
+        ctx.restore();
+      },
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        const xS = scales.x;
+        const yS = scales.y;
+        if (!ctx || !chartArea || !xS || !yS) return;
+        const x20 = xS.getPixelForValue(20);
+        const y1 = yS.getPixelForValue(1.0);
+        const L = chartArea.left;
+        const R = chartArea.right;
+        const T = chartArea.top;
+        const B = chartArea.bottom;
+        ctx.save();
+        ctx.strokeStyle = "rgba(71,85,105,0.72)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 4]);
+        if (Number.isFinite(x20) && x20 >= L && x20 <= R) {
+          ctx.beginPath();
+          ctx.moveTo(x20, T);
+          ctx.lineTo(x20, B);
+          ctx.stroke();
+        }
+        if (Number.isFinite(y1) && y1 >= T && y1 <= B) {
+          ctx.beginPath();
+          ctx.moveTo(L, y1);
+          ctx.lineTo(R, y1);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        ctx.font = "600 11px system-ui, -apple-system, Segoe UI, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const labels = [
+          { cx: (L + x20) / 2, cy: (T + y1) / 2, t: "Vol spike", sub: "弱趨勢" },
+          { cx: (x20 + R) / 2, cy: (T + y1) / 2, t: "Breakout Zone", sub: "" },
+          { cx: (L + x20) / 2, cy: (y1 + B) / 2, t: "Quiet range", sub: "縮量盤整" },
+          { cx: (x20 + R) / 2, cy: (y1 + B) / 2, t: "Trend", sub: "低爆量" },
+        ];
+        for (const { cx, cy, t, sub } of labels) {
+          if (!Number.isFinite(cx) || !Number.isFinite(cy)) continue;
+          if (cx < L + 8 || cx > R - 8 || cy < T + 10 || cy > B - 10) continue;
+          ctx.fillStyle = "rgba(100,116,139,0.42)";
+          ctx.fillText(t, cx, sub ? cy - 7 : cy);
+          if (sub) {
+            ctx.font = "500 10px system-ui, -apple-system, Segoe UI, sans-serif";
+            ctx.fillStyle = "rgba(100,116,139,0.32)";
+            ctx.fillText(sub, cx, cy + 8);
+            ctx.font = "600 11px system-ui, -apple-system, Segoe UI, sans-serif";
+          }
+        }
+        ctx.restore();
+      },
+    };
+
+    function buildBreadthByDay(scanRows, signals, breadthHistory) {
+      const byDay = {};
+      const model = activeScoreModel || "sell_put";
+      const days = Array.isArray(breadthHistory?.days) ? breadthHistory.days : [];
+      for (const entry of days) {
+        if (!entry || String(entry.model || "") !== model) continue;
+        const d = String(entry.date || "").slice(0, 10);
+        if (d.length !== 10) continue;
+        if (BREADTH_CHART_EXCLUDE_DATES.has(d)) continue;
+        byDay[d] = {
+          strong: Number(entry.strong) || 0,
+          watch: Number(entry.watch) || 0,
+          caution: Number(entry.caution) || 0,
+        };
+      }
+      // Legacy fallback: per-ticker signals_history (pre–breadth_daily_history era)
+      for (const s of signals || []) {
+        const d = String(s.date || "").slice(0, 10);
+        if (d.length !== 10 || BREADTH_CHART_EXCLUDE_DATES.has(d)) continue;
+        if (byDay[d]) continue;
+        if (!byDay[d]) byDay[d] = { strong: 0, watch: 0, caution: 0 };
+        const k = classifySignal(s.signal ?? s.Signal).key;
+        if (k === "green") byDay[d].strong += 1;
+        else if (k === "red") byDay[d].caution += 1;
+        else byDay[d].watch += 1;
+      }
+      // Today's scan (always reflect current dashboard bands)
+      let todayKey = "";
+      const lu = document.getElementById("lastUpdated")?.textContent?.trim();
+      if (lu && lu !== "-") {
+        const parsed = parseSortTime(lu);
+        if (parsed) todayKey = new Date(parsed).toISOString().slice(0, 10);
+      }
+      if (!todayKey) todayKey = new Date().toISOString().slice(0, 10);
+      if (Array.isArray(scanRows) && scanRows.length && !BREADTH_CHART_EXCLUDE_DATES.has(todayKey)) {
+        const snap = { strong: 0, watch: 0, caution: 0 };
+        for (const r of scanRows) {
+          const k = classifySignal(r.signal ?? r.Signal).key;
+          if (k === "green") snap.strong += 1;
+          else if (k === "red") snap.caution += 1;
+          else snap.watch += 1;
+        }
+        byDay[todayKey] = snap;
+      }
+      return byDay;
+    }
+
+    function renderOverviewCharts(scanRows, signals, breadthHistory) {
+      if (typeof Chart === "undefined") return;
+      destroyCharts(_chartsOverview);
+      const text = CHART_THEME.tick;
+
+      const pieEl = document.getElementById("chSignalPie");
+      if (!pieEl) return;
+      let b = 0;
+      let sel = 0;
+      let w = 0;
+      for (const r of scanRows || []) {
+        const k = classifySignal(r.signal ?? r.Signal).key;
+        if (k === "green") b += 1;
+        else if (k === "red") sel += 1;
+        else w += 1;
+      }
+      const pieData = b + sel + w > 0 ? [b, sel, w] : [1];
+      const pieLabels = b + sel + w > 0
+        ? [BAND_CHART_LABEL.green, BAND_CHART_LABEL.red, BAND_CHART_LABEL.yellow]
+        : ["無本輪訊號"];
+      const pieColors = b + sel + w > 0
+        ? ["rgba(34,197,94,0.8)", "rgba(239,68,68,0.8)", "rgba(245,158,11,0.85)"]
+        : ["rgba(148,163,184,0.35)"];
+      _chartsOverview.push(
+        new Chart(pieEl, {
+          type: "doughnut",
+          data: {
+            labels: pieLabels,
+            datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 0 }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: "bottom", labels: { color: text, boxWidth: 12, font: { size: 11 } } },
+            },
+          },
+        }),
+      );
+
+      const barEl = document.getElementById("chRsiBar");
+      if (barEl) {
+        const scored = (scanRows || [])
+          .map((r) => ({
+            t: String(r.ticker ?? r.Ticker ?? "?").trim() || "?",
+            score: rowTechScore(r),
+            rs: rowRs20(r),
+            raw: r,
+          }))
+          .filter((x) => x.score != null && Number.isFinite(x.score));
+        scored.sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          const ar = Number.isFinite(a.rs) ? a.rs : -1e18;
+          const br = Number.isFinite(b.rs) ? b.rs : -1e18;
+          return br - ar;
+        });
+        const top10 = scored.slice(0, 10);
+        const display = [...top10].reverse();
+        if (display.length) {
+          _chartsOverview.push(
+            new Chart(barEl, {
+              type: "bar",
+              data: {
+                labels: display.map((x) => x.t),
+                datasets: [
+                  {
+                    label: "綜合評分",
+                    data: display.map((x) => x.score),
+                    backgroundColor: display.map((x) => scoreBandBarColor(x.raw)),
+                    borderRadius: 4,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: "y",
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      title(items) {
+                        return items.length ? String(items[0].label) : "";
+                      },
+                      label(items) {
+                        const i = items[0].dataIndex;
+                        const x = display[i];
+                        if (!x) return "";
+                        const rsS = Number.isFinite(x.rs) ? `${x.rs.toFixed(2)}%` : "—";
+                        return [`Score: ${x.score}`, `RS 20d: ${rsS}`, `Band: ${classifySignal(x.raw.signal ?? x.raw.Signal).chartLabel}`];
+                      },
+                    },
+                  },
+                },
+                layout: { padding: { left: 4, right: 6, top: 2, bottom: 2 } },
+                scales: {
+                  x: { min: 0, max: 100, ticks: { color: text }, grid: { color: CHART_THEME.grid }, title: { display: true, text: "Score (0–100)", color: text, font: { size: 11 } } },
+                  y: {
+                    ticks: {
+                      autoSkip: false,
+                      color: text,
+                      font: { size: 10 },
+                    },
+                    grid: { display: false },
+                  },
+                },
+              },
+            }),
+          );
+        }
+      }
+
+      const lineEl = document.getElementById("chHistDaily");
+      const byDay = buildBreadthByDay(scanRows, signals, breadthHistory);
+      const days = Object.keys(byDay).sort();
+      if (lineEl && days.length) {
+        const last = days.slice(-120);
+        if (last.length) {
+          _chartsOverview.push(
+            new Chart(lineEl, {
+              type: "bar",
+              data: {
+                labels: last,
+                datasets: [
+                  {
+                    label: BAND_CHART_LABEL.green,
+                    data: last.map((d) => byDay[d].strong),
+                    backgroundColor: "rgba(34,197,94,0.82)",
+                    stack: "breadth",
+                  },
+                  {
+                    label: BAND_CHART_LABEL.yellow,
+                    data: last.map((d) => byDay[d].watch),
+                    backgroundColor: "rgba(249,115,22,0.82)",
+                    stack: "breadth",
+                  },
+                  {
+                    label: BAND_CHART_LABEL.red,
+                    data: last.map((d) => byDay[d].caution),
+                    backgroundColor: "rgba(239,68,68,0.78)",
+                    borderRadius: { topLeft: 3, topRight: 3, bottomLeft: 0, bottomRight: 0 },
+                    stack: "breadth",
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: "top", labels: { color: text, boxWidth: 12, font: { size: 10 }, padding: 8 } },
+                  tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    callbacks: {
+                      footer(items) {
+                        const i = items[0].dataIndex;
+                        const d = last[i];
+                        const row = byDay[d];
+                        if (!row) return "";
+                        const t = row.strong + row.watch + row.caution;
+                        return t ? `當日合計: ${t}` : "";
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    stacked: true,
+                    ticks: { maxRotation: 55, font: { size: 9 }, color: text, maxTicksLimit: 14 },
+                    grid: { color: CHART_THEME.grid },
+                  },
+                  y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: { color: text, precision: 0 },
+                    grid: { color: CHART_THEME.grid },
+                    title: { display: true, text: "訊號數", color: text, font: { size: 11 } },
+                  },
+                },
+              },
+            }),
+          );
+        }
+      }
+
+      const scEl = document.getElementById("chScatter");
+      if (scEl && scanRows && scanRows.length) {
+        const pts = [];
+        for (const r of scanRows) {
+          const ax = rowAdx(r);
+          const rv = rowRvol(r);
+          if (!Number.isFinite(ax) || !Number.isFinite(rv)) continue;
+          const sc = rowTechScore(r);
+          const col = scoreBandBarColor(r);
+          pts.push({
+            x: ax,
+            y: rv,
+            label: String(r.ticker ?? r.Ticker ?? "?").trim() || "?",
+            score: Number.isFinite(sc) ? sc : null,
+            adx: ax,
+            rvol: rv,
+            col,
+          });
+        }
+        if (pts.length) {
+          const maxAdx = Math.max(45, ...pts.map((p) => p.x)) * 1.08;
+          const maxRv = Math.max(2.2, ...pts.map((p) => p.y)) * 1.12;
+          _chartsOverview.push(
+            new Chart(scEl, {
+              type: "scatter",
+              plugins: [adxRvolQuadrantPlugin],
+              data: {
+                datasets: [
+                  {
+                    label: "標的",
+                    data: pts.map((p) => ({ x: p.x, y: p.y })),
+                    backgroundColor: pts.map((p) => p.col),
+                    borderColor: pts.map((p) => p.col),
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    displayColors: false,
+                    callbacks: {
+                      title(items) {
+                        const p = pts[items[0]?.dataIndex];
+                        return p ? p.label : "";
+                      },
+                      label(ctx) {
+                        const p = pts[ctx.dataIndex];
+                        if (!p) return "";
+                        const scS = p.score != null && Number.isFinite(p.score) ? String(p.score) : "—";
+                        return [`Score: ${scS}`, `ADX: ${p.adx.toFixed(1)}`, `RVOL: ${p.rvol.toFixed(2)}`];
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    min: 0,
+                    max: maxAdx,
+                    title: { display: true, text: "ADX（趨勢強度）", color: text, font: { size: 11 } },
+                    ticks: { color: text },
+                    grid: { color: CHART_THEME.grid },
+                  },
+                  y: {
+                    min: 0,
+                    max: maxRv,
+                    title: { display: true, text: "RVOL（相對成交量）", color: text, font: { size: 11 } },
+                    ticks: { color: text },
+                    grid: { color: CHART_THEME.grid },
+                  },
+                },
+              },
+            }),
+          );
+        }
+      }
+    }
+
+    const MACRO_LINE_COLORS = ["#a78bfa", "#34d399", "#38bdf8", "#fb923c", "#f472b6", "#fcd34d"];
+
+    function renderMacroLineCharts(series) {
+      if (typeof Chart === "undefined") return;
+      const host = document.getElementById("macroChartGrid");
+      if (!host) return;
+      destroyCharts(_chartsMacro);
+      host.innerHTML = "";
+      if (!series || typeof series !== "object") return;
+      _lastMacroSeries = series;
+      let i = 0;
+      for (const title of Object.keys(series).sort()) {
+        const pts = series[title];
+        if (!Array.isArray(pts) || !pts.length) continue;
+        const cell = document.createElement("div");
+        cell.className = "macro-chart-cell";
+        const h = document.createElement("div");
+        h.className = "mttl";
+        h.textContent = title;
+        const cv = document.createElement("canvas");
+        cell.appendChild(h);
+        cell.appendChild(cv);
+        host.appendChild(cell);
+        const col = MACRO_LINE_COLORS[i % MACRO_LINE_COLORS.length];
+        i += 1;
+        const labels = pts.map((p) => p.d);
+        const dataPts = pts.map((p) =>
+          typeof p.c === "number" && Number.isFinite(p.c) ? p.c : parseFloat(String(p.c)),
+        );
+        _chartsMacro.push(
+          new Chart(cv, {
+            type: "line",
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: title,
+                  data: dataPts,
+                  borderColor: col,
+                  fill: _macroChartStyle === "area",
+                  backgroundColor: _macroChartStyle === "area" ? `${col}22` : "transparent",
+                  tension: _macroChartStyle === "minimal" ? 0.12 : 0.35,
+                  pointRadius: _macroChartStyle === "minimal" ? 0 : 0,
+                  pointHitRadius: 10,
+                  borderWidth: _macroChartStyle === "minimal" ? 1.4 : 2.2,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
+              scales: {
+                x: {
+                  ticks: { maxTicksLimit: 8, font: { size: 9 }, color: CHART_THEME.tick },
+                  grid: { color: _macroChartStyle === "minimal" ? "rgba(148,163,184,0.05)" : CHART_THEME.grid },
+                },
+                y: {
+                  ticks: { font: { size: 10 }, color: CHART_THEME.tick, maxTicksLimit: 5 },
+                  grid: { color: _macroChartStyle === "minimal" ? "rgba(148,163,184,0.05)" : CHART_THEME.grid },
+                },
+              },
+            },
+          }),
+        );
+      }
+    }
+
+    function historyActionForActiveModel() {
+      if (activeScoreModel === "buy_stock") return "BUY_CALL";
+      if (activeScoreModel === "sell_put") return "SELL_PUT";
+      return null;
+    }
+
+    function countNearMissTriggers(scanRows) {
+      const list = scanRows || [];
+      if (activeScoreModel === "buy_stock") {
+        let hi = 0;
+        let macdOk = 0;
+        let all = 0;
+        for (const r of list) {
+          const sc = num(r.tech_score);
+          const rv = num(r.rvol ?? r.RVOL);
+          const macd = String(r.macd_histogram_status || r.reason || "");
+          if (Number.isFinite(sc) && sc >= 80) hi += 1;
+          if (macd.includes("柱體翻正") || macd.includes("多頭柱體擴張")) macdOk += 1;
+          if (Number.isFinite(sc) && sc >= 80 && Number.isFinite(rv) && rv >= 1.2
+              && (macd.includes("柱體翻正") || macd.includes("多頭柱體擴張"))) all += 1;
+        }
+        return { hi, macdOk, all };
+      }
+      if (activeScoreModel === "sell_put") {
+        let trackA = 0;
+        let trackB = 0;
+        let all = 0;
+        for (const r of list) {
+          const sc = num(r.tech_score);
+          const macd = String(r.macd_histogram_status || r.reason || "");
+          const vwapN = String(r.vwap_ext || "").toUpperCase() === "N"
+            || /vwap_ext=N/.test(String(r.reason || ""));
+          const deltaOk = num(r.tech_score_delta) == null || num(r.tech_score_delta) >= 0;
+          if (Number.isFinite(sc) && sc >= 65 && macd.includes("空頭柱體收斂") && deltaOk) trackA += 1;
+          if (Number.isFinite(sc) && sc >= 80 && vwapN
+              && (macd.includes("多頭柱體擴張") || macd.includes("柱體翻正"))) trackB += 1;
+          if ((Number.isFinite(sc) && sc >= 65 && macd.includes("空頭柱體收斂") && deltaOk)
+              || (Number.isFinite(sc) && sc >= 80 && vwapN
+                  && (macd.includes("多頭柱體擴張") || macd.includes("柱體翻正")))) all += 1;
+        }
+        return { trackA, trackB, all };
+      }
+      return null;
+    }
+
+    function updateHistoryRulesHint() {
+      const el = document.getElementById("historyRulesHint");
+      if (!el) return;
+      const near = countNearMissTriggers(rows);
+      if (activeScoreModel === "buy_stock") {
+        let base =
+          "Buy Call／突破：Score≥80 且 RVOL≥1.2，MACD 為「柱體翻正」或「多頭柱體擴張」。每次掃描符合條件才寫入歷史；現價與漲跌% 於下次掃描更新。";
+        if (near) {
+          base += ` 今日掃描：Score≥80 共 ${near.hi} 隻；MACD 翻正/多頭擴張 ${near.macdOk} 隻；三項齊備（可觸發）${near.all} 隻。`;
+        }
+        el.textContent = base;
+      } else if (activeScoreModel === "sell_put") {
+        let base =
+          "Sell Put 雙軌觸發：A 抄底 Score≥65＋空頭柱體收斂＋評分走平/改善；B 強勢追蹤 Score≥80＋多頭擴張/柱體翻正＋vwap_ext=N（不含多頭收斂）。每次掃描符合任一路徑才寫入。";
+        if (near) {
+          base += ` 今日：A 軌 ${near.trackA} 隻 · B 軌 ${near.trackB} 隻 · 合計可觸發 ${near.all} 隻。`;
+        }
+        el.textContent = base;
+      } else {
+        el.textContent = "Buy Put 模式尚未定義觸發規則；請切換 Sell Put 或 Buy Stock 檢視覆盤。";
+      }
+    }
+
+    function enrichHistoryFromScan(signals, scanRows) {
+      const px = {};
+      for (const r of scanRows || []) {
+        const sym = String(r.ticker ?? r.Ticker ?? "").trim().toUpperCase();
+        const c = num(r.close ?? r.Close);
+        if (sym && Number.isFinite(c)) px[sym] = c;
+      }
+      return (signals || []).map((s) => {
+        const sym = String(s.ticker ?? "").trim().toUpperCase();
+        const entry = num(s.entry_price ?? s.close);
+        let latest = num(s.latest_price ?? s.close);
+        if (px[sym] != null) latest = px[sym];
+        let pnl = num(s.pnl_pct);
+        if (Number.isFinite(entry) && entry !== 0 && Number.isFinite(latest)) {
+          pnl = ((latest - entry) / entry) * 100;
+        }
+        const entryDate = String(s.entry_date || (s.date ? String(s.date).slice(0, 10) : ""));
+        let holding = num(s.holding_days);
+        if (!Number.isFinite(holding) && entryDate) {
+          const t0 = parseSortTime(entryDate);
+          const t1 = parseSortTime(new Date().toISOString());
+          if (t0 && t1) holding = Math.max(0, Math.round((t1 - t0) / 86400000));
+        }
+        return {
+          ...s,
+          entry_date: entryDate,
+          entry_price: Number.isFinite(entry) ? entry : s.entry_price,
+          latest_price: Number.isFinite(latest) ? latest : s.latest_price,
+          pnl_pct: Number.isFinite(pnl) ? Math.round(pnl * 100) / 100 : s.pnl_pct,
+          holding_days: Number.isFinite(holding) ? holding : s.holding_days,
+        };
+      });
+    }
+
+    function filterHistoryList(list) {
+      const wantAction = historyActionForActiveModel();
+      const triggersOnly = document.getElementById("historyTriggersOnly")?.checked !== false;
+      return list.filter((s) => {
+        if (triggersOnly) {
+          if (!s.action) return false;
+          if (wantAction && String(s.action).toUpperCase() !== wantAction) return false;
+          if (s.score_model && String(s.score_model) !== activeScoreModel) return false;
+        }
+        return true;
+      });
+    }
+
+    function fmtPnlCell(pnl) {
+      if (!Number.isFinite(pnl)) return '<span class="pnl-flat">—</span>';
+      const cls = pnl > 0.05 ? "pnl-pos" : pnl < -0.05 ? "pnl-neg" : "pnl-flat";
+      const sign = pnl > 0 ? "+" : "";
+      return `<span class="${cls}">${sign}${pnl.toFixed(2)}%</span>`;
+    }
+
+    function actionBadgeHtml(action) {
+      const a = String(action || "").toUpperCase();
+      if (a === "BUY_CALL") return '<span class="action-badge buy_call">BUY CALL</span>';
+      if (a === "SELL_PUT") return '<span class="action-badge sell_put">SELL PUT</span>';
+      return escapeHtml(action || "—");
+    }
+
+    function cmpHist(a, b, key) {
+      let av;
+      let bv;
+      if (key === "date" || key === "entry_date") {
+        av = parseSortTime(a.entry_date ?? a.date);
+        bv = parseSortTime(b.entry_date ?? b.date);
+      } else if (key === "entry_price" || key === "latest_price" || key === "close") {
+        av = numOrNaN(a[key] ?? a.entry_price ?? a.close);
+        bv = numOrNaN(b[key] ?? b.entry_price ?? b.close);
+        const aBad = Number.isNaN(av);
+        const bBad = Number.isNaN(bv);
+        if (aBad && bBad) return 0;
+        if (aBad) return 1;
+        if (bBad) return -1;
+      } else if (key === "pnl_pct" || key === "score" || key === "holding_days" || key === "rvol") {
+        av = numOrNaN(a[key]);
+        bv = numOrNaN(b[key]);
+        if (Number.isNaN(av)) av = key === "pnl_pct" ? -1e18 : -1;
+        if (Number.isNaN(bv)) bv = key === "pnl_pct" ? -1e18 : -1;
+      } else {
+        av = String(a[key] ?? "");
+        bv = String(b[key] ?? "");
+      }
+      if (typeof av === "number" && typeof bv === "number") {
+        return histSortAsc ? av - bv : bv - av;
+      }
+      if (key !== "entry_price" && key !== "latest_price" && key !== "close" && key !== "date" && key !== "entry_date") {
+        return histSortAsc ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+      }
+      return histSortAsc ? av - bv : bv - av;
+    }
+
+    function renderHistoryTable() {
+      const tbody = document.getElementById("historyTbody");
+      const summary = document.getElementById("historySummary");
+      tbody.innerHTML = "";
+      updateHistoryRulesHint();
+      if (!historySignals.length) {
+        if (summary) summary.style.display = "none";
+        setEmptyState("historyEmpty", true);
+        return;
+      }
+      const q = historyFilter.trim().toLowerCase();
+      let list = filterHistoryList([...historySignals]);
+      if (q) {
+        list = list.filter((s) => JSON.stringify(s).toLowerCase().includes(q));
+      }
+      list.sort((a, b) => cmpHist(a, b, histSortKey));
+      if (!list.length) {
+        if (summary) summary.style.display = "none";
+        const want = historyActionForActiveModel();
+        const msg = want
+          ? "尚無符合觸發規則的紀錄。若主表有達標股，請執行：python3 scripts/export_triggers_from_scan.py 後 Reload。"
+          : "此模式未定義觸發規則。";
+        setEmptyState("historyEmpty", true, msg);
+        return;
+      }
+      setEmptyState("historyEmpty", false);
+      if (summary) {
+        const wins = list.filter((s) => num(s.pnl_pct) > 0).length;
+        const avg =
+          list.reduce((acc, s) => acc + (num(s.pnl_pct) || 0), 0) / (list.length || 1);
+        summary.style.display = "block";
+        summary.textContent = `共 ${list.length} 筆觸發 · 現價正報酬 ${wins} 筆 · 平均標的漲跌 ${avg >= 0 ? "+" : ""}${avg.toFixed(2)}%（相對進場價）`;
+      }
+      for (const s of list) {
+        const tr = document.createElement("tr");
+        const ht = s.ticker ?? "N/A";
+        const htv = tradingViewUrl(ht);
+        const htCell = htv
+          ? `${escapeHtml(ht)}<br><a class="lnk-tv" href="${escapeHtml(htv)}" target="_blank" rel="noopener noreferrer">TV →</a>`
+          : escapeHtml(ht);
+        const entryD = s.entry_date ? String(s.entry_date).slice(0, 10) : String(s.date || "").slice(0, 10);
+        const trackTag = s.trigger_track === "A" ? " A" : s.trigger_track === "B" ? " B" : "";
+        tr.innerHTML = `
+          <td>${escapeHtml(entryD || "—")}</td>
+          <td>${htCell}</td>
+          <td>${actionBadgeHtml(s.action)}${trackTag ? `<span class="muted" style="font-size:10px;">${trackTag}</span>` : ""}</td>
+          <td>${s.score != null && Number.isFinite(num(s.score)) ? String(s.score) : "—"}</td>
+          <td>${fmtNum(s.entry_price ?? s.close, 2)}</td>
+          <td>${fmtNum(s.latest_price ?? s.close, 2)}</td>
+          <td>${fmtPnlCell(num(s.pnl_pct))}</td>
+          <td>${s.holding_days != null && Number.isFinite(num(s.holding_days)) ? String(s.holding_days) : "—"}</td>
+          <td class="muted" style="font-size:12px;">${escapeHtml(s.macd_status || "—")}</td>
+          <td>${fmtNum(s.rvol, 2)}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function sellPutTriggerTrackFromRow(r) {
+      const sc = num(r.tech_score);
+      const macd = String(r.macd_histogram_status || r.reason || "");
+      const vwapN =
+        String(r.vwap_ext || "").toUpperCase() === "N" || /vwap_ext=N/.test(String(r.reason || ""));
+      const delta = num(r.tech_score_delta);
+      const deltaOk = delta == null || delta >= 0;
+      const pat = String(r.score_arc_pattern || "").toLowerCase();
+      const arcOk = !["erratic", "steady_fall", "fall", "single_down"].includes(pat);
+      if (Number.isFinite(sc) && sc >= 65 && macd.includes("空頭柱體收斂") && deltaOk && arcOk) return "A";
+      if (
+        Number.isFinite(sc) &&
+        sc >= 80 &&
+        vwapN &&
+        (macd.includes("多頭柱體擴張") || macd.includes("柱體翻正"))
+      ) {
+        return "B";
+      }
+      return null;
+    }
+
+    function liveTriggerEntriesFromRows(scanRows, model) {
+      const today = (document.getElementById("lastUpdated")?.textContent || "").trim();
+      let day = "";
+      if (today && today !== "-") {
+        const t = parseSortTime(today);
+        if (t) day = new Date(t).toISOString().slice(0, 10);
+      }
+      if (!day) day = new Date().toISOString().slice(0, 10);
+      const out = [];
+      for (const r of scanRows || []) {
+        let action = null;
+        let track = null;
+        const sc = num(r.tech_score);
+        const rv = num(r.rvol ?? r.RVOL);
+        const macd = String(r.macd_histogram_status || "");
+        if (model === "buy_stock") {
+          if (
+            Number.isFinite(sc) &&
+            sc >= 80 &&
+            Number.isFinite(rv) &&
+            rv >= 1.2 &&
+            (macd.includes("柱體翻正") || macd.includes("多頭柱體擴張"))
+          ) {
+            action = "BUY_CALL";
+          }
+        } else if (model === "sell_put") {
+          track = sellPutTriggerTrackFromRow(r);
+          if (track) action = "SELL_PUT";
+        }
+        if (!action) continue;
+        const sym = String(r.ticker ?? r.Ticker ?? "").trim().toUpperCase();
+        if (!sym) continue;
+        out.push({
+          entry_date: day,
+          date: day,
+          ticker: sym,
+          action,
+          score_model: model,
+          score: Number.isFinite(sc) ? Math.round(sc) : null,
+          entry_price: num(r.close ?? r.Close),
+          latest_price: num(r.close ?? r.Close),
+          pnl_pct: 0,
+          holding_days: 0,
+          macd_status: macd || "—",
+          rvol: rv,
+          trigger_track: track,
+          _live_scan: true,
+        });
+      }
+      return out;
+    }
+
+    async function loadHistory() {
+      const data = await fetchJsonSafe("signals_history.json");
+      let base = Array.isArray(data?.signals) ? data.signals : [];
+      const live = liveTriggerEntriesFromRows(rows, activeScoreModel);
+      const keys = new Set(
+        base
+          .filter((s) => s.action)
+          .map((s) => `${s.entry_date || String(s.date || "").slice(0, 10)}|${s.ticker}|${s.action}|${s.score_model}`),
+      );
+      for (const s of live) {
+        const k = `${s.entry_date}|${s.ticker}|${s.action}|${s.score_model}`;
+        if (!keys.has(k)) {
+          base = base.concat([s]);
+          keys.add(k);
+        }
+      }
+      historySignals = enrichHistoryFromScan(base, rows);
+      if (!historySignals.length) {
+        setEmptyState("historyEmpty", true);
+        document.getElementById("historyTbody").innerHTML = "";
+        return;
+      }
+      renderHistoryTable();
+    }
+
+    function cmpLog(a, b, key) {
+      let av;
+      let bv;
+      if (key === "logged_at") {
+        av = parseSortTime(a.logged_at ?? a.timestamp);
+        bv = parseSortTime(b.logged_at ?? b.timestamp);
+      } else if (key === "trigger_date") {
+        av = parseSortTime(a.trigger_date ?? a.date);
+        bv = parseSortTime(b.trigger_date ?? b.date);
+      } else if (key === "entry_price") {
+        av = numOrNaN(a.entry_price);
+        bv = numOrNaN(b.entry_price);
+        const aBad = Number.isNaN(av);
+        const bBad = Number.isNaN(bv);
+        if (aBad && bBad) return 0;
+        if (aBad) return 1;
+        if (bBad) return -1;
+      } else if (key === "risk_notes") {
+        av = String(a.risk_notes ?? a.notes ?? "");
+        bv = String(b.risk_notes ?? b.notes ?? "");
+      } else {
+        av = String(a[key] ?? "");
+        bv = String(b[key] ?? "");
+      }
+      if (key === "trigger_date" || key === "logged_at" || key === "entry_price") {
+        return logSortAsc ? av - bv : bv - av;
+      }
+      return logSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+    }
+
+    function renderLogTable() {
+      const tbody = document.getElementById("logTbody");
+      tbody.innerHTML = "";
+      if (!logRows.length) {
+        setEmptyState("logEmpty", true);
+        return;
+      }
+      const q = logFilter.trim().toLowerCase();
+      let list = [...logRows];
+      if (q) list = list.filter((l) => JSON.stringify(l).toLowerCase().includes(q));
+      list.sort((a, b) => cmpLog(a, b, logSortKey));
+      if (!list.length) {
+        setEmptyState("logEmpty", true, "沒有符合篩選的日誌列。");
+        return;
+      }
+      setEmptyState("logEmpty", false);
+      for (const l of list) {
+        const tr = document.createElement("tr");
+        const notes = escapeHtml(l.risk_notes ?? l.notes ?? "N/A");
+        tr.innerHTML = `
+          <td>${escapeHtml(fmtDateLocal(l.logged_at ?? l.timestamp))}</td>
+          <td>${escapeHtml(fmtDateLocal(l.trigger_date ?? l.date))}</td>
+          <td>${escapeHtml(l.ticker ?? "N/A")}</td>
+          <td>${escapeHtml(l.strategy ?? "N/A")}</td>
+          <td>${fmtNum(l.entry_price, 2)}</td>
+          <td class="muted">${notes}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    async function loadFutureLog() {
+      const data = await fetchJsonSafe("future_log.json");
+      logRows = Array.isArray(data) ? data : (Array.isArray(data?.logs) ? data.logs : []);
+      if (!logRows.length) {
+        setEmptyState("logEmpty", true);
+        document.getElementById("logTbody").innerHTML = "";
+        return;
+      }
+      renderLogTable();
+    }
+
+    function fmtMacroPct(n) {
+      if (typeof n !== "number" || !Number.isFinite(n)) return "—";
+      return (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+    }
+    function fmtMacroNum(n, d = 2) {
+      if (typeof n !== "number" || !Number.isFinite(n)) return "—";
+      return n.toFixed(d);
+    }
+    function sparklineSvg(points) {
+      if (!Array.isArray(points) || points.length < 2) return "";
+      const vals = points
+        .map((p) => (typeof p?.c === "number" && Number.isFinite(p.c) ? p.c : numOrNaN(p?.c)))
+        .filter((x) => Number.isFinite(x));
+      if (vals.length < 2) return "";
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const r = max - min || 1;
+      const w = 120;
+      const h = 30;
+      const coords = vals.map((v, i) => {
+        const x = (i / (vals.length - 1)) * w;
+        const y = h - ((v - min) / r) * (h - 2) - 1;
+        return `${x.toFixed(2)},${y.toFixed(2)}`;
+      });
+      const area = `0,${h} ${coords.join(" ")} ${w},${h}`;
+      return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path class="area" d="M ${area} Z"></path><path d="M ${coords.join(" L ")}"></path></svg>`;
+    }
+    function normalizeMetricToSeries(name) {
+      const t = String(name || "").toUpperCase();
+      if (t.includes("VIX")) return "VIX";
+      if (t.includes("HSI") || t.includes("恒生")) return "恒生";
+      if (t.includes("BTC")) return "BTC";
+      if (t.includes("S&P") || t.includes("SPX")) return "S&P500";
+      if (t.includes("NASDAQ") || t.includes("IXIC")) return "NASDAQ";
+      if (t.includes("DXY") || t.includes("美元指數")) return "DXY";
+      return null;
+    }
+    function clamp01to100(x) {
+      if (!Number.isFinite(x)) return null;
+      return Math.max(0, Math.min(100, x));
+    }
+    function scoreVix(vix) {
+      if (!Number.isFinite(vix)) return null;
+      // Calibrated to user's reference: VIX 17.5 -> 75.9
+      return clamp01to100(100 - (vix - 15.0) * 9.64);
+    }
+    function scoreRsi(rsi) {
+      if (!Number.isFinite(rsi)) return null;
+      return clamp01to100(rsi);
+    }
+    function scoreSpread(spread) {
+      if (!Number.isFinite(spread)) return null;
+      // Calibrated to user's reference: spread +0.76 -> 62.8
+      return clamp01to100(50 + spread * 16.84);
+    }
+    function scoreBtcChange(btcPct) {
+      if (!Number.isFinite(btcPct)) return null;
+      // Calibrated to user's reference: BTC -0.10% -> 49.0
+      return clamp01to100(50 + btcPct * 10);
+    }
+    function findAdvancedByText(advanced, needles) {
+      if (!advanced || typeof advanced !== "object") return null;
+      const keys = Object.keys(advanced);
+      for (const k of keys) {
+        const ku = k.toUpperCase();
+        if (needles.some((n) => ku.includes(n))) return advanced[k];
+      }
+      return null;
+    }
+    /** Match emoji / Chinese DXY keys Yahoo export uses. */
+    function findAdvancedDxyBlock(advanced) {
+      if (!advanced || typeof advanced !== "object") return null;
+      for (const k of Object.keys(advanced)) {
+        if (/美元指數|\(DXY\)|\bDXY\b|DX-Y|DOLLAR\s*INDEX/i.test(k)) {
+          const row = advanced[k];
+          if (row && typeof row === "object" && row.current != null) return row;
+        }
+      }
+      return null;
+    }
+    /** Old macro_snapshot (before schema 1.4) had no DXY row in metrics — synthesize from advanced. */
+    function augmentMacroMetricsForDisplay(metrics, advanced) {
+      const out = Array.isArray(metrics) ? metrics.slice() : [];
+      if (out.some((m) => String(m.name || "").toUpperCase().includes("DXY"))) return out;
+      const dxy = findAdvancedDxyBlock(advanced);
+      if (!dxy) return out;
+      const cur = dxy.current;
+      const chg = dxy.change_pct;
+      const valStr =
+        typeof cur === "number" && Number.isFinite(cur) ? cur.toFixed(2) : String(cur ?? "N/A");
+      let chgStr = "N/A";
+      if (typeof chg === "number" && Number.isFinite(chg)) {
+        chgStr = (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%";
+      }
+      const pos = out.findIndex((m) => String(m.name || "").toUpperCase().includes("BTC"));
+      const insertAt = pos >= 0 ? pos : Math.min(3, out.length);
+      out.splice(insertAt, 0, { name: "DXY", value: valStr, change: chgStr });
+      return out;
+    }
+    function renderMacroComponentChart(items) {
+      if (typeof Chart === "undefined") return;
+      const cv = document.getElementById("macroComponentChart");
+      if (!cv) return;
+      destroyCharts(_chartsMacroScore);
+      const valid = items.filter((x) => Number.isFinite(x.score));
+      if (!valid.length) return;
+      _chartsMacroScore.push(
+        new Chart(cv, {
+          type: "bar",
+          data: {
+            labels: valid.map((x) => x.label),
+            datasets: [
+              {
+                label: "Score",
+                data: valid.map((x) => Number(x.score.toFixed(1))),
+                backgroundColor: valid.map((x) => x.score >= 70 ? "rgba(34,197,94,0.78)" : x.score >= 50 ? "rgba(245,158,11,0.8)" : "rgba(239,68,68,0.78)"),
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: "y",
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { min: 0, max: 100, ticks: { color: CHART_THEME.tick }, grid: { color: CHART_THEME.grid } },
+              y: { ticks: { color: CHART_THEME.tick, font: { size: 11 } }, grid: { display: false } },
+            },
+          },
+        }),
+      );
+    }
+    function regimeFromScore(score) {
+      if (!Number.isFinite(score)) return { key: "neutral", text: "Neutral" };
+      if (score >= 70) return { key: "risk-on", text: "Risk-on" };
+      if (score >= 50) return { key: "neutral", text: "Neutral" };
+      return { key: "defensive", text: "Defensive" };
+    }
+    function macroStateByLevel(level) {
+      if (level <= 0) return { cls: "ok", text: "✅ Stable" };
+      if (level === 1) return { cls: "warn", text: "⚠️ Weakening" };
+      return { cls: "bad", text: "💀 Danger" };
+    }
+    /** Close prices from macro_snapshot chart_series point list. */
+    function chartSeriesCloses(chartSeries, key) {
+      const cs = chartSeries && typeof chartSeries === "object" ? chartSeries : {};
+      const arr = cs[key];
+      if (!Array.isArray(arr) || !arr.length) return [];
+      const num = (x) => {
+        if (typeof x === "number" && Number.isFinite(x)) return x;
+        const n = parseFloat(String(x).replace(/,/g, ""));
+        return Number.isFinite(n) ? n : null;
+      };
+      return arr.map((pt) => num(pt?.c)).filter((x) => Number.isFinite(x));
+    }
+    /** Last bar at or near rolling window high (≈「區間新高」for DXY). */
+    function closeAtWindowHigh(closes, lookback, eps = 0.0012) {
+      if (!closes.length || closes.length < 30) return false;
+      const n = Math.min(lookback, closes.length);
+      const slice = closes.slice(-n);
+      const last = slice[slice.length - 1];
+      const hi = Math.max(...slice);
+      return Number.isFinite(last) && last >= hi * (1 - eps);
+    }
+    function renderBossMacroBoard(data, metrics, advanced) {
+      const host = document.getElementById("bossMacroBoard");
+      if (!host) return;
+      const num = (x) => {
+        if (typeof x === "number" && Number.isFinite(x)) return x;
+        const n = parseFloat(String(x).replace(/,/g, "").replace("%", ""));
+        return Number.isFinite(n) ? n : null;
+      };
+      const findMetric = (needle) => metrics.find((m) => String(m.name || "").toUpperCase().includes(needle));
+      const findAdvanced = (needles) => findAdvancedByText(advanced, needles);
+
+      const chartSeries = data?.chart_series && typeof data.chart_series === "object" ? data.chart_series : {};
+      const dxyCloses = chartSeriesCloses(chartSeries, "DXY");
+      const dxyLb = Math.min(130, dxyCloses.length || 0);
+      const dxyNewHigh = dxyLb >= 40 && closeAtWindowHigh(dxyCloses, dxyLb);
+
+      const vixVal = num(findMetric("VIX")?.value) ?? num(findAdvanced(["VIX"])?.current);
+      const dxyVal = num(findMetric("DXY")?.value) ?? num(findAdvanced(["DXY", "USD INDEX", "美元指數"])?.current);
+      const usdHkd = num(findAdvanced(["USD/HKD"])?.current);
+      const y10 = num(findAdvanced(["10Y"])?.current);
+
+      let liqLevel = 0;
+      const liqNotes = [];
+      if (Number.isFinite(vixVal) && vixVal > 25) {
+        liqLevel = Math.max(liqLevel, 2);
+        liqNotes.push(`VIX ${vixVal.toFixed(2)} > 25（恐慌抽流動性）`);
+      } else if (Number.isFinite(vixVal) && vixVal > 20) {
+        liqLevel = Math.max(liqLevel, 1);
+        liqNotes.push(`VIX ${vixVal.toFixed(2)} 偏高`);
+      }
+      if (dxyNewHigh) {
+        liqLevel = Math.max(liqLevel, 2);
+        liqNotes.push(`DXY 觸及約 ${dxyLb} 個交易日區間高位（美金橫掃／資金回流美元）`);
+      } else if (Number.isFinite(dxyVal) && dxyVal > 102) {
+        liqLevel = Math.max(liqLevel, 1);
+        liqNotes.push(`DXY ${dxyVal.toFixed(2)} 偏強（未確認 chart 區間新高）`);
+      } else if (dxyVal == null && Number.isFinite(usdHkd) && usdHkd > 7.84) {
+        liqLevel = Math.max(liqLevel, 1);
+        liqNotes.push(`USD/HKD ${usdHkd.toFixed(4)} 偏強（代理）`);
+      }
+      if (Number.isFinite(y10) && y10 > 4.8) {
+        liqLevel = Math.max(liqLevel, 1);
+        liqNotes.push(`US 10Y ${y10.toFixed(2)}% 偏高（收緊金融條件）`);
+      }
+
+      const bm = data && typeof data.breadth_markets === "object" ? data.breadth_markets : null;
+      const hkB = bm?.hk;
+      const usB = bm?.us;
+
+      const advRows = Object.values(advanced || {}).filter((x) => x && typeof x === "object");
+      const breadthBase = advRows
+        .map((r) => num(r.dist_sma200))
+        .filter((x) => Number.isFinite(x));
+      const aboveCnt = breadthBase.filter((x) => x > 0).length;
+      const legacyBreadthPct = breadthBase.length ? (aboveCnt / breadthBase.length) * 100 : null;
+      const spx = findAdvanced(["S&P", "SPX"]);
+      const spxRsi = num(spx?.rsi);
+
+      let breadthLevel = 0;
+      const breadthNotes = [];
+      let min50 = null;
+      let min200 = null;
+
+      const fmtBmCompact = (blk, tag) => {
+        if (!blk || typeof blk !== "object") return "";
+        const s50 = num(blk.above_ma50_pct);
+        const s200 = num(blk.above_ma200_pct);
+        const n = num(blk.denom_ma50) ?? num(blk.sampled);
+        const bits = [`${tag}`];
+        if (Number.isFinite(s50)) bits.push(`>50MA ${s50.toFixed(0)}%`);
+        if (Number.isFinite(s200)) bits.push(`>200MA ${s200.toFixed(0)}%`);
+        if (Number.isFinite(n)) bits.push(`n=${Math.round(n)}`);
+        return bits.join(" · ");
+      };
+
+      const breadthTickersTitle = () => {
+        const hkS = Array.isArray(hkB?.tickers_ok) ? hkB.tickers_ok.join(" ") : "";
+        const usS = Array.isArray(usB?.tickers_ok) ? usB.tickers_ok.join(" ") : "";
+        if (!hkS && !usS) return "";
+        let t = `HK: ${hkS} | US: ${usS}`;
+        if (t.length > 1200) t = `${t.slice(0, 1200)} …`;
+        return t;
+      };
+
+      if (data?.breadth_stale) {
+        breadthNotes.push("（市寬為上次成功抓取，本次 Yahoo 抓取失敗）");
+      }
+      if (bm && (hkB || usB)) {
+        const wz = Array.isArray(bm.warnings_zh) ? bm.warnings_zh.filter(Boolean) : [];
+        breadthNotes.push(...wz);
+        const s50s = [num(hkB?.above_ma50_pct), num(usB?.above_ma50_pct)].filter((x) => Number.isFinite(x));
+        const s200s = [num(hkB?.above_ma200_pct), num(usB?.above_ma200_pct)].filter((x) => Number.isFinite(x));
+        min50 = s50s.length ? Math.min(...s50s) : null;
+        min200 = s200s.length ? Math.min(...s200s) : null;
+        if (Number.isFinite(min50) && min50 < 40) breadthLevel = Math.max(breadthLevel, 2);
+        else if (Number.isFinite(min200) && min200 < 36) breadthLevel = Math.max(breadthLevel, 2);
+        else if (Number.isFinite(min50) && min50 < 55) breadthLevel = Math.max(breadthLevel, 1);
+        else if (Number.isFinite(min200) && min200 < 48) breadthLevel = Math.max(breadthLevel, 1);
+        if (Number.isFinite(spxRsi) && spxRsi > 70 && Number.isFinite(min200) && min200 < 55) {
+          breadthLevel = Math.max(breadthLevel, 2);
+          breadthNotes.push("指數偏強（SPX RSI 高）但 200MA 參與度不足：典型頂背馳／Negative divergence 風險");
+        } else if (Number.isFinite(spxRsi) && spxRsi > 65 && Number.isFinite(min200) && min200 < 50) {
+          breadthLevel = Math.max(breadthLevel, 1);
+          breadthNotes.push("價格強但長線參與度一般，留意背馳");
+        }
+        if (Number.isFinite(min50) && Number.isFinite(min200) && min50 >= 80 && min200 >= 80) {
+          breadthNotes.push("樣本內多數股在 50／200MA 之上（Hyper／全面趨勢環境）");
+        }
+        if (wz.some((s) => String(s).includes("大幅跌"))) breadthLevel = Math.max(breadthLevel, 2);
+        else if (wz.length) breadthLevel = Math.max(breadthLevel, 1);
+      } else {
+        const breadthPct = legacyBreadthPct;
+        min200 = breadthPct;
+        if (Number.isFinite(breadthPct) && breadthPct < 40) {
+          breadthLevel = 2;
+          breadthNotes.push(`主要指數高於 200 日線約 ${breadthPct.toFixed(0)}%（<40%，舊口徑）`);
+        } else if (Number.isFinite(breadthPct) && breadthPct < 55) {
+          breadthLevel = 1;
+          breadthNotes.push(`主要指數高於 200 日線約 ${breadthPct.toFixed(0)}%（偏弱，舊口徑）`);
+        }
+        if (Number.isFinite(spxRsi) && spxRsi > 70 && Number.isFinite(breadthPct) && breadthPct < 55) {
+          breadthLevel = Math.max(breadthLevel, 2);
+          breadthNotes.push("SPX 高 RSI 與指數廣度偏弱：留意負背馳");
+        }
+      }
+
+      const breadthFigures = bm && (hkB || usB)
+        ? [
+            Number.isFinite(min50) && Number.isFinite(min200)
+              ? `全樣本最低：>50MA ${min50.toFixed(0)}% · >200MA ${min200.toFixed(0)}%`
+              : "",
+            [fmtBmCompact(hkB, "HK"), fmtBmCompact(usB, "US")].filter(Boolean).join(" | "),
+          ].filter(Boolean).join(" · ")
+        : [
+            `主要指數高於 200 日線（舊口徑）：${Number.isFinite(legacyBreadthPct) ? legacyBreadthPct.toFixed(0) + "%" : "—"}`,
+            `SPX RSI：${Number.isFinite(spxRsi) ? spxRsi.toFixed(1) : "—"}`,
+          ].join(" · ");
+
+      const breadthUniversePrefix = bm?.universe_source ? `${String(bm.universe_source)} | ` : "";
+      const breadthFiguresTitle = escapeAttr(breadthUniversePrefix + breadthTickersTitle());
+
+      const breadthDetailFallback = () => {
+        if (bm && (hkB || usB)) {
+          const src = bm?.universe_source ? `來源：${String(bm.universe_source)}。` : "";
+          return `${src}重點睇「全樣本最低」>50MA／>200MA；hover Figures 可見入樣代號。`;
+        }
+        if (legacyBreadthPct == null) return "市寬資料不足；請重新導出 macro_snapshot（含 breadth_markets）。";
+        return `舊口徑：主要指數高於 200 日線約 ${legacyBreadthPct.toFixed(0)}%`;
+      };
+
+      const btcChg = num(findMetric("BTC")?.change) ?? num(findAdvanced(["BITCOIN", "₿"])?.change_pct);
+      const oil = findAdvanced(["WTI", "OIL", "期油"]);
+      const oilChg = num(oil?.change_pct);
+      const gold = findAdvanced(["黃金", "GOLD", "GC"]);
+      const goldChg = num(gold?.change_pct);
+      const spxChg = num(spx?.change_pct);
+
+      let earlyLevel = 0;
+      const earlyNotes = [];
+      if (Number.isFinite(btcChg) && btcChg <= -3) {
+        earlyLevel = Math.max(earlyLevel, 2);
+        earlyNotes.push(`BTC 單日 ${btcChg.toFixed(2)}% → 🛑 Risk-off（風險資產避險）`);
+      } else if (Number.isFinite(btcChg) && btcChg <= -1.5) {
+        earlyLevel = Math.max(earlyLevel, 1);
+        earlyNotes.push(`BTC ${btcChg.toFixed(2)}% 偏弱（情緒轉差）`);
+      }
+      if (Number.isFinite(oilChg) && oilChg > 3) {
+        earlyLevel = Math.max(earlyLevel, 1);
+        earlyNotes.push(`期油 +${oilChg.toFixed(2)}%（通脹／加息預期早兆）`);
+      }
+      if (Number.isFinite(goldChg) && Number.isFinite(spxChg) && goldChg - spxChg > 2 && goldChg > 0.2) {
+        earlyLevel = Math.max(earlyLevel, 2);
+        earlyNotes.push(`黃金相對 SPX 一日走勢顯著轉強（資金轉避險）`);
+      } else if (Number.isFinite(goldChg) && Number.isFinite(spxChg) && goldChg - spxChg > 0.8 && goldChg > 0) {
+        earlyLevel = Math.max(earlyLevel, 1);
+        earlyNotes.push(`黃金跑贏 SPX：留意 Normal→Defensive 切換`);
+      }
+      earlyNotes.push("CNN Fear & Greed：本頁唔拉第三方 API，可自行對照 CNN 指數。");
+
+      const levels = [liqLevel, breadthLevel, earlyLevel];
+      const dangerCnt = levels.filter((x) => x >= 2).length;
+      const weakCnt = levels.filter((x) => x === 1).length;
+      const finalLevel = dangerCnt >= 1 ? 2 : weakCnt >= 2 ? 1 : 0;
+      const final = macroStateByLevel(finalLevel);
+      const sizing = finalLevel >= 2
+        ? "三原色 = Danger → 其他策略行埋一邊，注碼降至 1/4 或觀望。"
+        : finalLevel === 1
+          ? "三原色 = Weakening → 控倉，優先防守／縮細風險敞口。"
+          : "三原色 = Stable → 可按模型部署，仍要單票風險管理。";
+
+      const liq = macroStateByLevel(liqLevel);
+      const brd = macroStateByLevel(breadthLevel);
+      const early = macroStateByLevel(earlyLevel);
+      const liqFigures = [
+        `VIX ${Number.isFinite(vixVal) ? vixVal.toFixed(2) : "—"}`,
+        `DXY ${Number.isFinite(dxyVal) ? dxyVal.toFixed(2) : "—"}${dxyNewHigh ? " · 區間新高" : ""}`,
+        `US10Y ${Number.isFinite(y10) ? y10.toFixed(2) + "%" : "—"}`,
+      ].join(" · ");
+      const earlyFigures = [
+        `黃金 Δ ${Number.isFinite(goldChg) ? (goldChg > 0 ? "+" : "") + goldChg.toFixed(2) + "%" : "—"}`,
+        `BTC Δ ${Number.isFinite(btcChg) ? btcChg.toFixed(2) + "%" : "—"}`,
+        `WTI Δ ${Number.isFinite(oilChg) ? (oilChg > 0 ? "+" : "") + oilChg.toFixed(2) + "%" : "—"}`,
+      ].join(" · ");
+
+      const matLiq = `規則：VIX>25 或 DXY（約半年交易日）區間新高 → 💀。即時：${liq.text}。`;
+      const matBr = `規則：樣本股高於 50MA 比例「全體最低」<40% → ⚠️ Weak；另用 200MA 參與度判長線同負背馳。即時：${brd.text}。`;
+      const matEr = `規則：BTC 急跌、黃金相對 SPX 轉強、油價急升 → 早兆／🛑。即時：${early.text}。`;
+
+      host.innerHTML = `
+        <div class="boss-macro-title">大佬三原色</div>
+        <div class="boss-macro-grid">
+          <div class="boss-macro-item ${liq.cls}">
+            <div class="t">① 資金溫度計 · VIX + DXY 底座</div>
+            <div class="s">${liq.text}</div>
+            <div class="d"><strong>核心數據：</strong> ${escapeHtml(liqFigures)}</div>
+            <div class="d">${liqNotes.length ? escapeHtml(liqNotes.join(" · ")) : "VIX／DXY／美債息未見「大戶撤資」級別訊號。"}</div>
+          </div>
+          <div class="boss-macro-item ${brd.cls}">
+            <div class="t">② 市場寬度 · 樣本股 MA 分佈</div>
+            <div class="s">${brd.text}</div>
+            <div class="d"${breadthFiguresTitle ? ` title="${breadthFiguresTitle}"` : ""}><strong>關鍵：</strong> ${escapeHtml(breadthFigures)}</div>
+            <div class="d">${breadthNotes.length ? escapeHtml(breadthNotes.join(" ")) : escapeHtml(breadthDetailFallback())}</div>
+          </div>
+          <div class="boss-macro-item ${early.cls}">
+            <div class="t">③ 商品與早兆 · 情緒</div>
+            <div class="s">${early.text}</div>
+            <div class="d"><strong>一日變化：</strong> ${escapeHtml(earlyFigures)}</div>
+            <div class="d">${escapeHtml(earlyNotes.join(" "))}</div>
+          </div>
+        </div>
+        <table class="boss-macro-matrix" aria-label="三原色規則摘要">
+          <thead><tr><th>指標類別</th><th>建議監控數據</th><th>規則／本頁狀態</th></tr></thead>
+          <tbody>
+            <tr><td>流動性 Liquidity</td><td>VIX、DXY、US 10Y</td><td>${escapeHtml(matLiq)}</td></tr>
+            <tr><td>健康度 Breadth</td><td>樣本股高於 50MA／200MA 之比例</td><td>${escapeHtml(matBr)}</td></tr>
+            <tr><td>早兆 · 情緒</td><td>黃金 vs SPX、BTC、期油</td><td>${escapeHtml(matEr)}</td></tr>
+          </tbody>
+        </table>
+        <div class="boss-macro-final ${final.cls}">
+          <strong>合成：</strong> ${final.text} · ${escapeHtml(sizing)}
+        </div>
+      `;
+      host.style.display = "block";
+    }
+    function renderMacroGauge(score) {
+      if (typeof Chart === "undefined") return;
+      const cv = document.getElementById("macroRiskGauge");
+      if (!cv || !Number.isFinite(score)) return;
+      destroyCharts(_chartsMacroGauge);
+      const r = regimeFromScore(score);
+      const col = r.key === "risk-on" ? "rgba(34,197,94,0.9)" : r.key === "defensive" ? "rgba(239,68,68,0.9)" : "rgba(245,158,11,0.9)";
+      _chartsMacroGauge.push(
+        new Chart(cv, {
+          type: "doughnut",
+          data: {
+            labels: ["Score", "Remaining"],
+            datasets: [{ data: [score, 100 - score], backgroundColor: [col, "rgba(148,163,184,0.22)"], borderWidth: 0 }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            rotation: 270,
+            circumference: 180,
+            cutout: "72%",
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          },
+        }),
+      );
+    }
+    function getPrevScoreFromHistory(history, todayISO) {
+      if (!Array.isArray(history)) return null;
+      const day = String(todayISO || "").slice(0, 10);
+      const cleaned = history
+        .filter((x) => x && typeof x === "object" && x.d && Number.isFinite(Number(x.score)))
+        .map((x) => ({ d: String(x.d), score: Number(x.score) }))
+        .sort((a, b) => a.d.localeCompare(b.d));
+      if (!cleaned.length) return null;
+      const idx = cleaned.findIndex((x) => x.d === day);
+      if (idx > 0) return cleaned[idx - 1].score;
+      if (idx < 0 && cleaned.length >= 1) return cleaned[cleaned.length - 1].score;
+      return null;
+    }
+    function updateMacroScoreHistory(todayISO, score) {
+      if (!Number.isFinite(score)) return null;
+      const key = "hkqm_macro_score_history_v1";
+      const day = String(todayISO || "").slice(0, 10);
+      if (!day) return null;
+      let arr = [];
+      try { arr = JSON.parse(localStorage.getItem(key) || "[]"); } catch { arr = []; }
+      if (!Array.isArray(arr)) arr = [];
+      arr = arr.filter((x) => x && typeof x === "object" && x.d && Number.isFinite(x.s));
+      const idx = arr.findIndex((x) => x.d === day);
+      if (idx >= 0) arr[idx].s = score; else arr.push({ d: day, s: score });
+      arr.sort((a, b) => String(a.d).localeCompare(String(b.d)));
+      if (arr.length > 60) arr = arr.slice(-60);
+      localStorage.setItem(key, JSON.stringify(arr));
+      const prev = arr.length >= 2 ? arr[arr.length - 2] : null;
+      return prev && Number.isFinite(prev.s) ? Number(prev.s) : null;
+    }
+
+    async function loadMacro() {
+      const data = await fetchJsonSafe("macro_snapshot.json");
+      const tbody = document.getElementById("macroTbody");
+      const advBody = document.getElementById("macroAdvancedTbody");
+      const sub = document.getElementById("macroSub");
+      const kpiGrid = document.getElementById("macroKpiGrid");
+      const macroTone = document.getElementById("macroTone");
+      const macroLegend = document.getElementById("macroLegend");
+      const bossMacroBoard = document.getElementById("bossMacroBoard");
+      if (!tbody) return;
+      if (!data) {
+        destroyCharts(_chartsMacro);
+        const mh = document.getElementById("macroChartGrid");
+        if (mh) mh.innerHTML = "";
+        if (kpiGrid) kpiGrid.innerHTML = "";
+        if (macroTone) macroTone.style.display = "none";
+        if (macroLegend) macroLegend.style.display = "none";
+        if (bossMacroBoard) { bossMacroBoard.innerHTML = ""; bossMacroBoard.style.display = "none"; }
+        setEmptyState("macroEmpty", true);
+        return;
+      }
+      tbody.innerHTML = "";
+      if (advBody) advBody.innerHTML = "";
+      if (kpiGrid) kpiGrid.innerHTML = "";
+      if (macroTone) macroTone.style.display = "none";
+      if (macroLegend) {
+        macroLegend.innerHTML = "";
+        macroLegend.style.display = "none";
+      }
+      if (bossMacroBoard) { bossMacroBoard.innerHTML = ""; bossMacroBoard.style.display = "none"; }
+      if (sub) {
+        sub.textContent = data?.last_updated
+          ? "資料時間：" + fmtDateLocal(data.last_updated)
+          : "";
+      }
+      const metrics = Array.isArray(data?.metrics) ? data.metrics : [];
+      const chartSeries = data?.chart_series && typeof data.chart_series === "object" ? data.chart_series : {};
+      const advanced = data?.advanced && typeof data.advanced === "object" ? data.advanced : null;
+      const advKeys = advanced ? Object.keys(advanced) : [];
+      const metricsDisplay = augmentMacroMetricsForDisplay(metrics, advanced);
+      const usableMetrics = metricsDisplay.filter((m) => {
+        const v = String(m.value ?? "").trim().toUpperCase();
+        return v && v !== "N/A" && v !== "—";
+      });
+      const bm0 = data?.breadth_markets;
+      const hasBreadth =
+        bm0 &&
+        ((Number(bm0?.hk?.sampled) > 0 && Number.isFinite(num(bm0?.hk?.above_ma50_pct))) ||
+          (Number(bm0?.us?.sampled) > 0 && Number.isFinite(num(bm0?.us?.above_ma50_pct))));
+      renderBossMacroBoard(data, metricsDisplay, advanced);
+      const hasSeries =
+        data?.chart_series && typeof data.chart_series === "object" && Object.keys(data.chart_series).length > 0;
+      if (!usableMetrics.length && !advKeys.length && !hasSeries && !hasBreadth) {
+        destroyCharts(_chartsMacro);
+        const mh = document.getElementById("macroChartGrid");
+        if (mh) mh.innerHTML = "";
+        setEmptyState("macroEmpty", true);
+        return;
+      }
+      setEmptyState("macroEmpty", false);
+
+      for (const m of metricsDisplay) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(m.name ?? "N/A")}</td>
+          <td>${escapeHtml(String(m.value ?? "N/A"))}</td>
+          <td>${escapeHtml(String(m.change ?? "N/A"))}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      if (false && kpiGrid && metricsDisplay.length) {
+        for (const m of metricsDisplay.slice(0, 6)) {
+          const key = normalizeMetricToSeries(m.name);
+          const spark = key && Array.isArray(chartSeries[key]) ? sparklineSvg(chartSeries[key].slice(-30)) : "";
+          const card = document.createElement("div");
+          card.className = "macro-kpi";
+          card.innerHTML = `
+            <div class="mk-k">${escapeHtml(m.name ?? "N/A")}</div>
+            <div class="mk-v">${escapeHtml(String(m.value ?? "N/A"))}</div>
+            <div class="mk-c">${escapeHtml(String(m.change ?? "N/A"))}</div>
+            ${spark ? `<div class="mk-spark">${spark}</div>` : ""}
+          `;
+          kpiGrid.appendChild(card);
+        }
+      }
+
+      if (advBody && advanced) {
+        for (const name of advKeys.sort()) {
+          const row = advanced[name];
+          if (!row || typeof row !== "object") continue;
+          const cur = num(row.current);
+          const chg = num(row.change_pct);
+          const rsi = num(row.rsi);
+          const dist = num(row.dist_sma200);
+          const dd = num(row.drawdown);
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml(name)}</td>
+            <td>${cur != null ? escapeHtml(fmtMacroNum(cur, 2)) : "—"}</td>
+            <td>${chg != null ? escapeHtml(fmtMacroPct(chg)) : "—"}</td>
+            <td>${rsi != null ? fmtMacroNum(rsi, 1) : "—"}</td>
+            <td>${dist != null ? escapeHtml(fmtMacroPct(dist)) : "—"}</td>
+            <td>${dd != null ? escapeHtml(fmtMacroPct(dd)) : "—"}</td>
+          `;
+          advBody.appendChild(tr);
+        }
+        if (macroTone) macroTone.style.display = "none";
+        if (macroLegend) {
+          macroLegend.innerHTML = "";
+          macroLegend.style.display = "none";
+        }
+      }
+
+      renderMacroLineCharts(data?.chart_series || null);
+    }
+
+    async function loadData() {
+      let data = null;
+      let lastStatus = "?";
+      let rejectMismatch = false;
+      const urls = [...new Set(dailyScanUrlCandidatesForActiveModel())];
+      for (const url of urls) {
+        try {
+          const sep = url.includes("?") ? "&" : "?";
+          const res = await fetch(url + sep + "ts=" + Date.now(), { cache: "no-store" });
+          lastStatus = String(res.status);
+          if (!res.ok) continue;
+          const parsed = await res.json();
+          if (!scanPayloadMatchesMode(parsed, activeScoreModel, url)) {
+            rejectMismatch = true;
+            lastStatus = "wrong_engine";
+            continue;
+          }
+          data = parsed;
+          break;
+        } catch (e) {
+          lastStatus = e instanceof Error ? e.message : "error";
+        }
+      }
+
+      if (!data) {
+        dailyScanJsonOk = false;
+        rows = [];
+        document.getElementById("stocksTbody").innerHTML = "";
+        const sphFail = document.getElementById("scorePrevHint");
+        if (sphFail) {
+          sphFail.style.display = "none";
+          sphFail.textContent = "";
+        }
+        const want = dailyScanFilenameByModel(activeScoreModel);
+        const hintBuyPut =
+          activeScoreModel === "buy_put"
+            ? " 尚未有 daily_scan_buy_put.json 時，請在專案根執行掃描匯出（Streamlit Run scan 或 `python3 run_scan_export_json.py` 會一併產生 buy_put 檔）；若已用 CLI 三模型匯出，亦可設 `DAILY_SCAN_PRIMARY_MODEL=buy_put` 讓 daily_scan.json 即為做淡引擎。"
+            : "";
+        const hintMismatch = rejectMismatch
+          ? " 曾載入 JSON 但內容與目前模式不符（例如 daily_scan.json 仍為 sell_put）；請匯出對應檔或切換模式。"
+          : "";
+        setEmptyState(
+          "emptyState",
+          true,
+          "Failed to load valid data for " +
+            activeScoreModel +
+            " (last: " +
+            lastStatus +
+            "). Expected file e.g. `" +
+            want +
+            "`." +
+            hintBuyPut +
+            hintMismatch +
+            " Run Streamlit → Run scan, or CLI export, then reload.",
+        );
+      } else {
+        dailyScanJsonOk = true;
+        setEmptyState("emptyState", false);
+        document.getElementById("schemaVersion").textContent = data.schema_version ?? "-";
+        document.getElementById("lastUpdated").textContent = fmtDateLocal(data.last_updated);
+        const modeTag = data.scan?.mode ? `[${data.scan.mode}] ` : "";
+        const modelTag =
+          activeScoreModel === "buy_stock"
+            ? "[Buy Stock 極限爆發] "
+            : activeScoreModel === "buy_put"
+              ? "[Buy Put 恐慌破底] "
+              : "[Sell Put 穩健收租] ";
+        document.getElementById("strategy").textContent = modelTag + modeTag + (data.scan?.strategy ?? "-");
+        const sph = document.getElementById("scorePrevHint");
+        if (sph) {
+          const d2d = data.scan?.score_d2_date;
+          const d1d = data.scan?.score_d1_date;
+          const td = data.scan?.score_today_date;
+          if (d1d || d2d || td) {
+            sph.style.display = "block";
+            const parts = [];
+            if (d2d) parts.push("Score 2=" + d2d);
+            if (d1d) parts.push("Score 1=" + d1d);
+            if (td) parts.push("Score 0=" + td);
+            sph.textContent =
+              "評分欄（近 3 交易日）：" +
+              parts.join(" · ") +
+              "。完美加速＝連續三日遞升（例 70→85→100）；神經刀＝大幅震盪（例 90→50→100）。";
+          } else {
+            sph.style.display = "block";
+            sph.textContent =
+              "Score 2／1／0：每次掃描由 Yahoo 日線自動計算近 3 個交易日評分；「連續性」欄顯示型態標籤。";
+          }
+        }
+        const stockList = Array.isArray(data.stocks) ? data.stocks : [];
+        document.getElementById("total").textContent = String(data.scan?.total ?? stockList.length);
+        const cGreen = stockList.filter((x) => classifySignal(x.signal ?? x.Signal).key === "green").length;
+        const cYellow = stockList.filter((x) => classifySignal(x.signal ?? x.Signal).key === "yellow").length;
+        const cRed = stockList.filter((x) => classifySignal(x.signal ?? x.Signal).key === "red").length;
+        document.getElementById("buyPill").textContent = BAND_CHART_LABEL.green + " " + String(cGreen);
+        document.getElementById("waitPill").textContent = BAND_CHART_LABEL.yellow + " " + String(cYellow);
+        document.getElementById("sellPill").textContent = BAND_CHART_LABEL.red + " " + String(cRed);
+        const ph = document.getElementById("pillHint");
+        if (ph) {
+          ph.style.display = "block";
+        }
+
+        lastScanStrategy = data.scan?.strategy ?? "-";
+        rows = stockList;
+        renderTable();
+      }
+
+      breadthDailyHistory = await fetchJsonSafe("breadth_daily_history.json");
+      await Promise.all([loadHistory(), loadFutureLog(), loadMacro()]);
+      renderOverviewCharts(rows, historySignals, breadthDailyHistory);
+    }
+
+    document.getElementById("reloadBtn").addEventListener("click", loadData);
+    const modeSellPutBtn = document.getElementById("modeSellPutBtn");
+    const modeBuyStockBtn = document.getElementById("modeBuyStockBtn");
+    if (modeSellPutBtn) {
+      modeSellPutBtn.addEventListener("click", () => {
+        activeScoreModel = "sell_put";
+        syncScoreModeButtons();
+        renderHistoryTable();
+        loadData();
+      });
+    }
+    if (modeBuyStockBtn) {
+      modeBuyStockBtn.addEventListener("click", () => {
+        activeScoreModel = "buy_stock";
+        syncScoreModeButtons();
+        renderHistoryTable();
+        loadData();
+      });
+    }
+    const modeBuyPutBtn = document.getElementById("modeBuyPutBtn");
+    if (modeBuyPutBtn) {
+      modeBuyPutBtn.addEventListener("click", () => {
+        activeScoreModel = "buy_put";
+        syncScoreModeButtons();
+        renderHistoryTable();
+        loadData();
+      });
+    }
+    document.querySelectorAll("th[data-key]").forEach((th) => {
+      th.addEventListener("click", () => {
+        const key = th.getAttribute("data-key");
+        if (sortKey === key) sortAsc = !sortAsc; else { sortKey = key; sortAsc = true; }
+        renderTable();
+      });
+    });
+
+    const af = document.getElementById("activeFilter");
+    if (af) {
+      af.addEventListener("input", () => {
+        activeFilter = af.value;
+        renderTable();
+      });
+    }
+    const ttn = document.getElementById("tableTopN");
+    if (ttn) {
+      ttn.addEventListener("change", () => {
+        const lim = getTableTopLimit();
+        if (lim > 0 && sortKey !== "tech_score") {
+          sortKey = "tech_score";
+          sortAsc = false;
+        }
+        renderTable();
+      });
+    }
+    const hf = document.getElementById("historyFilter");
+    if (hf) {
+      hf.addEventListener("input", () => {
+        historyFilter = hf.value;
+        renderHistoryTable();
+      });
+    }
+    const hto = document.getElementById("historyTriggersOnly");
+    if (hto) {
+      hto.addEventListener("change", () => renderHistoryTable());
+    }
+    const lf = document.getElementById("logFilter");
+    if (lf) {
+      lf.addEventListener("input", () => {
+        logFilter = lf.value;
+        renderLogTable();
+      });
+    }
+
+    document.querySelectorAll("th[data-hist-key]").forEach((th) => {
+      th.addEventListener("click", () => {
+        const key = th.getAttribute("data-hist-key");
+        if (histSortKey === key) histSortAsc = !histSortAsc;
+        else {
+          histSortKey = key;
+          histSortAsc = !["entry_date", "date", "pnl_pct", "holding_days"].includes(key);
+        }
+        renderHistoryTable();
+      });
+    });
+    document.querySelectorAll("th[data-log-key]").forEach((th) => {
+      th.addEventListener("click", () => {
+        const key = th.getAttribute("data-log-key");
+        if (logSortKey === key) logSortAsc = !logSortAsc;
+        else {
+          logSortKey = key;
+          logSortAsc = !["logged_at", "trigger_date"].includes(key);
+        }
+        renderLogTable();
+      });
+    });
+
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tab = btn.getAttribute("data-tab");
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(tab).classList.add("active");
+      });
+    });
+
+    const mcs = document.getElementById("macroChartStyle");
+    if (mcs) {
+      mcs.addEventListener("change", () => {
+        _macroChartStyle = mcs.value || "area";
+        if (_lastMacroSeries) renderMacroLineCharts(_lastMacroSeries);
+      });
+    }
+    const mrb = document.getElementById("macroChartResetBtn");
+    if (mrb) {
+      mrb.addEventListener("click", () => {
+        destroyCharts(_chartsMacro);
+        const host = document.getElementById("macroChartGrid");
+        if (host) host.innerHTML = "";
+        if (_lastMacroSeries) renderMacroLineCharts(_lastMacroSeries);
+      });
+    }
+
+    const macroChartsDetails = document.getElementById("macroChartsDetails");
+    if (macroChartsDetails) {
+      macroChartsDetails.addEventListener("toggle", () => {
+        if (!macroChartsDetails.open) return;
+        requestAnimationFrame(() => {
+          for (const c of _chartsMacro) {
+            try {
+              c.resize();
+            } catch (_) {
+              /* noop */
+            }
+          }
+        });
+      });
+    }
+
+    syncScoreModeButtons();
+    loadData();
+  </script>
+</body>
+</html>

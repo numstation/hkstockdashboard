@@ -1,0 +1,1812 @@
+{
+    "schema_version": "1.1",
+    "last_updated": "2026-05-19T14:48:00+08:00",
+    "signals": [
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0465.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 5.61,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0522.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 173.0,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "0525.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.44,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0580.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.23,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T10:13:38+08:00",
+            "ticker": "0588.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.84,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0628.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.56,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T12:01:26+08:00",
+            "ticker": "0688.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 16.6,
+            "latest_price": 15.9,
+            "pnl_pct": -4.22,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-15T12:01:26+08:00",
+            "ticker": "0728.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 5.39,
+            "latest_price": 5.6,
+            "pnl_pct": 3.9,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0731.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.57,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T12:01:26+08:00",
+            "ticker": "0762.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 7.74,
+            "latest_price": 7.89,
+            "pnl_pct": 1.94,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0817.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 1.9,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "0836.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 20.64,
+            "latest_price": 20.44,
+            "pnl_pct": -0.97,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0856.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 10.74,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0918.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 1.15,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T12:01:26+08:00",
+            "ticker": "0941.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 86.7,
+            "latest_price": 86.55,
+            "pnl_pct": -0.17,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-13T13:22:26+08:00",
+            "ticker": "0960.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 9.74,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-13T09:54:03+08:00",
+            "ticker": "0981.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 73.75,
+            "latest_price": 67.45,
+            "pnl_pct": -8.54,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0991.HK",
+            "strategy": "CLI Export",
+            "signal": "🔥 STRONG (Sell Put)",
+            "close": 3.05,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T12:01:26+08:00",
+            "ticker": "0992.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 12.71,
+            "latest_price": 12.76,
+            "pnl_pct": 0.39,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-13T14:39:33+08:00",
+            "ticker": "0998.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 8.48,
+            "latest_price": 7.85,
+            "pnl_pct": -7.43,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-15T12:01:26+08:00",
+            "ticker": "1024.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 49.92,
+            "latest_price": 49.1,
+            "pnl_pct": -1.64,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-14T10:13:38+08:00",
+            "ticker": "1045.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 3.9,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1050.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.9,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1070.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 15.87,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T10:13:38+08:00",
+            "ticker": "1071.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 4.68,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T12:01:26+08:00",
+            "ticker": "1109.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 37.78,
+            "latest_price": 35.3,
+            "pnl_pct": -6.56,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1141.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.38,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1286.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 10.66,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1300.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 1.99,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1304.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 168.4,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T09:54:03+08:00",
+            "ticker": "1347.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 125.8,
+            "latest_price": 114.8,
+            "pnl_pct": -8.74,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "1357.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 5.04,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1396.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 18.64,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1606.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 1.6,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1626.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 10.17,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1651.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 59.2,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1716.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 7.29,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "1729.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 21.88,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T10:13:38+08:00",
+            "ticker": "1766.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 5.41,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1780.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.29,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1851.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 6.63,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1888.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 45.36,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1908.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 17.4,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1953.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 1.6,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2038.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 29.32,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2166.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 4.33,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2339.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 8.7,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2355.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 4.4,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2380.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 3.57,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2423.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 50.05,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2436.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 20.76,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2477.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 5.58,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T15:55:09+08:00",
+            "ticker": "2567.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.52,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2589.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 151.1,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2603.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 16.32,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2631.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 132.9,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2676.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 204.2,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2722.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 3.45,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2865.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 41.92,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2889.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 170.6,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "3200.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 164.8,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "3311.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 9.52,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "3316.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 26.14,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "3319.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.84,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-12T16:21:43+08:00",
+            "ticker": "3323.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 5.87,
+            "latest_price": 5.15,
+            "pnl_pct": -12.27,
+            "last_marked": "2026-05-19",
+            "holding_days": 7
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "3396.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 10.27,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "3900.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 10.8,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "3908.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 21.66,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "3986.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 525.0,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "6082.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 52.8,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "6088.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 9.85,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "6168.HK",
+            "strategy": "CLI Export",
+            "signal": "🔥 STRONG (Sell Put)",
+            "close": 20.06,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "6613.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 21.48,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "6666.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 1.51,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "6809.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 506.0,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "6886.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 16.83,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "9636.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 35.3,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "9668.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.93,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "9903.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 523.5,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "9963.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 6.74,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "9982.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.14,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "9990.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.44,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T12:01:26+08:00",
+            "ticker": "0001.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 73.15,
+            "latest_price": 71.2,
+            "pnl_pct": -2.67,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-15T12:01:26+08:00",
+            "ticker": "0004.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 28.48,
+            "latest_price": 27.68,
+            "pnl_pct": -2.81,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-15T08:51:34+08:00",
+            "ticker": "0017.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 8.95,
+            "latest_price": 8.46,
+            "pnl_pct": -5.47,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-14T11:30:04+08:00",
+            "ticker": "0031.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.58,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T10:13:38+08:00",
+            "ticker": "0081.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 3.07,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0117.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.95,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0119.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.33,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0123.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 4.68,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0133.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 25.84,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0148.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 55.1,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0179.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 28.3,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0182.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.45,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0259.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 4.33,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T12:47:55+08:00",
+            "ticker": "0270.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 8.52,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0290.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 8.86,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "0326.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 7.3,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0363.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 15.45,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0365.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 1.12,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0400.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 3.22,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "2171.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 22.96,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0679.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 12.63,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "1030.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.26,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T10:13:38+08:00",
+            "ticker": "1142.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.14,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "1276.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 68.85,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "1617.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.74,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-13T09:54:03+08:00",
+            "ticker": "2869.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 4.78,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "0177.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 10.86,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T08:51:34+08:00",
+            "ticker": "0902.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 6.61,
+            "latest_price": 6.72,
+            "pnl_pct": 1.66,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "2202.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 3.25,
+            "latest_price": 2.92,
+            "pnl_pct": -10.15,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2577.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 86.6,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "2669.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 4.2,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "2727.HK",
+            "strategy": "CLI Export",
+            "signal": "🔥 STRONG (Sell Put)",
+            "close": 4.39,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "6066.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 11.79,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "6196.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 1.06,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "6869.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 271.2,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "6969.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 10.68,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "0012.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 33.64,
+            "latest_price": 32.26,
+            "pnl_pct": -4.1,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T14:39:33+08:00",
+            "ticker": "0552.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 4.48,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "0598.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 5.33,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "1209.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 50.25,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "1258.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 14.68,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "1339.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 5.69,
+            "latest_price": 5.67,
+            "pnl_pct": -0.35,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-13T15:55:09+08:00",
+            "ticker": "2128.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 5.02,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-15T08:51:34+08:00",
+            "ticker": "2328.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 15.37,
+            "latest_price": 15.74,
+            "pnl_pct": 2.41,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "2338.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 39.62,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "0622.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.12,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T08:51:34+08:00",
+            "ticker": "3988.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 5.29,
+            "latest_price": 5.28,
+            "pnl_pct": -0.19,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "6049.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 32.62,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-13T08:48:14+08:00",
+            "ticker": "6098.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 6.52,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "0558.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 3.09,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T12:47:55+08:00",
+            "ticker": "1384.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 69.0,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T16:10:28+08:00",
+            "ticker": "2319.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 17.6,
+            "latest_price": 17.36,
+            "pnl_pct": -1.36,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2343.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 3.46,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "1798.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 1.82,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "2799.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.76,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "0916.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 7.06,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T11:30:04+08:00",
+            "ticker": "2618.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 15.94,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T08:51:34+08:00",
+            "ticker": "9618.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 130.1,
+            "latest_price": 125.6,
+            "pnl_pct": -3.46,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1523.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 9.14,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1989.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 185.5,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2715.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 14.45,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "1060.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.62,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "1686.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 6.98,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "1811.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.81,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2701.HK",
+            "strategy": "CLI Export",
+            "signal": "🔥 STRONG (Sell Put)",
+            "close": 13.72,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "3996.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 1.4,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "0683.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 24.3,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T15:55:09+08:00",
+            "ticker": "2378.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 121.3,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "3678.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.91,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "0257.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 5.8,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "1548.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 14.76,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "1997.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 25.82,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-13T23:20:15+08:00",
+            "ticker": "2356.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 13.24,
+            "last_marked": "2026-05-19",
+            "holding_days": 6
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "2526.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 343.6,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "3690.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 87.6,
+            "latest_price": 83.65,
+            "pnl_pct": -4.51,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "3898.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 44.48,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T08:56:34+08:00",
+            "ticker": "6618.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 48.86,
+            "latest_price": 41.6,
+            "pnl_pct": -14.86,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T08:51:34+08:00",
+            "ticker": "9888.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 140.9,
+            "latest_price": 136.5,
+            "pnl_pct": -3.12,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-14T10:13:38+08:00",
+            "ticker": "2402.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 20.56,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "3816.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 2.7,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "9611.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 26.56,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0650.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 0.64,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "0999.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 6.95,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2658.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 49.2,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-14T14:04:04+08:00",
+            "ticker": "2648.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 85.0,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T12:01:26+08:00",
+            "ticker": "0823.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 41.66,
+            "latest_price": 41.38,
+            "pnl_pct": -0.67,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-14T23:29:22+08:00",
+            "ticker": "2822.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 16.31,
+            "latest_price": 15.91,
+            "pnl_pct": -2.45,
+            "last_marked": "2026-05-19",
+            "holding_days": 5
+        },
+        {
+            "date": "2026-05-15T08:51:34+08:00",
+            "ticker": "9988.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 137.9,
+            "latest_price": 133.4,
+            "pnl_pct": -3.26,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-15T08:51:34+08:00",
+            "ticker": "2015.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 76.85,
+            "latest_price": 62.1,
+            "pnl_pct": -19.19,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-15T08:51:34+08:00",
+            "ticker": "0002.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 77.1,
+            "latest_price": 76.05,
+            "pnl_pct": -1.36,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-15T08:51:34+08:00",
+            "ticker": "0006.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 65.3,
+            "latest_price": 65.15,
+            "pnl_pct": -0.23,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-15T09:54:46+08:00",
+            "ticker": "2018.HK",
+            "strategy": "CLI Export",
+            "signal": "👀 WATCH (Potential)",
+            "close": 44.5,
+            "latest_price": 41.5,
+            "pnl_pct": -6.74,
+            "last_marked": "2026-05-19",
+            "holding_days": 4
+        },
+        {
+            "date": "2026-05-18T16:36:41+08:00",
+            "entry_date": "2026-05-18",
+            "ticker": "0300.HK",
+            "action": "BUY_CALL",
+            "score_model": "buy_stock",
+            "strategy": "Scan file sync | ScoreModel=buy_stock",
+            "signal": "N/A",
+            "score": 87,
+            "entry_price": 91.6,
+            "latest_price": 89.85,
+            "pnl_pct": -1.91,
+            "holding_days": 1,
+            "macd_status": "多頭柱體擴張",
+            "rvol": 2.01,
+            "status": "open",
+            "last_marked": "2026-05-19",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-18T16:36:41+08:00",
+            "entry_date": "2026-05-18",
+            "ticker": "0762.HK",
+            "action": "BUY_CALL",
+            "score_model": "buy_stock",
+            "strategy": "Scan file sync | ScoreModel=buy_stock",
+            "signal": "N/A",
+            "score": 100,
+            "entry_price": 7.96,
+            "latest_price": 7.89,
+            "pnl_pct": -0.88,
+            "holding_days": 1,
+            "macd_status": "多頭柱體擴張",
+            "rvol": 2.57,
+            "status": "open",
+            "last_marked": "2026-05-19",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-18T16:36:41+08:00",
+            "entry_date": "2026-05-18",
+            "ticker": "0728.HK",
+            "action": "SELL_PUT",
+            "score_model": "sell_put",
+            "strategy": "Scan file sync | ScoreModel=sell_put",
+            "signal": "N/A",
+            "score": 87,
+            "entry_price": 5.63,
+            "latest_price": 5.6,
+            "pnl_pct": -0.53,
+            "holding_days": 1,
+            "macd_status": "多頭柱體擴張",
+            "rvol": 2.04,
+            "status": "open",
+            "last_marked": "2026-05-19",
+            "trigger_track": "B",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-18T16:36:41+08:00",
+            "entry_date": "2026-05-18",
+            "ticker": "0762.HK",
+            "action": "SELL_PUT",
+            "score_model": "sell_put",
+            "strategy": "Scan file sync | ScoreModel=sell_put",
+            "signal": "N/A",
+            "score": 88,
+            "entry_price": 7.95,
+            "latest_price": 7.89,
+            "pnl_pct": -0.75,
+            "holding_days": 1,
+            "macd_status": "多頭柱體擴張",
+            "rvol": 2.57,
+            "status": "open",
+            "last_marked": "2026-05-19",
+            "trigger_track": "B",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-18T16:36:41+08:00",
+            "entry_date": "2026-05-18",
+            "ticker": "0728.HK",
+            "action": "BUY_CALL",
+            "score_model": "buy_stock",
+            "strategy": "Scan file sync | ScoreModel=buy_stock",
+            "signal": "N/A",
+            "score": 93,
+            "entry_price": 5.62,
+            "latest_price": 5.6,
+            "pnl_pct": -0.36,
+            "holding_days": 1,
+            "macd_status": "多頭柱體擴張",
+            "rvol": 2.04,
+            "status": "open",
+            "last_marked": "2026-05-19",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-19T13:45:59+08:00",
+            "entry_date": "2026-05-19",
+            "ticker": "0762.HK",
+            "action": "SELL_PUT",
+            "score_model": "sell_put",
+            "strategy": "CLI Export | ScoreModel=sell_put",
+            "signal": "N/A",
+            "score": 89,
+            "entry_price": 8.02,
+            "latest_price": 7.89,
+            "pnl_pct": -1.62,
+            "holding_days": 0,
+            "macd_status": "多頭柱體擴張",
+            "rvol": 2.11,
+            "status": "open",
+            "last_marked": "2026-05-19",
+            "trigger_track": "B",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-19T13:45:59+08:00",
+            "entry_date": "2026-05-19",
+            "ticker": "0762.HK",
+            "action": "BUY_CALL",
+            "score_model": "buy_stock",
+            "strategy": "CLI Export | ScoreModel=buy_stock",
+            "signal": "N/A",
+            "score": 94,
+            "entry_price": 8.02,
+            "latest_price": 7.89,
+            "pnl_pct": -1.62,
+            "holding_days": 0,
+            "macd_status": "多頭柱體擴張",
+            "rvol": 2.11,
+            "status": "open",
+            "last_marked": "2026-05-19",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-19T14:48:00+08:00",
+            "entry_date": "2026-05-19",
+            "ticker": "1339.HK",
+            "action": "BUY_CALL",
+            "score_model": "buy_stock",
+            "strategy": "CLI Export | ScoreModel=buy_stock",
+            "signal": "N/A",
+            "score": 89,
+            "entry_price": 5.68,
+            "latest_price": 5.67,
+            "pnl_pct": -0.18,
+            "holding_days": 0,
+            "macd_status": "多頭柱體擴張",
+            "rvol": 1.77,
+            "status": "open",
+            "last_marked": "2026-05-19",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-19T14:48:00+08:00",
+            "entry_date": "2026-05-19",
+            "ticker": "2328.HK",
+            "action": "BUY_CALL",
+            "score_model": "buy_stock",
+            "strategy": "CLI Export | ScoreModel=buy_stock",
+            "signal": "N/A",
+            "score": 84,
+            "entry_price": 15.77,
+            "latest_price": 15.74,
+            "pnl_pct": -0.19,
+            "holding_days": 0,
+            "macd_status": "多頭柱體擴張",
+            "rvol": 1.48,
+            "status": "open",
+            "last_marked": "2026-05-19",
+            "vwap_ext": "N"
+        }
+    ]
+}

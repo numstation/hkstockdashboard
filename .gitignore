@@ -1,0 +1,22 @@
+# Environment and secrets (use .env for API keys instead of hardcoding)
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.cache/
+
+# Local automation logs / pid
+logs/
+.hourly_refresh.pid
+scan_cron.log
+
+# OS / IDE
+.DS_Store
+
+# Large vendor / optional (not needed for dashboard deploy)
+stocktrackeryahoo/FTAPI4Python*/
+migrate/
