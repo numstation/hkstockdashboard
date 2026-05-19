@@ -435,7 +435,7 @@
     <div class="header">
       <div>
         <h1 class="title">技術掃描</h1>
-        <div class="sub">全市場 RVOL / ADX / MACD 與綜合評分 · JSON 驅動 · 晨報式留白編排（視覺靈感參考 stockcast.tw）</div>
+        <div class="sub">全市場 RVOL / ADX / MACD 與綜合評分 · JSON 驅動 · 晨報式留白編排</div>
       </div>
       <div class="mode-switch">
         <button id="modeSellPutBtn" class="mode-btn active" type="button">Sell Put 穩健收租</button>
@@ -818,8 +818,13 @@ ${tail}`;
       return "arc-badge arc-neutral";
     }
 
-    /** Dates excluded from 每日訊號市寬 (old 693-stock universe distorts chart). */
-    const BREADTH_CHART_EXCLUDE_DATES = new Set(["2026-05-12", "2026-05-13", "2026-05-14"]);
+    /** Dates excluded from 每日訊號市寬 (legacy / wrong-universe snapshots — not comparable). */
+    const BREADTH_CHART_EXCLUDE_DATES = new Set([
+      "2026-05-12",
+      "2026-05-13",
+      "2026-05-14",
+      "2026-05-15",
+    ]);
 
     const BAND_CHART_LABEL = { green: "強勢", yellow: "觀望", red: "危險" };
 
