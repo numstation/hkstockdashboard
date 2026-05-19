@@ -18,4 +18,5 @@ ulimit -n 4096 2>/dev/null || true
 echo "[$(date -Iseconds)] daily scan start"
 python3 run_scan_export_json.py --sleep 0.2 "$@"
 python3 scripts/export_triggers_from_scan.py
+bash "$ROOT/scripts/sync_frontend_data.sh"
 echo "[$(date -Iseconds)] daily scan done"

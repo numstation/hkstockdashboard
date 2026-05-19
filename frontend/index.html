@@ -967,24 +967,28 @@ ${tail}`;
     }
 
     /**
-     * JSON files live in the repo root next to `frontend/`. Absolute `/file.json`
-     * breaks when the app is under a path prefix; try parent-of-frontend first.
+     * Repo root URL for JSON (GitHub Pages: /repo-name/ ; local: /).
+     * HTML lives under .../frontend/index.html ; JSON at repo root or frontend/data/.
      */
-    function jsonUrlCandidates(filename) {
-      const raw = [];
-      try {
-        raw.push(new URL("../" + filename, window.location.href).href);
-      } catch {
-        /* ignore */
-      }
+    function getDashboardBaseUrl() {
       const { origin, pathname } = window.location;
-      const m = pathname.match(/^(.*)\/frontend\//);
-      if (m && m[1] !== "") {
-        const base = m[1].replace(/\/?$/, "/");
-        raw.push(origin + base + filename);
+      const idx = pathname.indexOf("/frontend/");
+      if (idx >= 0) {
+        return origin + pathname.slice(0, idx + 1);
       }
-      raw.push(origin + "/" + filename);
-      return [...new Set(raw)];
+      const dir = pathname.replace(/\/[^/]*$/, "/");
+      return origin + (dir || "/");
+    }
+
+    function jsonUrlCandidates(filename) {
+      const base = getDashboardBaseUrl();
+      const pageUrl = window.location.href;
+      const raw = [
+        new URL("data/" + filename, pageUrl).href,
+        new URL("../" + filename, pageUrl).href,
+        new URL(filename, base).href,
+      ];
+      return [...new Set(raw.filter(Boolean))];
     }
 
     function dailyScanFilenameByModel(model) {
@@ -2614,12 +2618,14 @@ ${tail}`;
             activeScoreModel +
             " (last: " +
             lastStatus +
-            "). Expected file e.g. `" +
+            "). Tried e.g. `frontend/data/" +
             want +
-            "`." +
+            "` and repo root. Base: " +
+            getDashboardBaseUrl() +
+            "." +
             hintBuyPut +
             hintMismatch +
-            " Run Streamlit → Run scan, or CLI export, then reload.",
+            " Re-run GitHub Actions or `bash scripts/sync_frontend_data.sh` then push.",
         );
       } else {
         dailyScanJsonOk = true;
