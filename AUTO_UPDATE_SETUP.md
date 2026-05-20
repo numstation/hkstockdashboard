@@ -20,6 +20,14 @@ export DASHBOARD_SCHEMA_MIN_VERSION=
 
 ---
 
+## Actions shows **exit code 127**
+
+**127** = “command not found”. Common cause: CI scripts called **`python`** but Ubuntu runners often only expose **`python3`** after setup.
+
+This repo uses **`python3`** in **`scripts/ci_refresh.sh`** and **`python3 -m pip`** in workflows. Pull latest `main` / push fixes, then re-run the workflow.
+
+---
+
 ## If Actions failed with `Get Pages site failed` / HttpError Not Found
 
 The old **Dashboard refresh** workflow tried to use **GitHub Pages** (`configure-pages`). That call returns **404** until you enable Pages in **Settings → Pages → Build: GitHub Actions**.

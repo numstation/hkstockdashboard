@@ -49,7 +49,7 @@ jobs:
           node-version: "22"
 
       - name: Install dependencies
-        run: pip install -r requirements-scan.txt
+        run: python3 -m pip install -r requirements-scan.txt
 
       - name: Refresh dashboard JSON
         env:

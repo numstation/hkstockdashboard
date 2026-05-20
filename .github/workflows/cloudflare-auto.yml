@@ -40,7 +40,7 @@ jobs:
           node-version: "22"
 
       - name: Install Python dependencies
-        run: pip install -r requirements-scan.txt
+        run: python3 -m pip install -r requirements-scan.txt
 
       - name: Scan HK universe → JSON
         run: bash scripts/ci_refresh.sh
