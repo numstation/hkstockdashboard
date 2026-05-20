@@ -6,6 +6,14 @@ The site does **not** update by itself until GitHub Actions can **scan** and **d
 
 ---
 
+## Full Market History: **Buy Put** tab empty
+
+The history tab reads **`signals_history.json`**, filtered by **`score_model=buy_put`** and **`action=BUY_PUT`**.
+
+If **Sell Put / Buy Stock** show rows but **Buy Put** does not, the usual cause was Python **`evaluate_trade_trigger`** not implementing **buy_put** (only sell_put / buy_stock were logged). That is fixed in **`daily_scanner.py`**; the next scan or **`python3 scripts/export_triggers_from_scan.py`** backfills from **`daily_scan_buy_put.json`**.
+
+---
+
 ## Schema version shows `1.3` instead of `4.0`
 
 Old files used `"schema_version": "1.3"`. If the site still shows **1.3**, the live Worker is often serving **stale JSON** (old commit or deploy without a new scan).

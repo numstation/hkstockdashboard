@@ -761,11 +761,62 @@ def sell_put_trigger_scenario(row: dict) -> str | None:
     return None
 
 
+def _row_float(row: dict, *keys: str) -> float | None:
+    for key in keys:
+        raw = row.get(key)
+        if raw is None:
+            continue
+        s = str(raw).strip().replace("—", "").replace("%", "").replace("x", "")
+        if s.lower() in ("", "n/a", "nan", "none"):
+            continue
+        try:
+            return float(s)
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def buy_put_trigger_from_row(row: dict) -> bool:
+    """
+    Buy Put 恐慌破底 (matches dashboard Full Market History rules):
+    score>=70, MACD 空頭柱體擴張, MACD negative, RVOL>=1.3, close < VWAP, RS<=0.
+    """
+    if not row or not bool(row.get("data_ok", True)):
+        return False
+    macd = macd_status_from_row(row)
+    if not macd or "空頭柱體擴張" not in macd:
+        return False
+    ms = str(row.get("macd_sign", row.get("MACD_Sign", ""))).strip().lower()
+    if ms != "negative" and "空頭" not in macd:
+        return False
+    ts = row.get("tech_score")
+    if ts is None or str(ts).strip().lower() in ("", "n/a", "nan", "none"):
+        return False
+    try:
+        score = int(round(float(ts)))
+    except (TypeError, ValueError):
+        return False
+    if score < 70:
+        return False
+    rvol = _row_float(row, "rvol", "RVOL")
+    if rvol is None or rvol < 1.3:
+        return False
+    close = _row_float(row, "close", "Close", "Price")
+    vwap = _row_float(row, "vwap", "VWAP")
+    if close is None or vwap is None or close >= vwap:
+        return False
+    rs = _row_float(row, "rs_20d", "RS_20d", "RS_20d_Outperform")
+    if rs is not None and rs > 0:
+        return False
+    return True
+
+
 def evaluate_trade_trigger(row: dict, score_model: str) -> str | None:
     """
     Return trade action slug when entry rules fire, else None.
     BUY_CALL (buy_stock): score>=80, rvol>=1.2, MACD 翻正 or 多頭擴張
     SELL_PUT (sell_put): Scenario A OR B via sell_put_trigger_scenario()
+    BUY_PUT (buy_put): panic breakdown via buy_put_trigger_from_row()
     """
     if not row or not bool(row.get("data_ok", True)):
         return None
@@ -798,6 +849,11 @@ def evaluate_trade_trigger(row: dict, score_model: str) -> str | None:
     if model in ("sell_put", "sell", "收租"):
         if sell_put_trigger_scenario(row):
             return "SELL_PUT"
+        return None
+
+    if model in ("buy_put", "bear_put", "short_put", "panic_breakdown"):
+        if buy_put_trigger_from_row(row):
+            return "BUY_PUT"
         return None
 
     return None
