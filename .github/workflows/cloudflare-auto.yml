@@ -59,7 +59,5 @@ jobs:
             echo "See DEPLOY_CLOUDFLARE.md → Automate section."
             exit 1
           fi
-          cd cloudflare && npm ci
-          cd ..
           bash scripts/deploy_cloudflare.sh
           echo "Live: https://hkstockdashboard.chrislau.workers.dev/frontend/"

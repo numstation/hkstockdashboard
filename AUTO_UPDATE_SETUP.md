@@ -20,11 +20,14 @@ export DASHBOARD_SCHEMA_MIN_VERSION=
 
 ---
 
-## Actions shows **exit code 127**
+## Actions shows **exit code 127** (“command not found”)
 
-**127** = “command not found”. Common cause: CI scripts called **`python`** but Ubuntu runners often only expose **`python3`** after setup.
+**Common causes:**
 
-This repo uses **`python3`** in **`scripts/ci_refresh.sh`** and **`python3 -m pip`** in workflows. Pull latest `main` / push fixes, then re-run the workflow.
+1. **Scan step** — script used **`python`** instead of **`python3`**. Fixed: **`scripts/ci_refresh.sh`** + **`python3 -m pip`** in workflows.
+2. **Deploy to Cloudflare** — **`npx wrangler`** can fail if **`npx`** isn’t on `PATH`. Fixed: **`deploy_cloudflare.sh`** runs **`cloudflare/node_modules/.bin/wrangler deploy`** after **`npm ci`**.
+
+Pull latest **`main`**, push, then re-run **Cloudflare auto update**.
 
 ---
 
