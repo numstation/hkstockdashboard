@@ -548,6 +548,24 @@ def _to_number(value):
         return None
 
 
+def _signal_is_bearish_underlying(sig: dict) -> bool:
+    """Buy Put / bearish: profit when underlying price falls."""
+    if not isinstance(sig, dict):
+        return False
+    action = str(sig.get("action", "")).strip().upper()
+    model = str(sig.get("score_model", "")).strip().lower()
+    return action == "BUY_PUT" or model == "buy_put"
+
+
+def _pnl_pct_underlying(entry_px: float, latest_px: float, *, bearish: bool) -> float:
+    """Return % P&L vs entry. Long: (latest-entry)/entry; bearish: (entry-latest)/entry."""
+    if entry_px == 0:
+        return 0.0
+    if bearish:
+        return round((float(entry_px) - float(latest_px)) / float(entry_px) * 100.0, 2)
+    return round((float(latest_px) - float(entry_px)) / float(entry_px) * 100.0, 2)
+
+
 def _is_within_days(iso_or_date_text, retention_days: int) -> bool:
     """Keep records within retention window; if parse fails keep record."""
     if not retention_days or retention_days <= 0:
@@ -830,7 +848,9 @@ def export_trade_signals_history_to_json(
         if latest is not None:
             sig["latest_price"] = round(float(latest), 4)
             if entry_px is not None and float(entry_px) != 0:
-                sig["pnl_pct"] = round((float(latest) - float(entry_px)) / float(entry_px) * 100.0, 2)
+                sig["pnl_pct"] = _pnl_pct_underlying(
+                    float(entry_px), float(latest), bearish=_signal_is_bearish_underlying(sig)
+                )
         sig["last_marked"] = today
         ed = sig.get("entry_date") or _entry_date_from_iso(sig.get("date", ""))
         hd = _holding_days(ed, today)

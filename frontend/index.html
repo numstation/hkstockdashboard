@@ -518,6 +518,7 @@
     .action-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
     .action-badge.buy_call { background: rgba(59,130,246,.14); color: #1d4ed8; }
     .action-badge.sell_put { background: rgba(34,197,94,.14); color: #15803d; }
+    .action-badge.buy_put { background: rgba(239,68,68,.14); color: #b91c1c; }
     @media (max-width: 960px) { .cards { grid-template-columns: repeat(2, minmax(0,1fr)); } }
     @media (max-width: 639px) {
       .container { padding: 16px 12px 24px; max-width: 100%; }
@@ -1027,10 +1028,21 @@ ${tail}`;
       return Number.isFinite(v) && v > 0 ? v : 0;
     }
 
-    function calcPnlPct(entryPrice, latestPrice) {
+    /** Long (Buy Call / Sell Put track): up = win. Bearish (Buy Put): down = win. */
+    function isBearishHistorySignal(signal) {
+      if (!signal) return activeScoreModel === "buy_put";
+      const a = String(signal.action || "").toUpperCase();
+      const m = String(signal.score_model || "").toLowerCase();
+      return a === "BUY_PUT" || m === "buy_put";
+    }
+
+    function calcPnlPct(entryPrice, latestPrice, signal) {
       const entry = num(entryPrice);
       const latest = num(latestPrice);
       if (!Number.isFinite(entry) || entry === 0 || !Number.isFinite(latest)) return NaN;
+      if (isBearishHistorySignal(signal)) {
+        return ((entry - latest) / entry) * 100;
+      }
       return ((latest - entry) / entry) * 100;
     }
 
@@ -1924,6 +1936,7 @@ ${tail}`;
     function historyActionForActiveModel() {
       if (activeScoreModel === "buy_stock") return "BUY_CALL";
       if (activeScoreModel === "sell_put") return "SELL_PUT";
+      if (activeScoreModel === "buy_put") return "BUY_PUT";
       return null;
     }
 
@@ -1963,6 +1976,37 @@ ${tail}`;
         }
         return { trackA, trackB, all };
       }
+      if (activeScoreModel === "buy_put") {
+        let hi = 0;
+        let macdOk = 0;
+        let vwapOk = 0;
+        let all = 0;
+        for (const r of list) {
+          const sc = num(r.tech_score);
+          const rv = num(r.rvol ?? r.RVOL);
+          const macd = String(r.macd_histogram_status || r.reason || "");
+          const close = num(r.close ?? r.Close);
+          const vwap = num(r.vwap ?? r.VWAP);
+          const rs = num(r.rs_20d ?? r.RS_20d);
+          if (Number.isFinite(sc) && sc >= 70) hi += 1;
+          if (macd.includes("空頭柱體擴張")) macdOk += 1;
+          if (Number.isFinite(close) && Number.isFinite(vwap) && close < vwap) vwapOk += 1;
+          if (
+            Number.isFinite(sc) &&
+            sc >= 70 &&
+            macd.includes("空頭柱體擴張") &&
+            Number.isFinite(rv) &&
+            rv >= 1.3 &&
+            Number.isFinite(close) &&
+            Number.isFinite(vwap) &&
+            close < vwap &&
+            (rs == null || rs <= 0)
+          ) {
+            all += 1;
+          }
+        }
+        return { hi, macdOk, vwapOk, all };
+      }
       return null;
     }
 
@@ -1984,8 +2028,15 @@ ${tail}`;
           base += ` 今日：A 軌 ${near.trackA} 隻 · B 軌 ${near.trackB} 隻 · 合計可觸發 ${near.all} 隻。`;
         }
         el.textContent = base;
+      } else if (activeScoreModel === "buy_put") {
+        let base =
+          "Buy Put／恐慌破底：Score≥70、MACD 負值且「空頭柱體擴張」、收盤 < VWAP、RVOL≥1.3、RS≤0。每次掃描符合才寫入歷史。Gain/Loss：標的下跌為正報酬（造淡視角）。";
+        if (near) {
+          base += ` 今日掃描：Score≥70 共 ${near.hi} 隻；空頭擴張 ${near.macdOk} 隻；跌破 VWAP ${near.vwapOk} 隻；五項齊備 ${near.all} 隻。`;
+        }
+        el.textContent = base;
       } else {
-        el.textContent = "Buy Put 模式尚未定義觸發規則；請切換 Sell Put 或 Buy Stock 檢視覆盤。";
+        el.textContent = "請選擇策略模式以檢視觸發覆盤規則。";
       }
     }
 
@@ -2001,8 +2052,12 @@ ${tail}`;
         const entry = num(s.entry_price ?? s.close);
         let latest = num(s.latest_price ?? s.close);
         if (px[sym] != null) latest = px[sym];
-        let pnl = calcPnlPct(entry, latest);
-        if (!Number.isFinite(pnl)) pnl = num(s.pnl_pct);
+        let pnl = calcPnlPct(entry, latest, s);
+        if (!Number.isFinite(pnl)) {
+          const stored = num(s.pnl_pct);
+          if (Number.isFinite(stored) && isBearishHistorySignal(s)) pnl = -stored;
+          else pnl = stored;
+        }
         const entryDate = String(s.entry_date || (s.date ? String(s.date).slice(0, 10) : ""));
         let holding = num(s.holding_days);
         if (!Number.isFinite(holding) && entryDate) {
@@ -2034,17 +2089,21 @@ ${tail}`;
       });
     }
 
-    function fmtPnlCell(pnl) {
+    function fmtPnlCell(pnl, signal) {
       if (!Number.isFinite(pnl)) return '<span class="pnl-chip pnl-flat">—</span>';
       const cls = pnl > 0.05 ? "pnl-pos" : pnl < -0.05 ? "pnl-neg" : "pnl-flat";
       const sign = pnl > 0 ? "+" : "";
-      return `<span class="pnl-chip ${cls}" title="((現價 − 進場價) ÷ 進場價) × 100">${sign}${pnl.toFixed(2)}%</span>`;
+      const tip = isBearishHistorySignal(signal)
+        ? "造淡視角：((進場價 − 現價) ÷ 進場價) × 100，標的下跌為正"
+        : "((現價 − 進場價) ÷ 進場價) × 100";
+      return `<span class="pnl-chip ${cls}" title="${tip}">${sign}${pnl.toFixed(2)}%</span>`;
     }
 
     function actionBadgeHtml(action) {
       const a = String(action || "").toUpperCase();
       if (a === "BUY_CALL") return '<span class="action-badge buy_call">BUY CALL</span>';
       if (a === "SELL_PUT") return '<span class="action-badge sell_put">SELL PUT</span>';
+      if (a === "BUY_PUT") return '<span class="action-badge buy_put">BUY PUT</span>';
       return escapeHtml(action || "—");
     }
 
@@ -2111,7 +2170,12 @@ ${tail}`;
         const avg =
           list.reduce((acc, s) => acc + (num(s.pnl_pct) || 0), 0) / (list.length || 1);
         summary.style.display = "block";
-        summary.textContent = `共 ${list.length} 筆觸發 · 現價正報酬 ${wins} 筆 · 平均標的漲跌 ${avg >= 0 ? "+" : ""}${avg.toFixed(2)}%（相對進場價）`;
+        const pnlLabel = activeScoreModel === "buy_put" ? "造淡正報酬" : "現價正報酬";
+        const pnlNote =
+          activeScoreModel === "buy_put"
+            ? "（標的下跌為正，相對進場價）"
+            : "（相對進場價）";
+        summary.textContent = `共 ${list.length} 筆觸發 · ${pnlLabel} ${wins} 筆 · 平均 ${avg >= 0 ? "+" : ""}${avg.toFixed(2)}% ${pnlNote}`;
       }
       syncSortHeaderUI("historyTable", histSortKey, histSortAsc, "data-hist-key");
       for (const s of list) {
@@ -2122,7 +2186,7 @@ ${tail}`;
         const trackTag = s.trigger_track === "A" ? " A" : s.trigger_track === "B" ? " B" : "";
         const entryPx = num(s.entry_price ?? s.close);
         const latestPx = num(s.latest_price ?? s.close);
-        const pnl = calcPnlPct(entryPx, latestPx);
+        const pnl = calcPnlPct(entryPx, latestPx, s);
         if (Number.isFinite(pnl)) s.pnl_pct = Math.round(pnl * 100) / 100;
         if (pnl > 0.05) tr.classList.add("row-pnl-win");
         else if (pnl < -0.05) tr.classList.add("row-pnl-loss");
@@ -2134,7 +2198,7 @@ ${tail}`;
           <td>${s.score != null && Number.isFinite(num(s.score)) ? String(s.score) : "—"}</td>
           <td>${fmtNum(entryPx, 2)}</td>
           <td>${fmtNum(latestPx, 2)}</td>
-          <td>${fmtPnlCell(pnl)}</td>
+          <td>${fmtPnlCell(pnl, s)}</td>
           <td>${s.holding_days != null && Number.isFinite(num(s.holding_days)) ? String(s.holding_days) : "—"}</td>
           <td class="muted" style="font-size:12px;">${escapeHtml(s.macd_status || "—")}</td>
           <td>${fmtNum(s.rvol, 2)}</td>
@@ -2192,6 +2256,26 @@ ${tail}`;
         } else if (model === "sell_put") {
           track = sellPutTriggerTrackFromRow(r);
           if (track) action = "SELL_PUT";
+        } else if (model === "buy_put") {
+          const close = num(r.close ?? r.Close);
+          const vwap = num(r.vwap ?? r.VWAP);
+          const rs = num(r.rs_20d ?? r.RS_20d);
+          const macdNeg = String(r.macd_sign || r.MACD_Sign || "").toLowerCase() === "negative"
+            || macd.includes("空頭");
+          if (
+            Number.isFinite(sc) &&
+            sc >= 70 &&
+            macd.includes("空頭柱體擴張") &&
+            macdNeg &&
+            Number.isFinite(rv) &&
+            rv >= 1.3 &&
+            Number.isFinite(close) &&
+            Number.isFinite(vwap) &&
+            close < vwap &&
+            (rs == null || rs <= 0)
+          ) {
+            action = "BUY_PUT";
+          }
         }
         if (!action) continue;
         const sym = String(r.ticker ?? r.Ticker ?? "").trim().toUpperCase();
