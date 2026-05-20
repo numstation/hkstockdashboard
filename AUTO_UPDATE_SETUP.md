@@ -6,6 +6,14 @@ The site does **not** update by itself until GitHub Actions can **scan** and **d
 
 ---
 
+## If Actions failed with `Get Pages site failed` / HttpError Not Found
+
+The old **Dashboard refresh** workflow tried to use **GitHub Pages** (`configure-pages`). That call returns **404** until you enable Pages in **Settings → Pages → Build: GitHub Actions**.
+
+**You can ignore GitHub Pages** if you only use Cloudflare — the workflow here no longer depends on Pages. Pull the latest `dashboard.yml`, push, then re-run Actions.
+
+---
+
 ## Checklist (one time, ~10 minutes)
 
 ### 1. GitHub Actions must be ON

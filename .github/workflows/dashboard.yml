@@ -1,5 +1,11 @@
-# Free hosting: GitHub Pages + scheduled data refresh (133 HK tickers, ~every 30m on weekdays).
-name: Dashboard refresh & Pages deploy
+# Dashboard refresh: scan + optional Cloudflare deploy.
+# GitHub Pages steps were removed — they fail with HttpError Not Found unless
+# Repository → Settings → Pages → Build: GitHub Actions is enabled first.
+#
+# Prefer: workflow "Cloudflare auto update" for scheduled live site updates +
+# repo secret CLOUDFLARE_API_TOKEN (see AUTO_UPDATE_SETUP.md).
+
+name: Dashboard refresh (scan + artifact)
 
 on:
   push:
@@ -12,25 +18,20 @@ on:
       refresh_macro:
         description: "Also refresh macro_snapshot (大佬三原色)"
         required: false
-        default: "true"
+        default: true
         type: boolean
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 concurrency:
-  group: dashboard-pages
+  group: dashboard-refresh
   cancel-in-progress: false
 
 jobs:
   refresh-and-deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,6 +43,13 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-scan.txt
 
+      - name: Setup Node (Wrangler, optional Cloudflare)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: cloudflare/package-lock.json
+
       - name: Install dependencies
         run: pip install -r requirements-scan.txt
 
@@ -50,14 +58,29 @@ jobs:
           REFRESH_MACRO: ${{ github.event_name == 'workflow_dispatch' && inputs.refresh_macro == true && '1' || '' }}
         run: bash scripts/ci_refresh.sh
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+      - name: Validation summary (informational)
+        run: python3 scripts/validate_scan_json.py || true
 
-      - name: Upload site artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload refreshed site as artifact (7 days)
+        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
         with:
-          path: .
+          name: dashboard-data-${{ github.run_id }}
+          path: |
+            frontend/data/*.json
+            frontend/index.html
+          retention-days: 7
 
-      - name: Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4
+      - name: Deploy to Cloudflare Workers
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
+            echo "Skipping Cloudflare: add repo secret CLOUDFLARE_API_TOKEN for auto-publish"
+            exit 0
+          fi
+          python3 scripts/validate_scan_json.py
+          cd cloudflare && npm ci
+          cd ..
+          bash scripts/deploy_cloudflare.sh
+          echo "Live: https://hkstockdashboard.chrislau.workers.dev/frontend/"
