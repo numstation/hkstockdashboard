@@ -1,11 +1,16 @@
 # Dashboard refresh: scan + optional Cloudflare deploy.
-# GitHub Pages steps were removed — they fail with HttpError Not Found unless
-# Repository → Settings → Pages → Build: GitHub Actions is enabled first.
 #
-# Prefer: workflow "Cloudflare auto update" for scheduled live site updates +
-# repo secret CLOUDFLARE_API_TOKEN (see AUTO_UPDATE_SETUP.md).
+# ⚠️ v3 — NO configure-pages / NO deploy-pages. If Actions still shows
+#    "Get Pages site failed", GitHub does not have this file on main yet (push/sync).
+#
+# Prefer: workflow "Cloudflare auto update" for scheduled Cloudflare publishes +
+# secret CLOUDFLARE_API_TOKEN (see AUTO_UPDATE_SETUP.md).
 
 name: Dashboard refresh (scan + artifact)
+
+env:
+  # GitHub deprecation: silence Node 20 runner warning when possible
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 on:
   push:
@@ -29,7 +34,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  refresh-and-deploy:
+  # Renamed from refresh-and-deploy so you can see in the UI that v3 is running.
+  scan-and-artifact:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -46,7 +52,7 @@ jobs:
       - name: Setup Node (Wrangler, optional Cloudflare)
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: cloudflare/package-lock.json
 

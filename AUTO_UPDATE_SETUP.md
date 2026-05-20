@@ -10,7 +10,13 @@ The site does **not** update by itself until GitHub Actions can **scan** and **d
 
 The old **Dashboard refresh** workflow tried to use **GitHub Pages** (`configure-pages`). That call returns **404** until you enable Pages in **Settings → Pages → Build: GitHub Actions**.
 
-**You can ignore GitHub Pages** if you only use Cloudflare — the workflow here no longer depends on Pages. Pull the latest `dashboard.yml`, push, then re-run Actions.
+**You can ignore GitHub Pages** if you only use Cloudflare — this repo has a **`dashboard.yml` that does not use Pages**. If Actions still prints `configure-pages` / **job `refresh-and-deploy`**, then **GitHub’s `main` does not contain that fixed file yet** (push/sync problem).
+
+Check the file on GitHub (replace if it still shows `configure-pages`):
+
+`https://github.com/numstation/hkstockdashboard/blob/main/.github/workflows/dashboard.yml`
+
+After a successful update, the workflow name is **“Dashboard refresh (scan + artifact)”** and the job is **`scan-and-artifact`** (not `refresh-and-deploy`).
 
 ---
 
