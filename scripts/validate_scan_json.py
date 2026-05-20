@@ -3,11 +3,19 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-MIN_OK = 50
+
+
+def _min_ok() -> int:
+    raw = os.environ.get("SCAN_VALIDATE_MIN_OK", "50").strip()
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        return 50
 
 
 def check(path: Path) -> tuple[int, int, str | None]:
@@ -22,6 +30,8 @@ def check(path: Path) -> tuple[int, int, str | None]:
 
 
 def main() -> int:
+    min_ok = _min_ok()
+    print(f"validate_scan_json: SCAN_VALIDATE_MIN_OK={min_ok}")
     files = [
         ROOT / "daily_scan_sell_put.json",
         ROOT / "daily_scan.json",
@@ -30,12 +40,17 @@ def main() -> int:
     for path in files:
         ok, total, lu = check(path)
         print(f"{path.name}: data_ok={ok}/{total} last_updated={lu}")
-        if ok < MIN_OK:
-            print(f"  ERROR: need at least {MIN_OK} data_ok rows", file=sys.stderr)
+        if ok < min_ok:
+            print(
+                f"  ERROR: need at least {min_ok} data_ok rows "
+                f"(set SCAN_VALIDATE_MIN_OK to relax for flaky CI)",
+                file=sys.stderr,
+            )
             failed = True
-        scan = json.loads(path.read_text(encoding="utf-8")).get("scan") or {}
-        if not scan.get("score_d1_date") and not scan.get("score_d2_date"):
-            print("  WARN: missing score_d1_date / score_d2_date (3-day scores)", file=sys.stderr)
+        if path.is_file():
+            scan = json.loads(path.read_text(encoding="utf-8")).get("scan") or {}
+            if not scan.get("score_d1_date") and not scan.get("score_d2_date"):
+                print("  WARN: missing score_d1_date / score_d2_date (3-day scores)", file=sys.stderr)
     return 1 if failed else 0
 
 

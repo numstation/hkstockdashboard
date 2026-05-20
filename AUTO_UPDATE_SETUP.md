@@ -31,6 +31,22 @@ Pull latest **`main`**, push, then re-run **Cloudflare auto update**.
 
 ---
 
+## Actions shows **exit code 1** (`scan-and-artifact` / **Refresh** / **Deploy**)
+
+**Code 1** means a step **actually failed** (unlike the **Node.js 20** line, which is only a **deprecation warning** until GitHub switches defaults).
+
+Open the failed run, expand the **first red step**, and match it here:
+
+| Step | Typical cause |
+|------|----------------|
+| **Refresh dashboard JSON** | `run_scan_export_json.py` crashed (network, yfinance, missing deps). Read the Python traceback in the log. |
+| **Deploy to Cloudflare** | `scripts/validate_scan_json.py` exited 1: not enough `data_ok` rows (default **50** per file) — Yahoo/rate limits in CI. Optionally set repo/workflow env **`SCAN_VALIDATE_MIN_OK=40`** (or lower) if you accept looser checks for automated runs. |
+| **Upload refreshed site as artifact** | Rare; usually upstream step failed (`always()` still runs). |
+
+This repo’s workflows set **`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`** so `actions/checkout`, `setup-node`, etc. run on **Node 24** and the yellow Node 20 deprecation notice should stop once you use the updated workflow on **`main`**.
+
+---
+
 ## If Actions failed with `Get Pages site failed` / HttpError Not Found
 
 The old **Dashboard refresh** workflow tried to use **GitHub Pages** (`configure-pages`). That call returns **404** until you enable Pages in **Settings → Pages → Build: GitHub Actions**.

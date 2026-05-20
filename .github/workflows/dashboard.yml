@@ -32,6 +32,9 @@ jobs:
   scan-and-artifact:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      # Use Node 24 for official JS actions until they default (quiet deprecation noise).
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
