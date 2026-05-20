@@ -15,7 +15,7 @@ from datetime import datetime
 _repo_root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _repo_root_path not in sys.path:
     sys.path.insert(0, _repo_root_path)
-from schema_versioning import schema_version_for_export, strategy_display_name  # noqa: E402
+from schema_versioning import apply_schema_floor, schema_version_for_export, strategy_display_name  # noqa: E402
 
 # Version information
 VERSION = "2.0.1"
@@ -140,7 +140,7 @@ def export_results_to_json(
         if omitted, inferred from dataframe column `score_model` when present.
     """
     now_str = _now_iso()
-    schema_ver = schema_version or schema_version_for_export(bump=False)
+    schema_ver = apply_schema_floor(schema_version or schema_version_for_export(bump=False))
 
     if not os.path.isabs(filename):
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -700,7 +700,7 @@ def export_daily_breadth_snapshot(
     model = str(score_model or "sell_put").strip().lower()
     if len(day) != 10:
         day = _entry_date_from_iso(now_str)
-    schema_ver = schema_version or schema_version_for_export(bump=False)
+    schema_ver = apply_schema_floor(schema_version or schema_version_for_export(bump=False))
     payload = _read_json_file(
         out_path, {"schema_version": schema_ver, "last_updated": now_str, "days": []}
     )
@@ -798,7 +798,7 @@ def export_trade_signals_history_to_json(
     out_path = _resolve_repo_json_path(filename)
     now_str = _now_iso()
     today = _entry_date_from_iso(now_str)
-    schema_ver = schema_version or schema_version_for_export(bump=False)
+    schema_ver = apply_schema_floor(schema_version or schema_version_for_export(bump=False))
     strat_label = strategy_display_name(score_model_slug, strategy_name)
     payload = _read_json_file(
         out_path, {"schema_version": schema_ver, "last_updated": now_str, "signals": []}
@@ -922,7 +922,7 @@ def export_signals_history_to_json(
     """Append this run's signals into a historical signal store with dedupe + retention."""
     out_path = _resolve_repo_json_path(filename)
     now_str = _now_iso()
-    schema_ver = schema_version or schema_version_for_export(bump=False)
+    schema_ver = apply_schema_floor(schema_version or schema_version_for_export(bump=False))
     strat_label = strategy_display_name(score_model_slug or "sell_put", strategy_name)
     payload = _read_json_file(out_path, {"schema_version": schema_ver, "last_updated": now_str, "signals": []})
     if not isinstance(payload, dict):
@@ -976,7 +976,7 @@ def append_future_log_to_json(
     """Append latest run snapshot rows into a future log with dedupe + retention."""
     out_path = _resolve_repo_json_path(filename)
     now_str = _now_iso()
-    schema_ver = schema_version or schema_version_for_export(bump=False)
+    schema_ver = apply_schema_floor(schema_version or schema_version_for_export(bump=False))
     strat_label = strategy_display_name(score_model_slug or "sell_put", strategy_name)
     payload = _read_json_file(out_path, {"schema_version": schema_ver, "logs": []})
     if not isinstance(payload, dict):
@@ -1131,7 +1131,7 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
     """Export lightweight macro snapshot with live values when available."""
     out_path = _resolve_repo_json_path(filename)
     now_str = _now_iso()
-    schema_ver = schema_version or schema_version_for_export(bump=True)
+    schema_ver = apply_schema_floor(schema_version or schema_version_for_export(bump=True))
     try:
         import yfinance_bootstrap  # noqa: E402
 

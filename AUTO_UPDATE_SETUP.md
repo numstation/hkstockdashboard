@@ -6,6 +6,20 @@ The site does **not** update by itself until GitHub Actions can **scan** and **d
 
 ---
 
+## Schema version shows `1.3` instead of `4.0`
+
+Old files used `"schema_version": "1.3"`. If the site still shows **1.3**, the live Worker is often serving **stale JSON** (old commit or deploy without a new scan).
+
+**Fix in this repo:** `schema_versioning` now applies a **minimum of `4.0`** on every export, and `schema_version_meta.json` is pegged so CI starts from **≥ 4.0**. Push to `main`, run Actions once, then hard-refresh the dashboard.
+
+Disable the floor locally (only if needed):
+
+```bash
+export DASHBOARD_SCHEMA_MIN_VERSION=
+```
+
+---
+
 ## If Actions failed with `Get Pages site failed` / HttpError Not Found
 
 The old **Dashboard refresh** workflow tried to use **GitHub Pages** (`configure-pages`). That call returns **404** until you enable Pages in **Settings → Pages → Build: GitHub Actions**.

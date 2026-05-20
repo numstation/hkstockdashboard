@@ -7,6 +7,7 @@ Version string is major-only: 1.0 (updates 1–9), 2.0 (10–19), 3.0 (20–29),
 from __future__ import annotations
 
 import json
+import os
 import re
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -26,6 +27,44 @@ SCORE_MODEL_LABELS = {
 }
 
 
+def _semver_pair(s: str) -> tuple[int, int]:
+    s = str(s or "").strip()
+    parts = s.split(".", 1)
+    maj = int(parts[0]) if parts and parts[0].isdigit() else 0
+    mn = parts[1] if len(parts) > 1 else "0"
+    try:
+        return maj, int(float(mn))
+    except ValueError:
+        return maj, 0
+
+
+def _max_schema_string(a: str, b: str) -> str:
+    return a if _semver_pair(a) >= _semver_pair(b) else b
+
+
+def schema_version_floor_default() -> str | None:
+    """
+    Lowest schema_version emitted by exporters.
+    • Default 4.0 — prevents resurrecting legacy 1.3 JSON from old commits / redeploys.
+    • Set DASHBOARD_SCHEMA_MIN_VERSION= or 0 skip — disable floor locally.
+    """
+    raw = os.environ.get(
+        "DASHBOARD_SCHEMA_MIN_VERSION",
+        os.environ.get("SCHEMA_VERSION_MIN_DEFAULT", "4.0"),
+    )
+    raw = str(raw).strip().lower()
+    if not raw or raw in ("0", "skip", "none", "off"):
+        return None
+    return raw
+
+
+def apply_schema_floor(version: str) -> str:
+    floor = schema_version_floor_default()
+    if not floor:
+        return version
+    return _max_schema_string(version, floor)
+
+
 def repo_root() -> Path:
     return _REPO_ROOT
 
@@ -36,15 +75,18 @@ def _now_iso() -> str:
 
 
 def version_from_update_count(count: int) -> str:
-    """Updates 1–9 → 1.0, 10–19 → 2.0, 20–29 → 3.0, …"""
+    """Updates 1–9 → 1.0, 10–19 → 2.0, … (then apply min floor — default >= 4.0)."""
     c = max(0, int(count))
     if c <= 0:
-        return "1.0"
-    major = c // UPDATES_PER_MAJOR + 1
-    return f"{major}.0"
+        raw = "1.0"
+    else:
+        major = c // UPDATES_PER_MAJOR + 1
+        raw = f"{major}.0"
+    return apply_schema_floor(raw)
 
 
 def _legacy_version_to_count(ver: str) -> int:
+    """Map legacy strings like 1.3 → 13 so meta seeds above old static JSON."""
     """Map legacy strings like 1.3 → 13 updates (so next display is 2.0)."""
     s = str(ver or "").strip()
     if not s:
@@ -117,9 +159,10 @@ def schema_version_for_export(*, bump: bool = False) -> str:
     global _run_version
     if bump or _run_version is None:
         if bump:
-            _run_version = bump_schema_version(persist=True)
+            computed = bump_schema_version(persist=True)
         else:
-            _run_version = current_schema_version()
+            computed = current_schema_version()
+        _run_version = apply_schema_floor(computed)
     return _run_version
 
 
