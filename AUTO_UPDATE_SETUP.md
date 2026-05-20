@@ -40,10 +40,10 @@ Open the failed run, expand the **first red step**, and match it here:
 | Step | Typical cause |
 |------|----------------|
 | **Refresh dashboard JSON** | `run_scan_export_json.py` crashed (network, yfinance, missing deps). Read the Python traceback in the log. |
-| **Deploy to Cloudflare** | `scripts/validate_scan_json.py` exited 1: not enough `data_ok` rows (default **50** per file) — Yahoo/rate limits in CI. Optionally set repo/workflow env **`SCAN_VALIDATE_MIN_OK=40`** (or lower) if you accept looser checks for automated runs. |
+| **Deploy to Cloudflare** | `scripts/validate_scan_json.py` exited 1: not enough `data_ok` rows — Yahoo rate limits in CI. Workflows set **`SCAN_VALIDATE_MIN_OK=40`** for automated runs; raise/remove that env on the job if you want the strict **50** bar. |
 | **Upload refreshed site as artifact** | Rare; usually upstream step failed (`always()` still runs). |
 
-This repo’s workflows set **`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`** so `actions/checkout`, `setup-node`, etc. run on **Node 24** and the yellow Node 20 deprecation notice should stop once you use the updated workflow on **`main`**.
+Workflows pin **`actions/checkout`**, **`setup-python`**, **`setup-node`**, and **`upload-artifact`** to current majors (**v6 / v7**) that **target Node.js 24** natively, so you should not see the old “Node 20 / forced to Node 24” noise after **`main`** includes those files.
 
 ---
 
