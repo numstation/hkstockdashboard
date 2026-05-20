@@ -9,14 +9,12 @@
 name: Dashboard refresh (scan + artifact)
 
 env:
-  # GitHub deprecation: silence Node 20 runner warning when possible
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 on:
   push:
     branches: [main, master]
   schedule:
-    # UTC Mon–Fri, every 30m from 01:00–08:30 ≈ HK session 09:00–16:30
     - cron: "0,30 1-8 * * 1-5"
   workflow_dispatch:
     inputs:
@@ -34,7 +32,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Renamed from refresh-and-deploy so you can see in the UI that v3 is running.
   scan-and-artifact:
     runs-on: ubuntu-latest
     timeout-minutes: 45
