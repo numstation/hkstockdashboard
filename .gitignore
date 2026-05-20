@@ -21,8 +21,9 @@ scan_cron.log
 stocktrackeryahoo/FTAPI4Python*/
 migrate/
 
-# wrangler files
-.wrangler
+# Cloudflare (commit package-lock; ignore install tree)
+cloudflare/node_modules/
+
 .dev.vars*
 !.dev.vars.example
 !.env.example
