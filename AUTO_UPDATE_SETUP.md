@@ -47,6 +47,14 @@ Workflows pin **`actions/checkout`**, **`setup-python`**, **`setup-node`**, and 
 
 ---
 
+## Deploy: **`Asset too large`** / `workerd` (~80–100 MiB)
+
+Wrangler reported the assets directory included **`node_modules/workerd/...`**. That happens if a config sets **`assets.directory`** to **`.`** (repo root): the whole repository—including **`cloudflare/node_modules`**—is uploaded as static files.
+
+**Fix in this repo:** only **`cloudflare/wrangler.toml`** defines assets (`./public` copied by **`scripts/deploy_cloudflare.sh`**). Do **not** add a root **`wrangler.jsonc`** with **`"assets": { "directory": "." }`**. **`deploy_cloudflare.sh`** calls **`wrangler deploy --config cloudflare/wrangler.toml`** so the correct bundle is always used.
+
+---
+
 ## If Actions failed with `Get Pages site failed` / HttpError Not Found
 
 The old **Dashboard refresh** workflow tried to use **GitHub Pages** (`configure-pages`). That call returns **404** until you enable Pages in **Settings → Pages → Build: GitHub Actions**.

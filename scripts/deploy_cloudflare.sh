@@ -38,10 +38,12 @@ else
 fi
 
 echo "==> 4/4 Deploy to Cloudflare (worker name: hkstockdashboard)"
+# Always use cloudflare/wrangler.toml — a stray repo-root wrangler.jsonc with assets "."
+# would upload the whole tree (including node_modules/workerd) and hit the 25 MiB limit.
 if [[ -x "$CF/node_modules/.bin/wrangler" ]]; then
-  "$CF/node_modules/.bin/wrangler" deploy
+  "$CF/node_modules/.bin/wrangler" deploy --config "$CF/wrangler.toml"
 else
-  npx wrangler deploy
+  ( cd "$CF" && npx wrangler deploy --config wrangler.toml )
 fi
 
 echo ""
