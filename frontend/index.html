@@ -214,6 +214,109 @@
     }
     .btn-sm:hover { border-color: rgba(15, 118, 110, 0.45); }
     .macro-sub { padding: 0 12px 12px; color: var(--muted); font-size: 13px; }
+    .macro-hero-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      padding: 0 12px 16px;
+    }
+    @media (max-width: 900px) { .macro-hero-grid { grid-template-columns: 1fr; } }
+    .macro-hero-card {
+      background: linear-gradient(165deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px 18px 18px;
+      box-shadow: 0 4px 18px rgba(28, 25, 23, 0.06);
+      min-height: 132px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .macro-hero-card .mh-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0;
+    }
+    .macro-hero-card .mh-sub {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin: 0;
+      flex: 1;
+    }
+    .macro-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      align-self: flex-start;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      border: 1px solid transparent;
+      line-height: 1.3;
+    }
+    .macro-status-badge.risk-on {
+      color: #14532d;
+      background: rgba(34, 197, 94, 0.18);
+      border-color: rgba(34, 197, 94, 0.45);
+      box-shadow: 0 0 20px rgba(74, 222, 128, 0.35);
+    }
+    .macro-status-badge.risk-off {
+      color: #7f1d1d;
+      background: rgba(248, 113, 113, 0.2);
+      border-color: rgba(239, 68, 68, 0.45);
+      box-shadow: 0 0 20px rgba(251, 113, 133, 0.35);
+    }
+    .macro-status-badge.bullish {
+      color: #14532d;
+      background: rgba(34, 197, 94, 0.16);
+      border-color: rgba(34, 197, 94, 0.4);
+      box-shadow: 0 0 16px rgba(74, 222, 128, 0.28);
+    }
+    .macro-status-badge.neutral-breadth {
+      color: #92400e;
+      background: rgba(251, 191, 36, 0.2);
+      border-color: rgba(245, 158, 11, 0.45);
+      box-shadow: 0 0 14px rgba(251, 191, 36, 0.22);
+    }
+    .macro-status-badge.flow-in {
+      color: #14532d;
+      background: rgba(34, 197, 94, 0.18);
+      border-color: rgba(34, 197, 94, 0.45);
+      box-shadow: 0 0 18px rgba(74, 222, 128, 0.3);
+    }
+    .macro-status-badge.flow-out {
+      color: #7f1d1d;
+      background: rgba(248, 113, 113, 0.2);
+      border-color: rgba(239, 68, 68, 0.45);
+      box-shadow: 0 0 18px rgba(251, 113, 133, 0.32);
+    }
+    .macro-live-summary {
+      margin: 0 12px 14px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(15, 118, 110, 0.35);
+      background: linear-gradient(135deg, rgba(15, 118, 110, 0.1) 0%, rgba(255, 255, 255, 0.95) 55%);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      box-shadow: 0 2px 12px rgba(15, 118, 110, 0.08);
+    }
+    .macro-live-summary strong { color: #0f766e; font-weight: 700; }
+    .macro-live-summary .mls-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #0f766e;
+      margin-bottom: 6px;
+    }
     .boss-macro-board {
       margin: 0 12px 12px;
       border: 1px solid var(--line);
@@ -769,13 +872,15 @@
       <div class="table-wrap">
         <h3 class="section-title" style="padding: 12px 12px 0;">大佬三原色</h3>
         <p class="muted" style="padding: 0 12px 8px; margin: 0; font-size: 12px; line-height: 1.55;">
-          資金溫度計（VIX · DXY · US 10Y）→ 市場寬度（樣本股高於 50／200 日線比例）→ 商品與早兆（黃金、油、BTC）。下表為本頁即時規則摘要。
+          資金溫度計（VIX · DXY · US 10Y）→ 市場寬度（樣本股高於 50／200 日線比例）→ 北水與商品早兆。機構級三原色儀表板：上為即時狀態卡，下為規則矩陣與走勢圖。
         </p>
+        <div id="macroHeroGrid" class="macro-hero-grid" aria-label="大佬三原色狀態卡"></div>
         <div id="macroSub" class="macro-sub"></div>
         <div id="bossMacroBoard" class="boss-macro-board" style="display:none;"></div>
         <div id="macroKpiGrid" class="macro-kpi-grid" style="display:none;"></div>
         <div id="macroTone" class="macro-tone" style="display:none;"></div>
         <div id="macroLegend" class="macro-legend" style="display:none;"></div>
+        <div id="macroLiveSummary" class="macro-live-summary" style="display:none;" role="status" aria-live="polite"></div>
         <details class="macro-details">
           <summary>原始宏觀表格（VIX / 指數 / 息率）</summary>
           <p class="muted" style="padding:10px 12px 8px;font-size:12px;">Quick (VIX / HSI / BTC)</p>
@@ -803,9 +908,9 @@
           <div class="macro-chart-toolbar">
             <label for="macroChartStyle" class="muted" style="font-size:12px;">Style</label>
             <select id="macroChartStyle">
-              <option value="area" selected>Area</option>
+              <option value="minimal" selected>Minimal（無格線 · 霓虹）</option>
               <option value="line">Line</option>
-              <option value="minimal">Minimal</option>
+              <option value="area">Area</option>
             </select>
             <button id="macroChartResetBtn" type="button" class="btn-sm">Reset Charts</button>
           </div>
@@ -1454,7 +1559,7 @@ ${tail}`;
     let _chartsMacroScore = [];
     let _chartsMacroGauge = [];
     let _lastMacroSeries = null;
-    let _macroChartStyle = "area";
+    let _macroChartStyle = "minimal";
 
     function destroyCharts(list) {
       while (list.length) {
@@ -1969,7 +2074,164 @@ ${tail}`;
       }
     }
 
-    const MACRO_LINE_COLORS = ["#a78bfa", "#34d399", "#38bdf8", "#fb923c", "#f472b6", "#fcd34d"];
+    const MACRO_NEON_UP = "#4ade80";
+    const MACRO_NEON_DOWN = "#fb7185";
+
+    function macroSeriesTrendColor(dataPts) {
+      const clean = dataPts.filter((x) => Number.isFinite(x));
+      if (clean.length < 2) return "#0f766e";
+      const first = clean[0];
+      const last = clean[clean.length - 1];
+      return last >= first ? MACRO_NEON_UP : MACRO_NEON_DOWN;
+    }
+
+    function macroNeonFill(trendCol) {
+      if (trendCol === MACRO_NEON_UP) return "rgba(74, 222, 128, 0.14)";
+      if (trendCol === MACRO_NEON_DOWN) return "rgba(251, 113, 133, 0.14)";
+      return "rgba(15, 118, 110, 0.1)";
+    }
+
+    function findMetricByName(metrics, needle) {
+      if (!Array.isArray(metrics)) return null;
+      const u = String(needle).toUpperCase();
+      return metrics.find((m) => String(m.name || "").toUpperCase().includes(u)) || null;
+    }
+
+    function breadthAboveSma200Majority(data, advanced) {
+      const bm = data?.breadth_markets;
+      const hk = bm?.hk;
+      const us = bm?.us;
+      const pcts = [num(hk?.above_ma200_pct), num(us?.above_ma200_pct)].filter((x) => Number.isFinite(x));
+      if (pcts.length) {
+        const avg = pcts.reduce((a, b) => a + b, 0) / pcts.length;
+        return { ok: avg >= 50, avg, source: "breadth_markets" };
+      }
+      if (advanced && typeof advanced === "object") {
+        const rows = Object.values(advanced).filter((r) => r && typeof r === "object");
+        const withDist = rows.filter((r) => Number.isFinite(num(r.dist_sma200)));
+        if (!withDist.length) return { ok: null, avg: null, source: "none" };
+        const above = withDist.filter((r) => num(r.dist_sma200) > 0).length;
+        const ratio = above / withDist.length;
+        return { ok: ratio >= 0.5, avg: ratio * 100, source: "advanced_dist_sma200" };
+      }
+      return { ok: null, avg: null, source: "none" };
+    }
+
+    function buildMacroLiveComment(data, metrics, advanced) {
+      if (data?.macro_comment && String(data.macro_comment).trim()) {
+        return String(data.macro_comment).trim();
+      }
+      const vixM = findMetricByName(metrics, "VIX");
+      const vixVal = num(vixM?.value);
+      const parts = [];
+      if (Number.isFinite(vixVal)) {
+        parts.push(
+          vixVal < 18
+            ? `VIX ${vixVal.toFixed(2)} 偏低 → 波動溫和，風險偏好可偏進攻`
+            : `VIX ${vixVal.toFixed(2)} ≥ 18 → 波動升溫，宜防守克制、縮小風險敞口`,
+        );
+      }
+      const y10 = advanced ? findAdvancedByText(advanced, ["10Y"]) : null;
+      const y10v = num(y10?.current);
+      if (Number.isFinite(y10v)) {
+        parts.push(
+          y10v > 4.5
+            ? `美債 10Y ${y10v.toFixed(2)}% 偏高 → 金融條件偏緊`
+            : `美債 10Y ${y10v.toFixed(2)}% → 利率環境尚可`,
+        );
+      }
+      const br = breadthAboveSma200Majority(data, advanced);
+      if (br.ok === true) {
+        parts.push(`市寬結構偏強（樣本 >200MA 約 ${br.avg != null ? br.avg.toFixed(0) : "50"}%+）`);
+      } else if (br.ok === false) {
+        parts.push("市寬結構偏弱或區間震盪，升級行情需等待參與度改善");
+      }
+      const sb = data?.southbound_connect?.net_yi;
+      const sbYi = num(sb);
+      if (Number.isFinite(sbYi)) {
+        parts.push(
+          sbYi >= 0
+            ? `港股通北水淨流入 ${sbYi >= 0 ? "+" : ""}${sbYi.toFixed(2)} 億 → 南下資金支撐港股流動性`
+            : `港股通北水淨流出 ${sbYi.toFixed(2)} 億 → 留意抽水壓力`,
+        );
+      }
+      const fs = num(data?.macro_risk?.final_score);
+      if (Number.isFinite(fs)) {
+        const regime = fs >= 62 ? "Risk-On" : fs <= 42 ? "Defensive" : "Neutral";
+        parts.push(`綜合宏觀分 ${fs.toFixed(1)}（${regime}）`);
+      }
+      if (!parts.length) return "尚無足夠宏觀欄位；請執行 macro 匯出後重新載入。";
+      return parts.join("；") + "。";
+    }
+
+    function renderMacroHeroCards(data, metrics, advanced) {
+      const host = document.getElementById("macroHeroGrid");
+      if (!host) return;
+      const vixM = findMetricByName(metrics, "VIX");
+      const vixVal = num(vixM?.value);
+      let card1Badge = "— 待更新";
+      let card1Cls = "neutral-breadth";
+      if (Number.isFinite(vixVal)) {
+        if (vixVal < 18) {
+          card1Badge = "🟢 Risk-On（放心進攻）";
+          card1Cls = "risk-on";
+        } else {
+          card1Badge = "🔴 Risk-Off（防守克制）";
+          card1Cls = "risk-off";
+        }
+      }
+      const br = breadthAboveSma200Majority(data, advanced);
+      let card2Badge = "🟡 資料不足";
+      let card2Cls = "neutral-breadth";
+      if (br.ok === true) {
+        card2Badge = "🟢 Bullish Structural Strength";
+        card2Cls = "bullish";
+      } else if (br.ok === false) {
+        card2Badge = "🟡 Range-Bound / Bearish Structural";
+        card2Cls = "neutral-breadth";
+      }
+      const sbYi = num(data?.southbound_connect?.net_yi);
+      let card3Badge = "— 北水待更新";
+      let card3Cls = "neutral-breadth";
+      if (Number.isFinite(sbYi)) {
+        if (sbYi >= 0) {
+          card3Badge = `🟢 北水持續流入（+${sbYi.toFixed(2)} 億）`;
+          card3Cls = "flow-in";
+        } else {
+          card3Badge = `🔴 北水抽水撤離（${sbYi.toFixed(2)} 億）`;
+          card3Cls = "flow-out";
+        }
+      }
+      host.innerHTML = `
+        <article class="macro-hero-card">
+          <p class="mh-title">① 資金溫度 · Macro Sentiment</p>
+          <p class="mh-sub">VIX 恐慌指數：${Number.isFinite(vixVal) ? vixVal.toFixed(2) : "—"}（門檻 18）</p>
+          <span class="macro-status-badge ${card1Cls}">${escapeHtml(card1Badge)}</span>
+        </article>
+        <article class="macro-hero-card">
+          <p class="mh-title">② 市場寬度 · Market Breadth</p>
+          <p class="mh-sub">${
+            br.source === "breadth_markets"
+              ? `樣本股高於 200 日線比例（HK/US 均值約 ${br.avg != null ? br.avg.toFixed(0) : "—"}%）`
+              : "指數 vs SMA200 結構（advanced 表）"
+          }</p>
+          <span class="macro-status-badge ${card2Cls}">${escapeHtml(card2Badge)}</span>
+        </article>
+        <article class="macro-hero-card">
+          <p class="mh-title">③ 北水風向 · Southbound Capital</p>
+          <p class="mh-sub">港股通淨額（滬港通＋深港通）· 億人民幣</p>
+          <span class="macro-status-badge ${card3Cls}">${escapeHtml(card3Badge)}</span>
+        </article>
+      `;
+    }
+
+    function renderMacroLiveSummary(data, metrics, advanced) {
+      const el = document.getElementById("macroLiveSummary");
+      if (!el) return;
+      const text = buildMacroLiveComment(data, metrics, advanced);
+      el.style.display = "block";
+      el.innerHTML = `<span class="mls-tag">大佬即時規則摘要</span><div><strong>研判：</strong>${escapeHtml(text)}</div>`;
+    }
 
     function renderMacroLineCharts(series) {
       if (typeof Chart === "undefined") return;
@@ -1984,7 +2246,18 @@ ${tail}`;
         const pts = series[title];
         if (!Array.isArray(pts) || !pts.length) continue;
         const cell = document.createElement("div");
+        const trendPreview = pts
+          .map((p) => (typeof p.c === "number" && Number.isFinite(p.c) ? p.c : parseFloat(String(p.c))))
+          .filter((x) => Number.isFinite(x));
+        const trendColPreview = macroSeriesTrendColor(trendPreview);
+        const cell = document.createElement("div");
         cell.className = "macro-chart-cell";
+        cell.style.boxShadow =
+          trendColPreview === MACRO_NEON_UP
+            ? "0 0 22px rgba(74, 222, 128, 0.22)"
+            : trendColPreview === MACRO_NEON_DOWN
+              ? "0 0 22px rgba(251, 113, 133, 0.22)"
+              : "none";
         const h = document.createElement("div");
         h.className = "mttl";
         h.textContent = title;
@@ -1992,12 +2265,14 @@ ${tail}`;
         cell.appendChild(h);
         cell.appendChild(cv);
         host.appendChild(cell);
-        const col = MACRO_LINE_COLORS[i % MACRO_LINE_COLORS.length];
-        i += 1;
         const labels = pts.map((p) => p.d);
         const dataPts = pts.map((p) =>
           typeof p.c === "number" && Number.isFinite(p.c) ? p.c : parseFloat(String(p.c)),
         );
+        const trendCol = macroSeriesTrendColor(dataPts);
+        const fillArea = _macroChartStyle !== "minimal";
+        const tension = _macroChartStyle === "minimal" ? 0.4 : 0.35;
+        i += 1;
         _chartsMacro.push(
           new Chart(cv, {
             type: "line",
@@ -2007,13 +2282,14 @@ ${tail}`;
                 {
                   label: title,
                   data: dataPts,
-                  borderColor: col,
-                  fill: _macroChartStyle === "area",
-                  backgroundColor: _macroChartStyle === "area" ? `${col}22` : "transparent",
-                  tension: _macroChartStyle === "minimal" ? 0.12 : 0.35,
-                  pointRadius: _macroChartStyle === "minimal" ? 0 : 0,
-                  pointHitRadius: 10,
-                  borderWidth: _macroChartStyle === "minimal" ? 1.4 : 2.2,
+                  borderColor: trendCol,
+                  fill: fillArea,
+                  backgroundColor: fillArea ? macroNeonFill(trendCol) : "transparent",
+                  tension,
+                  pointRadius: 0,
+                  pointHitRadius: 12,
+                  borderWidth: 2.5,
+                  borderCapStyle: "round",
                 },
               ],
             },
@@ -2024,11 +2300,13 @@ ${tail}`;
               scales: {
                 x: {
                   ticks: { maxTicksLimit: 8, font: { size: 9 }, color: CHART_THEME.tick },
-                  grid: { color: _macroChartStyle === "minimal" ? "rgba(148,163,184,0.05)" : CHART_THEME.grid },
+                  grid: { display: false },
+                  border: { display: false },
                 },
                 y: {
                   ticks: { font: { size: 10 }, color: CHART_THEME.tick, maxTicksLimit: 5 },
-                  grid: { color: _macroChartStyle === "minimal" ? "rgba(148,163,184,0.05)" : CHART_THEME.grid },
+                  grid: { display: false },
+                  border: { display: false },
                 },
               },
             },
@@ -2993,6 +3271,10 @@ ${tail}`;
       if (!tbody) return;
       if (!data) {
         renderMacroTickerBar(null);
+        const hero = document.getElementById("macroHeroGrid");
+        if (hero) hero.innerHTML = "";
+        const mls = document.getElementById("macroLiveSummary");
+        if (mls) mls.style.display = "none";
         destroyCharts(_chartsMacro);
         const mh = document.getElementById("macroChartGrid");
         if (mh) mh.innerHTML = "";
@@ -3032,6 +3314,8 @@ ${tail}`;
         ((Number(bm0?.hk?.sampled) > 0 && Number.isFinite(num(bm0?.hk?.above_ma50_pct))) ||
           (Number(bm0?.us?.sampled) > 0 && Number.isFinite(num(bm0?.us?.above_ma50_pct))));
       renderMacroTickerBar(data);
+      renderMacroHeroCards(data, metricsDisplay, advanced);
+      renderMacroLiveSummary(data, metricsDisplay, advanced);
       renderBossMacroBoard(data, metricsDisplay, advanced);
       const hasSeries =
         data?.chart_series && typeof data.chart_series === "object" && Object.keys(data.chart_series).length > 0;

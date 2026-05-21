@@ -728,6 +728,51 @@ def _build_ticker_bar(
     ]
 
 
+def _build_macro_live_comment(
+    *,
+    vix_val: float | None,
+    y10_val: float | None,
+    southbound_yi: float | None,
+    breadth_markets: dict | None,
+    final_score: float | None,
+) -> str:
+    """One-line 大佬即時規則摘要 for static dashboard."""
+    parts: list[str] = []
+    if isinstance(vix_val, (int, float)):
+        parts.append(
+            f"VIX {vix_val:.2f} {'< 18 放心進攻' if vix_val < 18 else '≥ 18 防守克制'}"
+        )
+    if isinstance(y10_val, (int, float)):
+        parts.append(
+            f"美債10Y {y10_val:.2f}% {'偏緊' if y10_val > 4.5 else '尚可'}"
+        )
+    bm = breadth_markets if isinstance(breadth_markets, dict) else {}
+    pcts: list[float] = []
+    for key in ("hk", "us"):
+        blk = bm.get(key)
+        if isinstance(blk, dict):
+            try:
+                pcts.append(float(blk["above_ma200_pct"]))
+            except (TypeError, ValueError, KeyError):
+                pass
+    if pcts:
+        avg = sum(pcts) / len(pcts)
+        parts.append(
+            f"市寬 >200MA 均值 {avg:.0f}% → {'結構偏強' if avg >= 50 else '震盪／偏弱'}"
+        )
+    if isinstance(southbound_yi, (int, float)):
+        parts.append(
+            f"北水 {'+' if southbound_yi >= 0 else ''}{southbound_yi:.2f}億 → "
+            f"{'流入支撐' if southbound_yi >= 0 else '抽水撤離'}"
+        )
+    if isinstance(final_score, (int, float)):
+        regime = "Risk-On" if final_score >= 62 else "Defensive" if final_score <= 42 else "Neutral"
+        parts.append(f"綜合分 {final_score:.1f}（{regime}）")
+    if not parts:
+        return "宏觀資料不足，待下次匯出更新。"
+    return "；".join(parts) + "。"
+
+
 def _yf_close_series_daily(ticker: str, period: str = "6mo", max_points: int = 120):
     """Last N trading days closing prices for frontend line charts [{d, c}, ...]."""
     try:
@@ -1484,6 +1529,13 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
             "net_yi": southbound_yi,
             "unit": "億人民幣",
         },
+        "macro_comment": _build_macro_live_comment(
+            vix_val=_num(vix_val),
+            y10_val=_num(y10),
+            southbound_yi=southbound_yi,
+            breadth_markets=breadth_markets,
+            final_score=final_score,
+        ),
         "ticker_bar": _build_ticker_bar(
             hsi_val=_num(hsi_val),
             hsi_chg=_num(hsi_chg),
