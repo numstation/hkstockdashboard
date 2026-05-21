@@ -2248,7 +2248,6 @@ ${tail}`;
       for (const title of Object.keys(series).sort()) {
         const pts = series[title];
         if (!Array.isArray(pts) || !pts.length) continue;
-        const cell = document.createElement("div");
         const trendPreview = pts
           .map((p) => (typeof p.c === "number" && Number.isFinite(p.c) ? p.c : parseFloat(String(p.c))))
           .filter((x) => Number.isFinite(x));
