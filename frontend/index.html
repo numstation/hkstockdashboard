@@ -1452,25 +1452,28 @@ ${tail}`;
     }
 
     /**
-     * Repo root URL for JSON (GitHub Pages: /repo-name/ ; local: /).
-     * HTML lives under .../frontend/index.html ; JSON at repo root or frontend/data/.
+     * Base URL for dashboard assets (always ends with /).
+     * Fixes fetch when the page is /frontend (no trailing slash): otherwise
+     * new URL("data/foo.json", "…/frontend") wrongly becomes …/data/foo.json.
      */
-    function getDashboardBaseUrl() {
+    function getFrontendBaseUrl() {
       const { origin, pathname } = window.location;
-      const idx = pathname.indexOf("/frontend/");
-      if (idx >= 0) {
-        return origin + pathname.slice(0, idx + 1);
-      }
-      const dir = pathname.replace(/\/[^/]*$/, "/");
-      return origin + (dir || "/");
+      const m = pathname.match(/^(.*\/frontend)(?:\/.*)?$/i);
+      if (m) return origin + m[1] + "/";
+      const dir = pathname.replace(/\/[^/]*$/, "");
+      const suffix = dir ? (dir.endsWith("/") ? dir : dir + "/") : "/";
+      return origin + suffix;
+    }
+
+    /** @deprecated alias */
+    function getDashboardBaseUrl() {
+      return getFrontendBaseUrl();
     }
 
     function jsonUrlCandidates(filename) {
-      const base = getDashboardBaseUrl();
-      const pageUrl = window.location.href;
+      const base = getFrontendBaseUrl();
       const raw = [
-        new URL("data/" + filename, pageUrl).href,
-        new URL("../" + filename, pageUrl).href,
+        new URL("data/" + filename, base).href,
         new URL(filename, base).href,
       ];
       return [...new Set(raw.filter(Boolean))];
@@ -3385,6 +3388,7 @@ ${tail}`;
     }
 
     async function loadData() {
+      try {
       let data = null;
       let lastStatus = "?";
       let rejectMismatch = false;
@@ -3487,9 +3491,25 @@ ${tail}`;
       }
 
       breadthDailyHistory = await fetchJsonSafe("breadth_daily_history.json");
-      await Promise.all([loadHistory(), loadFutureLog(), loadMacro()]);
-      renderOverviewCharts(rows, historySignals, breadthDailyHistory);
+      try {
+        await Promise.all([loadHistory(), loadFutureLog(), loadMacro()]);
+      } catch (err) {
+        console.error("Dashboard secondary load failed:", err);
+      }
+      try {
+        renderOverviewCharts(rows, historySignals, breadthDailyHistory);
+      } catch (err) {
+        console.error("Overview charts failed:", err);
+      }
       if (dailyScanJsonOk) renderHistoryTable();
+      } catch (err) {
+        console.error("loadData failed:", err);
+        setEmptyState(
+          "emptyState",
+          true,
+          "Dashboard failed to load: " + (err instanceof Error ? err.message : String(err)) + ". Try Reload or hard-refresh (Cmd+Shift+R).",
+        );
+      }
     }
 
     document.getElementById("reloadBtn").addEventListener("click", loadData);
