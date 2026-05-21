@@ -1,6 +1,6 @@
 {
-  "schema_version": "1.0",
-  "last_updated": "2026-05-19T14:48:00+08:00",
+  "schema_version": "6.0",
+  "last_updated": "2026-05-21T12:13:54+08:00",
   "days": [
     {
       "date": "2026-05-18",
@@ -48,6 +48,54 @@
       "strong": 3,
       "watch": 10,
       "caution": 120,
+      "total": 133
+    },
+    {
+      "date": "2026-05-20",
+      "model": "buy_put",
+      "strong": 45,
+      "watch": 18,
+      "caution": 70,
+      "total": 133
+    },
+    {
+      "date": "2026-05-20",
+      "model": "buy_stock",
+      "strong": 8,
+      "watch": 21,
+      "caution": 104,
+      "total": 133
+    },
+    {
+      "date": "2026-05-20",
+      "model": "sell_put",
+      "strong": 0,
+      "watch": 12,
+      "caution": 121,
+      "total": 133
+    },
+    {
+      "date": "2026-05-21",
+      "model": "buy_put",
+      "strong": 28,
+      "watch": 34,
+      "caution": 71,
+      "total": 133
+    },
+    {
+      "date": "2026-05-21",
+      "model": "buy_stock",
+      "strong": 11,
+      "watch": 26,
+      "caution": 96,
+      "total": 133
+    },
+    {
+      "date": "2026-05-21",
+      "model": "sell_put",
+      "strong": 0,
+      "watch": 7,
+      "caution": 126,
       "total": 133
     }
   ]

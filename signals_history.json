@@ -1,6 +1,6 @@
 {
-    "schema_version": "1.1",
-    "last_updated": "2026-05-19T14:48:00+08:00",
+    "schema_version": "6.0",
+    "last_updated": "2026-05-21T12:13:54+08:00",
     "signals": [
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -8,8 +8,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 5.61,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -17,8 +17,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 173.0,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -26,8 +26,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.44,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -35,8 +35,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.23,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T10:13:38+08:00",
@@ -44,8 +44,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.84,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -53,8 +53,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.56,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T12:01:26+08:00",
@@ -62,10 +62,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 16.6,
-            "latest_price": 15.9,
-            "pnl_pct": -4.22,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 15.74,
+            "pnl_pct": -5.18,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-15T12:01:26+08:00",
@@ -73,10 +73,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 5.39,
-            "latest_price": 5.6,
-            "pnl_pct": 3.9,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 5.49,
+            "pnl_pct": 1.86,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -84,8 +84,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.57,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T12:01:26+08:00",
@@ -93,10 +93,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 7.74,
-            "latest_price": 7.89,
-            "pnl_pct": 1.94,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 7.9,
+            "pnl_pct": 2.07,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -104,8 +104,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 1.9,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -113,10 +113,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 20.64,
-            "latest_price": 20.44,
-            "pnl_pct": -0.97,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "latest_price": 20.38,
+            "pnl_pct": -1.26,
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -124,8 +124,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 10.74,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -133,8 +133,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 1.15,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T12:01:26+08:00",
@@ -142,10 +142,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 86.7,
-            "latest_price": 86.55,
-            "pnl_pct": -0.17,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 86.65,
+            "pnl_pct": -0.06,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-13T13:22:26+08:00",
@@ -153,8 +153,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 9.74,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-13T09:54:03+08:00",
@@ -162,10 +162,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 73.75,
-            "latest_price": 67.45,
-            "pnl_pct": -8.54,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "latest_price": 76.95,
+            "pnl_pct": 4.34,
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -173,8 +173,8 @@
             "strategy": "CLI Export",
             "signal": "🔥 STRONG (Sell Put)",
             "close": 3.05,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T12:01:26+08:00",
@@ -182,10 +182,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 12.71,
-            "latest_price": 12.76,
-            "pnl_pct": 0.39,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 13.35,
+            "pnl_pct": 5.04,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-13T14:39:33+08:00",
@@ -193,10 +193,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 8.48,
-            "latest_price": 7.85,
-            "pnl_pct": -7.43,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "latest_price": 7.71,
+            "pnl_pct": -9.08,
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-15T12:01:26+08:00",
@@ -204,10 +204,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 49.92,
-            "latest_price": 49.1,
-            "pnl_pct": -1.64,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 46.08,
+            "pnl_pct": -7.69,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-14T10:13:38+08:00",
@@ -215,8 +215,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 3.9,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -224,8 +224,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.9,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -233,8 +233,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 15.87,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T10:13:38+08:00",
@@ -242,8 +242,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 4.68,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T12:01:26+08:00",
@@ -251,10 +251,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 37.78,
-            "latest_price": 35.3,
-            "pnl_pct": -6.56,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 35.18,
+            "pnl_pct": -6.88,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -262,8 +262,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.38,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -271,8 +271,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 10.66,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -280,8 +280,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 1.99,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -289,8 +289,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 168.4,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T09:54:03+08:00",
@@ -298,10 +298,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 125.8,
-            "latest_price": 114.8,
-            "pnl_pct": -8.74,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "latest_price": 133.0,
+            "pnl_pct": 5.72,
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -309,8 +309,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 5.04,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -318,8 +318,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 18.64,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -327,8 +327,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 1.6,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -336,8 +336,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 10.17,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -345,8 +345,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 59.2,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -354,8 +354,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 7.29,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -363,8 +363,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 21.88,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T10:13:38+08:00",
@@ -372,8 +372,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 5.41,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -381,8 +381,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.29,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -390,8 +390,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 6.63,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -399,8 +399,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 45.36,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -408,8 +408,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 17.4,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -417,8 +417,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 1.6,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -426,8 +426,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 29.32,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -435,8 +435,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 4.33,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -444,8 +444,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 8.7,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -453,8 +453,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 4.4,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -462,8 +462,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 3.57,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -471,8 +471,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 50.05,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -480,8 +480,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 20.76,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -489,8 +489,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 5.58,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T15:55:09+08:00",
@@ -498,8 +498,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.52,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -507,8 +507,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 151.1,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -516,8 +516,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 16.32,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -525,8 +525,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 132.9,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -534,8 +534,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 204.2,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -543,8 +543,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 3.45,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -552,8 +552,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 41.92,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -561,8 +561,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 170.6,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -570,8 +570,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 164.8,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -579,8 +579,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 9.52,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -588,8 +588,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 26.14,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -597,8 +597,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.84,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-12T16:21:43+08:00",
@@ -606,10 +606,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 5.87,
-            "latest_price": 5.15,
-            "pnl_pct": -12.27,
-            "last_marked": "2026-05-19",
-            "holding_days": 7
+            "latest_price": 4.92,
+            "pnl_pct": -16.18,
+            "last_marked": "2026-05-21",
+            "holding_days": 9
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -617,8 +617,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 10.27,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -626,8 +626,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 10.8,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -635,8 +635,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 21.66,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -644,8 +644,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 525.0,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -653,8 +653,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 52.8,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -662,8 +662,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 9.85,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -671,8 +671,8 @@
             "strategy": "CLI Export",
             "signal": "🔥 STRONG (Sell Put)",
             "close": 20.06,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -680,8 +680,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 21.48,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -689,8 +689,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 1.51,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -698,8 +698,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 506.0,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -707,8 +707,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 16.83,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -716,8 +716,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 35.3,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -725,8 +725,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.93,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -734,8 +734,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 523.5,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -743,8 +743,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 6.74,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -752,8 +752,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.14,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -761,8 +761,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.44,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T12:01:26+08:00",
@@ -770,10 +770,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 73.15,
-            "latest_price": 71.2,
-            "pnl_pct": -2.67,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 71.45,
+            "pnl_pct": -2.32,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-15T12:01:26+08:00",
@@ -781,10 +781,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 28.48,
-            "latest_price": 27.68,
-            "pnl_pct": -2.81,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 25.12,
+            "pnl_pct": -11.8,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-15T08:51:34+08:00",
@@ -792,10 +792,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 8.95,
-            "latest_price": 8.46,
-            "pnl_pct": -5.47,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 8.17,
+            "pnl_pct": -8.72,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-14T11:30:04+08:00",
@@ -803,8 +803,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.58,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T10:13:38+08:00",
@@ -812,8 +812,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 3.07,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -821,8 +821,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.95,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -830,8 +830,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.33,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -839,8 +839,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 4.68,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -848,8 +848,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 25.84,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -857,8 +857,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 55.1,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -866,8 +866,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 28.3,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -875,8 +875,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.45,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -884,8 +884,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 4.33,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T12:47:55+08:00",
@@ -893,8 +893,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 8.52,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -902,8 +902,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 8.86,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -911,8 +911,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 7.3,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -920,8 +920,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 15.45,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -929,8 +929,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 1.12,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -938,8 +938,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 3.22,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -947,8 +947,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 22.96,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -956,8 +956,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 12.63,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -965,8 +965,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.26,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T10:13:38+08:00",
@@ -974,8 +974,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.14,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -983,8 +983,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 68.85,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -992,8 +992,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.74,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-13T09:54:03+08:00",
@@ -1001,8 +1001,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 4.78,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1010,8 +1010,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 10.86,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T08:51:34+08:00",
@@ -1019,10 +1019,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 6.61,
-            "latest_price": 6.72,
-            "pnl_pct": 1.66,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 6.58,
+            "pnl_pct": -0.45,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -1030,10 +1030,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 3.25,
-            "latest_price": 2.92,
-            "pnl_pct": -10.15,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "latest_price": 2.73,
+            "pnl_pct": -16.0,
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1041,8 +1041,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 86.6,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -1050,8 +1050,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 4.2,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1059,8 +1059,8 @@
             "strategy": "CLI Export",
             "signal": "🔥 STRONG (Sell Put)",
             "close": 4.39,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -1068,8 +1068,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 11.79,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1077,8 +1077,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 1.06,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -1086,8 +1086,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 271.2,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1095,8 +1095,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 10.68,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1104,10 +1104,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 33.64,
-            "latest_price": 32.26,
-            "pnl_pct": -4.1,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "latest_price": 32.3,
+            "pnl_pct": -3.98,
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T14:39:33+08:00",
@@ -1115,8 +1115,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 4.48,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -1124,8 +1124,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 5.33,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -1133,8 +1133,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 50.25,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -1142,8 +1142,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 14.68,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -1151,10 +1151,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 5.69,
-            "latest_price": 5.67,
-            "pnl_pct": -0.35,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "latest_price": 5.58,
+            "pnl_pct": -1.93,
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-13T15:55:09+08:00",
@@ -1162,8 +1162,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 5.02,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-15T08:51:34+08:00",
@@ -1171,10 +1171,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 15.37,
-            "latest_price": 15.74,
-            "pnl_pct": 2.41,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 14.94,
+            "pnl_pct": -2.8,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -1182,8 +1182,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 39.62,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1191,8 +1191,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.12,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T08:51:34+08:00",
@@ -1200,10 +1200,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 5.29,
-            "latest_price": 5.28,
-            "pnl_pct": -0.19,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 5.23,
+            "pnl_pct": -1.13,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -1211,8 +1211,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 32.62,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-13T08:48:14+08:00",
@@ -1220,8 +1220,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 6.52,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1229,8 +1229,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 3.09,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T12:47:55+08:00",
@@ -1238,8 +1238,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 69.0,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T16:10:28+08:00",
@@ -1247,10 +1247,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 17.6,
-            "latest_price": 17.36,
-            "pnl_pct": -1.36,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "latest_price": 17.59,
+            "pnl_pct": -0.06,
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1258,8 +1258,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 3.46,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1267,8 +1267,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 1.82,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1276,8 +1276,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.76,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1285,8 +1285,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 7.06,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T11:30:04+08:00",
@@ -1294,8 +1294,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 15.94,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T08:51:34+08:00",
@@ -1305,8 +1305,8 @@
             "close": 130.1,
             "latest_price": 125.6,
             "pnl_pct": -3.46,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1314,8 +1314,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 9.14,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1323,8 +1323,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 185.5,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1332,8 +1332,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 14.45,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1341,8 +1341,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.62,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1350,8 +1350,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 6.98,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1359,8 +1359,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.81,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1368,8 +1368,8 @@
             "strategy": "CLI Export",
             "signal": "🔥 STRONG (Sell Put)",
             "close": 13.72,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1377,8 +1377,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 1.4,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1386,8 +1386,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 24.3,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T15:55:09+08:00",
@@ -1395,8 +1395,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 121.3,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1404,8 +1404,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.91,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1413,8 +1413,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 5.8,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1422,8 +1422,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 14.76,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1431,8 +1431,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 25.82,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-13T23:20:15+08:00",
@@ -1440,8 +1440,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 13.24,
-            "last_marked": "2026-05-19",
-            "holding_days": 6
+            "last_marked": "2026-05-21",
+            "holding_days": 8
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1449,8 +1449,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 343.6,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1458,10 +1458,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 87.6,
-            "latest_price": 83.65,
-            "pnl_pct": -4.51,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "latest_price": 84.0,
+            "pnl_pct": -4.11,
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1469,8 +1469,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 44.48,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T08:56:34+08:00",
@@ -1478,10 +1478,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 48.86,
-            "latest_price": 41.6,
-            "pnl_pct": -14.86,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "latest_price": 40.4,
+            "pnl_pct": -17.31,
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T08:51:34+08:00",
@@ -1489,10 +1489,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 140.9,
-            "latest_price": 136.5,
-            "pnl_pct": -3.12,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 128.9,
+            "pnl_pct": -8.52,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-14T10:13:38+08:00",
@@ -1500,8 +1500,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 20.56,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1509,8 +1509,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 2.7,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1518,8 +1518,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 26.56,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1527,8 +1527,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 0.64,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1536,8 +1536,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 6.95,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1545,8 +1545,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 49.2,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-14T14:04:04+08:00",
@@ -1554,8 +1554,8 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 85.0,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T12:01:26+08:00",
@@ -1563,10 +1563,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 41.66,
-            "latest_price": 41.38,
-            "pnl_pct": -0.67,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 41.3,
+            "pnl_pct": -0.86,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-14T23:29:22+08:00",
@@ -1574,10 +1574,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 16.31,
-            "latest_price": 15.91,
-            "pnl_pct": -2.45,
-            "last_marked": "2026-05-19",
-            "holding_days": 5
+            "latest_price": 16.0,
+            "pnl_pct": -1.9,
+            "last_marked": "2026-05-21",
+            "holding_days": 7
         },
         {
             "date": "2026-05-15T08:51:34+08:00",
@@ -1585,10 +1585,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 137.9,
-            "latest_price": 133.4,
-            "pnl_pct": -3.26,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 128.1,
+            "pnl_pct": -7.11,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-15T08:51:34+08:00",
@@ -1596,10 +1596,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 76.85,
-            "latest_price": 62.1,
-            "pnl_pct": -19.19,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 62.45,
+            "pnl_pct": -18.74,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-15T08:51:34+08:00",
@@ -1607,10 +1607,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 77.1,
-            "latest_price": 76.05,
-            "pnl_pct": -1.36,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 76.1,
+            "pnl_pct": -1.3,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-15T08:51:34+08:00",
@@ -1618,10 +1618,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 65.3,
-            "latest_price": 65.15,
-            "pnl_pct": -0.23,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 65.05,
+            "pnl_pct": -0.38,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-15T09:54:46+08:00",
@@ -1629,10 +1629,10 @@
             "strategy": "CLI Export",
             "signal": "👀 WATCH (Potential)",
             "close": 44.5,
-            "latest_price": 41.5,
-            "pnl_pct": -6.74,
-            "last_marked": "2026-05-19",
-            "holding_days": 4
+            "latest_price": 42.04,
+            "pnl_pct": -5.53,
+            "last_marked": "2026-05-21",
+            "holding_days": 6
         },
         {
             "date": "2026-05-18T16:36:41+08:00",
@@ -1644,13 +1644,13 @@
             "signal": "N/A",
             "score": 87,
             "entry_price": 91.6,
-            "latest_price": 89.85,
-            "pnl_pct": -1.91,
-            "holding_days": 1,
+            "latest_price": 90.4,
+            "pnl_pct": -1.31,
+            "holding_days": 3,
             "macd_status": "多頭柱體擴張",
             "rvol": 2.01,
             "status": "open",
-            "last_marked": "2026-05-19",
+            "last_marked": "2026-05-21",
             "vwap_ext": "N"
         },
         {
@@ -1663,13 +1663,13 @@
             "signal": "N/A",
             "score": 100,
             "entry_price": 7.96,
-            "latest_price": 7.89,
-            "pnl_pct": -0.88,
-            "holding_days": 1,
+            "latest_price": 7.9,
+            "pnl_pct": -0.75,
+            "holding_days": 3,
             "macd_status": "多頭柱體擴張",
             "rvol": 2.57,
             "status": "open",
-            "last_marked": "2026-05-19",
+            "last_marked": "2026-05-21",
             "vwap_ext": "N"
         },
         {
@@ -1682,13 +1682,13 @@
             "signal": "N/A",
             "score": 87,
             "entry_price": 5.63,
-            "latest_price": 5.6,
-            "pnl_pct": -0.53,
-            "holding_days": 1,
+            "latest_price": 5.49,
+            "pnl_pct": -2.49,
+            "holding_days": 3,
             "macd_status": "多頭柱體擴張",
             "rvol": 2.04,
             "status": "open",
-            "last_marked": "2026-05-19",
+            "last_marked": "2026-05-21",
             "trigger_track": "B",
             "vwap_ext": "N"
         },
@@ -1702,13 +1702,13 @@
             "signal": "N/A",
             "score": 88,
             "entry_price": 7.95,
-            "latest_price": 7.89,
-            "pnl_pct": -0.75,
-            "holding_days": 1,
+            "latest_price": 7.9,
+            "pnl_pct": -0.63,
+            "holding_days": 3,
             "macd_status": "多頭柱體擴張",
             "rvol": 2.57,
             "status": "open",
-            "last_marked": "2026-05-19",
+            "last_marked": "2026-05-21",
             "trigger_track": "B",
             "vwap_ext": "N"
         },
@@ -1722,13 +1722,13 @@
             "signal": "N/A",
             "score": 93,
             "entry_price": 5.62,
-            "latest_price": 5.6,
-            "pnl_pct": -0.36,
-            "holding_days": 1,
+            "latest_price": 5.49,
+            "pnl_pct": -2.31,
+            "holding_days": 3,
             "macd_status": "多頭柱體擴張",
             "rvol": 2.04,
             "status": "open",
-            "last_marked": "2026-05-19",
+            "last_marked": "2026-05-21",
             "vwap_ext": "N"
         },
         {
@@ -1741,13 +1741,13 @@
             "signal": "N/A",
             "score": 89,
             "entry_price": 8.02,
-            "latest_price": 7.89,
-            "pnl_pct": -1.62,
-            "holding_days": 0,
+            "latest_price": 7.9,
+            "pnl_pct": -1.5,
+            "holding_days": 2,
             "macd_status": "多頭柱體擴張",
             "rvol": 2.11,
             "status": "open",
-            "last_marked": "2026-05-19",
+            "last_marked": "2026-05-21",
             "trigger_track": "B",
             "vwap_ext": "N"
         },
@@ -1761,13 +1761,13 @@
             "signal": "N/A",
             "score": 94,
             "entry_price": 8.02,
-            "latest_price": 7.89,
-            "pnl_pct": -1.62,
-            "holding_days": 0,
+            "latest_price": 7.9,
+            "pnl_pct": -1.5,
+            "holding_days": 2,
             "macd_status": "多頭柱體擴張",
             "rvol": 2.11,
             "status": "open",
-            "last_marked": "2026-05-19",
+            "last_marked": "2026-05-21",
             "vwap_ext": "N"
         },
         {
@@ -1780,13 +1780,13 @@
             "signal": "N/A",
             "score": 89,
             "entry_price": 5.68,
-            "latest_price": 5.67,
-            "pnl_pct": -0.18,
-            "holding_days": 0,
+            "latest_price": 5.58,
+            "pnl_pct": -1.76,
+            "holding_days": 2,
             "macd_status": "多頭柱體擴張",
             "rvol": 1.77,
             "status": "open",
-            "last_marked": "2026-05-19",
+            "last_marked": "2026-05-21",
             "vwap_ext": "N"
         },
         {
@@ -1799,14 +1799,452 @@
             "signal": "N/A",
             "score": 84,
             "entry_price": 15.77,
-            "latest_price": 15.74,
-            "pnl_pct": -0.19,
-            "holding_days": 0,
+            "latest_price": 14.94,
+            "pnl_pct": -5.26,
+            "holding_days": 2,
             "macd_status": "多頭柱體擴張",
             "rvol": 1.48,
             "status": "open",
-            "last_marked": "2026-05-19",
+            "last_marked": "2026-05-21",
             "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "0992.HK",
+            "action": "SELL_PUT",
+            "score_model": "sell_put",
+            "strategy": "Sell Put 穩健收租",
+            "signal": "N/A",
+            "score": 73,
+            "entry_price": 13.2,
+            "latest_price": 13.35,
+            "pnl_pct": 1.14,
+            "holding_days": 1,
+            "macd_status": "空頭柱體收斂",
+            "rvol": 1.16,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "trigger_track": "A",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "2388.HK",
+            "action": "BUY_CALL",
+            "score_model": "buy_stock",
+            "strategy": "Buy Stock 極限爆發",
+            "signal": "N/A",
+            "score": 85,
+            "entry_price": 47.16,
+            "latest_price": 47.66,
+            "pnl_pct": 1.06,
+            "holding_days": 1,
+            "macd_status": "多頭柱體擴張",
+            "rvol": 1.49,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "0788.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 95,
+            "entry_price": 10.4,
+            "latest_price": 10.45,
+            "pnl_pct": -0.48,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.52,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "0968.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 87,
+            "entry_price": 2.71,
+            "latest_price": 2.76,
+            "pnl_pct": -1.85,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.71,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "1186.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 94,
+            "entry_price": 4.99,
+            "latest_price": 4.98,
+            "pnl_pct": 0.2,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.39,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "1211.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 93,
+            "entry_price": 90.2,
+            "latest_price": 91.6,
+            "pnl_pct": -1.55,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.31,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "1772.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 95,
+            "entry_price": 70.7,
+            "latest_price": 68.75,
+            "pnl_pct": 2.76,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.46,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "1833.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 93,
+            "entry_price": 9.59,
+            "latest_price": 9.45,
+            "pnl_pct": 1.46,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.3,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "1876.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 77,
+            "entry_price": 7.2,
+            "latest_price": 7.24,
+            "pnl_pct": -0.56,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.42,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "2202.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 95,
+            "entry_price": 2.81,
+            "latest_price": 2.73,
+            "pnl_pct": 2.85,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 2.02,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "2259.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 83,
+            "entry_price": 139.1,
+            "latest_price": 137.8,
+            "pnl_pct": 0.93,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.3,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "2899.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 86,
+            "entry_price": 32.72,
+            "latest_price": 32.96,
+            "pnl_pct": -0.73,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.65,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "3888.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 81,
+            "entry_price": 21.86,
+            "latest_price": 21.38,
+            "pnl_pct": 2.2,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.5,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "6181.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 100,
+            "entry_price": 496.0,
+            "latest_price": 488.4,
+            "pnl_pct": 1.53,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 2.42,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "6618.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 85,
+            "entry_price": 40.38,
+            "latest_price": 40.4,
+            "pnl_pct": -0.05,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.46,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-20T23:51:42+08:00",
+            "entry_date": "2026-05-20",
+            "ticker": "9626.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 98,
+            "entry_price": 148.7,
+            "latest_price": 138.4,
+            "pnl_pct": 6.93,
+            "holding_days": 1,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.84,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-21T09:07:51+08:00",
+            "entry_date": "2026-05-21",
+            "ticker": "1186.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 76,
+            "entry_price": 4.99,
+            "latest_price": 4.98,
+            "pnl_pct": 0.2,
+            "holding_days": 0,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.39,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-21T09:07:51+08:00",
+            "entry_date": "2026-05-21",
+            "ticker": "1211.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 75,
+            "entry_price": 90.2,
+            "latest_price": 91.6,
+            "pnl_pct": -1.55,
+            "holding_days": 0,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.31,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-21T09:07:51+08:00",
+            "entry_date": "2026-05-21",
+            "ticker": "1772.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 70,
+            "entry_price": 70.7,
+            "latest_price": 68.75,
+            "pnl_pct": 2.76,
+            "holding_days": 0,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.46,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-21T09:07:51+08:00",
+            "entry_date": "2026-05-21",
+            "ticker": "1833.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 75,
+            "entry_price": 9.59,
+            "latest_price": 9.45,
+            "pnl_pct": 1.46,
+            "holding_days": 0,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.3,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-21T09:07:51+08:00",
+            "entry_date": "2026-05-21",
+            "ticker": "2202.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 70,
+            "entry_price": 2.81,
+            "latest_price": 2.73,
+            "pnl_pct": 2.85,
+            "holding_days": 0,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 2.02,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "N"
+        },
+        {
+            "date": "2026-05-21T09:07:51+08:00",
+            "entry_date": "2026-05-21",
+            "ticker": "6181.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 75,
+            "entry_price": 496.0,
+            "latest_price": 488.4,
+            "pnl_pct": 1.53,
+            "holding_days": 0,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 2.42,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
+        },
+        {
+            "date": "2026-05-21T12:13:54+08:00",
+            "entry_date": "2026-05-21",
+            "ticker": "9626.HK",
+            "action": "BUY_PUT",
+            "score_model": "buy_put",
+            "strategy": "Buy Put 恐慌破底",
+            "signal": "N/A",
+            "score": 95,
+            "entry_price": 138.4,
+            "latest_price": 138.4,
+            "pnl_pct": 0.0,
+            "holding_days": 0,
+            "macd_status": "空頭柱體擴張",
+            "rvol": 1.54,
+            "status": "open",
+            "last_marked": "2026-05-21",
+            "vwap_ext": "Y"
         }
     ]
 }
