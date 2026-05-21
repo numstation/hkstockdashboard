@@ -6,6 +6,12 @@ The site does **not** update by itself until GitHub Actions can **scan** and **d
 
 ---
 
+## 頂部宏觀走馬燈（HSI · 上證 · 10Y · DXY · VIX · 北水）
+
+`macro_snapshot.json` 內有 **`ticker_bar`**（頂部捲動列）與 **`southbound_connect`**（港股通北水淨額，億人民幣，來自東方財富 API，與舊版 Stock Analysis 相同邏輯）。每次 CI **`macro-only`** 匯出會一併更新；**大佬三原色**分頁的「資金溫度計」亦會顯示北水。
+
+---
+
 ## 大佬三原色 / `macro_snapshot.json` looks stale
 
 The Macro tab reads **`macro_snapshot.json`** (`last_updated` at the top). If the date is days old while the stock scan updates:

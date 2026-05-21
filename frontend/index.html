@@ -532,6 +532,56 @@
       th, td { padding: 10px 12px; font-size: 13px; }
       .table-x-scroll table { min-width: 820px; }
     }
+    /* Top macro ticker (rolling strip) */
+    .macro-ticker-bar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      width: 100%;
+      background: linear-gradient(90deg, #134e4a 0%, #0f766e 42%, #115e59 100%);
+      color: #ecfdf5;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 2px 8px rgba(15, 118, 110, 0.25);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .macro-ticker-bar.is-paused .macro-ticker-scroll { animation-play-state: paused; }
+    .macro-ticker-track {
+      overflow: hidden;
+      width: 100%;
+      padding: 7px 0;
+    }
+    .macro-ticker-scroll {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+      white-space: nowrap;
+      animation: macro-ticker-roll 55s linear infinite;
+      will-change: transform;
+    }
+    @keyframes macro-ticker-roll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .macro-ticker-chip {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 0 20px;
+      border-right: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .macro-ticker-chip:last-child { border-right: none; }
+    .macro-ticker-chip .tk-label { font-weight: 600; opacity: 0.92; letter-spacing: 0.02em; }
+    .macro-ticker-chip .tk-val { font-weight: 800; font-variant-numeric: tabular-nums; }
+    .macro-ticker-chip .tk-chg { font-weight: 600; font-variant-numeric: tabular-nums; opacity: 0.95; }
+    .macro-ticker-chip .tk-chg.up { color: #86efac; }
+    .macro-ticker-chip .tk-chg.down { color: #fca5a5; }
+    .macro-ticker-chip .tk-extra { font-size: 10px; opacity: 0.75; margin-left: 2px; }
+    .macro-ticker-placeholder { padding: 8px 16px; opacity: 0.85; font-size: 12px; }
+    @media (prefers-reduced-motion: reduce) {
+      .macro-ticker-scroll { animation: none; flex-wrap: wrap; justify-content: center; }
+    }
+
     @media (min-width: 640px) {
       .toolbar.toolbar-responsive {
         flex-direction: row;
@@ -555,6 +605,13 @@
   </style>
 </head>
 <body>
+  <div id="macroTickerBar" class="macro-ticker-bar" role="region" aria-label="宏觀快訊走馬燈">
+    <div class="macro-ticker-track">
+      <div id="macroTickerScroll" class="macro-ticker-scroll">
+        <span class="macro-ticker-placeholder">載入宏觀快訊（HSI · 上證 · 10Y · DXY · VIX · 北水）…</span>
+      </div>
+    </div>
+  </div>
   <div class="container">
     <div class="header">
       <div>
@@ -1034,6 +1091,53 @@ ${tail}`;
       const a = String(signal.action || "").toUpperCase();
       const m = String(signal.score_model || "").toLowerCase();
       return a === "BUY_PUT" || m === "buy_put";
+    }
+
+    function parsePctChange(chg) {
+      if (chg == null || chg === "") return null;
+      const n = parseFloat(String(chg).replace(/%/g, "").replace(/,/g, "").trim());
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function renderMacroTickerBar(data) {
+      const bar = document.getElementById("macroTickerBar");
+      const scroll = document.getElementById("macroTickerScroll");
+      if (!bar || !scroll) return;
+      const items = Array.isArray(data?.ticker_bar) ? data.ticker_bar : [];
+      if (!items.length) {
+        scroll.innerHTML =
+          '<span class="macro-ticker-placeholder">宏觀快訊：請執行 macro 匯出（macro_snapshot.json）</span>';
+        return;
+      }
+      const chipHtml = (list) =>
+        list
+          .map((it) => {
+            const chgRaw = String(it.change || "").trim();
+            const chgN = parsePctChange(chgRaw);
+            let chgCls = "";
+            if (it.id === "northbound") {
+              const sb = parseFloat(String(it.value || "").replace(/[^0-9.\-+]/g, ""));
+              if (Number.isFinite(sb)) chgCls = sb >= 0 ? "up" : "down";
+            } else if (chgN != null) {
+              chgCls = chgN >= 0 ? "up" : "down";
+            }
+            const chgSpan = chgRaw
+              ? `<span class="tk-chg ${chgCls}">${escapeHtml(chgRaw)}</span>`
+              : "";
+            const extra = it.extra ? `<span class="tk-extra">${escapeHtml(it.extra)}</span>` : "";
+            return `<span class="macro-ticker-chip" data-id="${escapeHtml(it.id || "")}">
+              <span class="tk-label">${escapeHtml(it.label || "")}</span>
+              <span class="tk-val">${escapeHtml(String(it.value ?? "—"))}</span>
+              ${chgSpan}${extra}
+            </span>`;
+          })
+          .join("");
+      scroll.innerHTML = chipHtml(items) + chipHtml(items);
+      bar.title = data?.last_updated
+        ? "宏觀更新：" + fmtDateLocal(data.last_updated)
+        : "宏觀快訊";
+      bar.onmouseenter = () => bar.classList.add("is-paused");
+      bar.onmouseleave = () => bar.classList.remove("is-paused");
     }
 
     function calcPnlPct(entryPrice, latestPrice, signal) {
@@ -2755,11 +2859,26 @@ ${tail}`;
       const liq = macroStateByLevel(liqLevel);
       const brd = macroStateByLevel(breadthLevel);
       const early = macroStateByLevel(earlyLevel);
+      const sb = data?.southbound_connect;
+      const sbYi = sb && sb.net_yi != null ? num(sb.net_yi) : null;
+      if (Number.isFinite(sbYi)) {
+        if (sbYi >= 5) {
+          liqLevel = Math.max(liqLevel, 0);
+          liqNotes.push(`北水淨流入 ${sbYi >= 0 ? "+" : ""}${sbYi.toFixed(2)}億（港股通）`);
+        } else if (sbYi <= -5) {
+          liqLevel = Math.max(liqLevel, 1);
+          liqNotes.push(`北水淨流出 ${sbYi.toFixed(2)}億（港股通）`);
+        }
+      }
+
       const liqFigures = [
         `VIX ${Number.isFinite(vixVal) ? vixVal.toFixed(2) : "—"}`,
         `DXY ${Number.isFinite(dxyVal) ? dxyVal.toFixed(2) : "—"}${dxyNewHigh ? " · 區間新高" : ""}`,
         `US10Y ${Number.isFinite(y10) ? y10.toFixed(2) + "%" : "—"}`,
-      ].join(" · ");
+        Number.isFinite(sbYi) ? `北水 ${sbYi >= 0 ? "+" : ""}${sbYi.toFixed(2)}億` : "",
+      ]
+        .filter(Boolean)
+        .join(" · ");
       const earlyFigures = [
         `黃金 Δ ${Number.isFinite(goldChg) ? (goldChg > 0 ? "+" : "") + goldChg.toFixed(2) + "%" : "—"}`,
         `BTC Δ ${Number.isFinite(btcChg) ? btcChg.toFixed(2) + "%" : "—"}`,
@@ -2795,7 +2914,7 @@ ${tail}`;
         <table class="boss-macro-matrix" aria-label="三原色規則摘要">
           <thead><tr><th>指標類別</th><th>建議監控數據</th><th>規則／本頁狀態</th></tr></thead>
           <tbody>
-            <tr><td>流動性 Liquidity</td><td>VIX、DXY、US 10Y</td><td>${escapeHtml(matLiq)}</td></tr>
+            <tr><td>流動性 Liquidity</td><td>VIX、DXY、US 10Y、港股通北水</td><td>${escapeHtml(matLiq)}</td></tr>
             <tr><td>健康度 Breadth</td><td>樣本股高於 50MA／200MA 之比例</td><td>${escapeHtml(matBr)}</td></tr>
             <tr><td>早兆 · 情緒</td><td>黃金 vs SPX、BTC、期油</td><td>${escapeHtml(matEr)}</td></tr>
           </tbody>
@@ -2873,6 +2992,7 @@ ${tail}`;
       const bossMacroBoard = document.getElementById("bossMacroBoard");
       if (!tbody) return;
       if (!data) {
+        renderMacroTickerBar(null);
         destroyCharts(_chartsMacro);
         const mh = document.getElementById("macroChartGrid");
         if (mh) mh.innerHTML = "";
@@ -2911,6 +3031,7 @@ ${tail}`;
         bm0 &&
         ((Number(bm0?.hk?.sampled) > 0 && Number.isFinite(num(bm0?.hk?.above_ma50_pct))) ||
           (Number(bm0?.us?.sampled) > 0 && Number.isFinite(num(bm0?.us?.above_ma50_pct))));
+      renderMacroTickerBar(data);
       renderBossMacroBoard(data, metricsDisplay, advanced);
       const hasSeries =
         data?.chart_series && typeof data.chart_series === "object" && Object.keys(data.chart_series).length > 0;

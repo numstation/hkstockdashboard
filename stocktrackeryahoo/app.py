@@ -632,6 +632,102 @@ def _fetch_dxy_pair():
     return None, None, None
 
 
+def _fetch_southbound_net_yi() -> float | None:
+    """港股通（北水）淨額：滬港通 + 深港通，單位億人民幣（East Money kamt API）。"""
+    try:
+        import requests
+    except ImportError:
+        return None
+    url = (
+        "https://push2.eastmoney.com/api/qt/kamt/get"
+        "?fields1=f1,f2,f3,f4&fields2=f51,f52,f54,f55,f56,f58,f59,f60,f62,f63"
+    )
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        ),
+        "Referer": "https://quote.eastmoney.com/",
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=8)
+        if resp.status_code != 200:
+            resp = requests.get(url.replace("https://", "http://"), headers=headers, timeout=8)
+        if resp.status_code != 200:
+            return None
+        body = resp.json()
+        d = (body or {}).get("data") or {}
+        sh = d.get("sh2hk") or {}
+        sz = d.get("sz2hk") or {}
+        wan = float(sh.get("netBuyAmt") or 0) + float(sz.get("netBuyAmt") or 0)
+        return round(wan / 10000.0, 2)
+    except Exception as e:
+        print(f"Southbound flow API: {e}")
+        return None
+
+
+def _build_ticker_bar(
+    *,
+    hsi_val,
+    hsi_chg,
+    sse_val,
+    sse_chg,
+    y10_val,
+    y10_chg,
+    dxy_val,
+    dxy_chg,
+    vix_val,
+    vix_chg,
+    southbound_yi,
+) -> list[dict]:
+    """Compact items for the top scrolling macro ticker (static site)."""
+
+    def _fmt_chg(v) -> str | None:
+        if not isinstance(v, (int, float)):
+            return None
+        sign = "+" if v >= 0 else ""
+        return f"{sign}{v:.2f}%"
+
+    def _item(iid: str, label: str, value, change, unit: str = "", extra: str = ""):
+        usable = value is not None and str(value).strip() not in ("", "N/A", "—", "nan")
+        return {
+            "id": iid,
+            "label": label,
+            "value": str(value) if usable else "—",
+            "change": change if change else "",
+            "unit": unit,
+            "extra": extra,
+        }
+
+    def _fmt_num(v, d=2):
+        return f"{v:.{d}f}" if isinstance(v, (int, float)) else None
+
+    sb_val = "—"
+    if isinstance(southbound_yi, (int, float)):
+        sign = "+" if southbound_yi >= 0 else ""
+        sb_val = f"{sign}{southbound_yi:.2f}億"
+
+    y10_display = "—"
+    if isinstance(y10_val, (int, float)):
+        y10_display = f"{y10_val:.2f}%"
+
+    return [
+        _item("hsi", "恒生 HSI", _fmt_num(hsi_val), _fmt_chg(hsi_chg)),
+        _item("sse", "上證 SSE", _fmt_num(sse_val), _fmt_chg(sse_chg)),
+        _item("us10y", "10Y 國債", y10_display, _fmt_chg(y10_chg), unit="%"),
+        _item("dxy", "美元 DXY", _fmt_num(dxy_val, 2), _fmt_chg(dxy_chg)),
+        _item("vix", "VIX", _fmt_num(vix_val, 2), _fmt_chg(vix_chg)),
+        _item(
+            "northbound",
+            "北水淨額",
+            sb_val,
+            "",
+            unit="",
+            extra="滬港通＋深港通",
+        ),
+    ]
+
+
 def _yf_close_series_daily(ticker: str, period: str = "6mo", max_points: int = 120):
     """Last N trading days closing prices for frontend line charts [{d, c}, ...]."""
     try:
@@ -1083,6 +1179,26 @@ def _merge_macro_payload(prev: dict, new: dict) -> dict:
             cs_out[k] = v
     merged["chart_series"] = cs_out
 
+    prev_sb = prev.get("southbound_connect") if isinstance(prev.get("southbound_connect"), dict) else {}
+    new_sb = merged.get("southbound_connect") if isinstance(merged.get("southbound_connect"), dict) else {}
+    if new_sb.get("net_yi") is None and prev_sb.get("net_yi") is not None:
+        merged["southbound_connect"] = {**new_sb, "net_yi": prev_sb.get("net_yi")}
+
+    prev_tb = prev.get("ticker_bar") if isinstance(prev.get("ticker_bar"), list) else []
+    new_tb = merged.get("ticker_bar") if isinstance(merged.get("ticker_bar"), list) else []
+    if new_tb and prev_tb:
+        prev_by_id = {x.get("id"): x for x in prev_tb if isinstance(x, dict) and x.get("id")}
+        out_tb = []
+        for item in new_tb:
+            if not isinstance(item, dict):
+                continue
+            iid = item.get("id")
+            if iid and str(item.get("value", "")).strip() in ("—", "", "N/A") and iid in prev_by_id:
+                out_tb.append({**item, **{k: v for k, v in prev_by_id[iid].items() if k in ("value", "change")}})
+            else:
+                out_tb.append(item)
+        merged["ticker_bar"] = out_tb
+
     prev_adv = prev.get("advanced") if isinstance(prev.get("advanced"), dict) else {}
     new_adv = merged.get("advanced") if isinstance(merged.get("advanced"), dict) else {}
     if not new_adv and prev_adv:
@@ -1160,8 +1276,10 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
         pass
     vix_val, vix_chg = _fetch_macro_pair("^VIX")
     hsi_val, hsi_chg = _fetch_macro_pair("^HSI")
+    sse_val, sse_chg = _fetch_macro_pair("000001.SS")
     btc_val, btc_chg = _fetch_macro_pair("BTC-USD")
     dxy_val, dxy_chg, _dxy_sym = _fetch_dxy_pair()
+    southbound_yi = _fetch_southbound_net_yi()
 
     def _fmt(v, d=2):
         return f"{v:.{d}f}" if isinstance(v, (int, float)) else "N/A"
@@ -1240,6 +1358,18 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
     y10 = _find_adv_value(["10Y"], "current")
     y3m = _find_adv_value(["3M"], "current")
     spread = (y10 - y3m) if (y10 is not None and y3m is not None) else None
+    y10_chg = None
+    if isinstance(advanced, dict):
+        for k, v in advanced.items():
+            if "10Y" in str(k) and isinstance(v, dict) and v.get("change_pct") is not None:
+                y10_chg = _num(v.get("change_pct"))
+                break
+    if y10 is None:
+        y10_pair = _fetch_macro_pair("^TNX")
+        if y10_pair[0] is not None:
+            y10 = y10_pair[0]
+            if y10_chg is None:
+                y10_chg = y10_pair[1]
 
     vix_score = _score_vix(_num(vix_val))
     rsi_score = _score_rsi(spx_rsi)
@@ -1348,7 +1478,35 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
             "final_score": final_score,
         },
         "macro_risk_history": score_history,
+        "southbound_connect": {
+            "label": "港股通（北水）淨額",
+            "subtitle": "滬港通＋深港通",
+            "net_yi": southbound_yi,
+            "unit": "億人民幣",
+        },
+        "ticker_bar": _build_ticker_bar(
+            hsi_val=_num(hsi_val),
+            hsi_chg=_num(hsi_chg),
+            sse_val=_num(sse_val),
+            sse_chg=_num(sse_chg),
+            y10_val=_num(y10),
+            y10_chg=y10_chg,
+            dxy_val=_num(dxy_val),
+            dxy_chg=_num(dxy_chg),
+            vix_val=_num(vix_val),
+            vix_chg=_num(vix_chg),
+            southbound_yi=southbound_yi,
+        ),
     }
+    if isinstance(southbound_yi, (int, float)):
+        sign = "+" if southbound_yi >= 0 else ""
+        payload["metrics"].append(
+            {
+                "name": "北水淨額",
+                "value": f"{sign}{southbound_yi:.2f}億",
+                "change": "滬港+深港",
+            }
+        )
     if isinstance(prev_payload, dict) and prev_payload.get("last_updated"):
         payload = _merge_macro_payload(prev_payload, payload)
         if payload.get("breadth_stale"):
