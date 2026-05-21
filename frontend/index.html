@@ -230,18 +230,48 @@
       color: var(--muted);
       font-variant-numeric: tabular-nums;
     }
-    .macro-regime-chip {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 999px;
+    .macro-global-banner {
+      margin: 10px 12px 0;
+      padding: 12px 16px;
+      border-radius: 12px;
       border: 1px solid var(--line);
       background: var(--bg-elev);
       color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.5;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 10px;
+      font-variant-numeric: tabular-nums;
+      box-shadow: var(--shadow-sm);
     }
-    .macro-regime-chip.regime-on { background: #ecfdf5; color: var(--ok); border-color: #bbf7d0; }
-    .macro-regime-chip.regime-off { background: #fef2f2; color: var(--bad); border-color: #fecaca; }
-    .macro-regime-chip.regime-neutral { background: #fffbeb; color: var(--warn); border-color: #fde68a; }
+    .macro-global-banner.macro-skeleton {
+      min-height: 48px;
+      animation: macro-pulse 1.35s ease-in-out infinite;
+    }
+    .macro-global-banner.regime-on {
+      background: linear-gradient(90deg, #ecfdf5 0%, #fafaf9 100%);
+      border-color: #bbf7d0;
+    }
+    .macro-global-banner.regime-off {
+      background: linear-gradient(90deg, #fef2f2 0%, #fafaf9 100%);
+      border-color: #fecaca;
+    }
+    .macro-global-banner.regime-neutral {
+      background: linear-gradient(90deg, #fffbeb 0%, #fafaf9 100%);
+      border-color: #fde68a;
+    }
+    .macro-global-banner .mgb-score {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .macro-global-banner .mgb-sep {
+      color: var(--muted);
+      font-weight: 500;
+    }
     .macro-hero-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -279,11 +309,11 @@
       flex: 1;
     }
     .macro-hero-card .mh-hero-metric {
-      font-size: 1.35rem;
+      font-size: 1.2rem;
       font-weight: 800;
       color: var(--text);
       letter-spacing: -0.02em;
-      line-height: 1.15;
+      line-height: 1.25;
       margin: 0;
     }
     .macro-hero-card .mh-hero-metric .mh-hero-unit {
@@ -932,8 +962,8 @@
         <div class="macro-panel-head">
           <h3 class="section-title" style="margin:0;">大佬三原色</h3>
           <span id="macroSub" class="macro-sub-compact"></span>
-          <span id="macroRegimeChip" class="macro-regime-chip" style="display:none;"></span>
         </div>
+        <div id="macroGlobalBanner" class="macro-global-banner macro-skeleton" style="display:none;" role="status" aria-live="polite"></div>
         <div id="macroHeroGrid" class="macro-hero-grid" aria-label="三原色狀態卡"></div>
 
         <div class="macro-block macro-chart-block">
@@ -2197,6 +2227,12 @@ ${tail}`;
     let _macroTableHi = { vix: false, breadth: false, flowIn: false, flowOut: false };
 
     function showMacroSkeleton() {
+      const banner = document.getElementById("macroGlobalBanner");
+      if (banner) {
+        banner.style.display = "block";
+        banner.className = "macro-global-banner macro-skeleton";
+        banner.textContent = "";
+      }
       const host = document.getElementById("macroHeroGrid");
       if (!host) return;
       host.innerHTML = [1, 2, 3]
@@ -2246,18 +2282,15 @@ ${tail}`;
       return "tone-warn";
     }
 
-    function scanSignalBreadthPts(scanRows) {
-      const list = scanRows || [];
-      let strong = 0;
-      let danger = 0;
-      for (const r of list) {
-        const k = classifySignal(r.signal ?? r.Signal).key;
-        if (k === "green") strong += 1;
-        else if (k === "red") danger += 1;
-      }
-      const denom = strong + danger;
-      if (!denom) return null;
-      return Math.round((strong / denom) * 20);
+    /** Global market >SMA50% from breadth_markets (HK/US sample avg), not scanner rows. */
+    function breadthPointsFromGlobalSma50(data) {
+      const bm = data?.breadth_markets;
+      const pcts = [num(bm?.hk?.above_ma50_pct), num(bm?.us?.above_ma50_pct)].filter((x) =>
+        Number.isFinite(x),
+      );
+      if (!pcts.length) return { pct: null, pts: null };
+      const pct = Math.max(0, Math.min(100, pcts.reduce((a, b) => a + b, 0) / pcts.length));
+      return { pct, pts: Math.round((pct / 100) * 20) };
     }
 
     function globalRiskRegime(score) {
@@ -2267,7 +2300,7 @@ ${tail}`;
       return { label: "Neutral", badge: "Neutral 🟡", cls: "neutral-breadth" };
     }
 
-    function calculateGlobalRiskScore(data, metrics, advanced, scanRows) {
+    function calculateGlobalRiskScore(data, metrics, advanced) {
       const vixVal = num(findMetricByName(metrics, "VIX")?.value);
       const dxyChg = macroPctFromMetric(metrics, advanced, "DXY", ["DXY", "美元"]);
       const y10Chg = macroPctFromMetric(metrics, advanced, "10Y", ["10Y", "國債"]);
@@ -2294,19 +2327,12 @@ ${tail}`;
         total += y10Pts;
         components.y10_pts = y10Pts;
       }
-      const brPts = scanSignalBreadthPts(scanRows);
-      if (brPts != null) {
+      const brGlobal = breadthPointsFromGlobalSma50(data);
+      if (brGlobal.pts != null) {
         hasAny = true;
-        total += brPts;
-        components.breadth_pts = brPts;
-      } else {
-        const br50 = breadthSma50Gauge(data, advanced);
-        if (Number.isFinite(br50.pct)) {
-          hasAny = true;
-          const fallback = Math.round(Math.max(0, Math.min(100, br50.pct)) / 5);
-          total += fallback;
-          components.breadth_pts = fallback;
-        }
+        total += brGlobal.pts;
+        components.breadth_pts = brGlobal.pts;
+        components.breadth_sma50_pct = brGlobal.pct;
       }
       if (Number.isFinite(sbYi)) {
         hasAny = true;
@@ -2333,19 +2359,25 @@ ${tail}`;
       return { score: null, regime: globalRiskRegime(null), components, fromBackend: false };
     }
 
-    function renderMacroRegimeChip(data, risk) {
-      const el = document.getElementById("macroRegimeChip");
+    function renderMacroGlobalBanner(risk) {
+      const el = document.getElementById("macroGlobalBanner");
       if (!el) return;
-      const r = risk || calculateGlobalRiskScore(data, [], null, []);
-      const fs = r?.score;
+      const fs = risk?.score;
       if (!Number.isFinite(fs)) {
         el.style.display = "none";
         return;
       }
-      const reg = r.regime || globalRiskRegime(fs);
-      el.className = `macro-regime-chip ${reg.cls === "risk-on" ? "regime-on" : reg.cls === "risk-off" ? "regime-off" : "regime-neutral"}`;
-      el.style.display = "inline-block";
-      el.textContent = `Global Risk ${fs} · ${reg.label}`;
+      const reg = risk.regime || globalRiskRegime(fs);
+      const regimeCls =
+        reg.cls === "risk-on" ? "regime-on" : reg.cls === "risk-off" ? "regime-off" : "regime-neutral";
+      el.className = `macro-global-banner ${regimeCls}`;
+      el.style.display = "flex";
+      el.innerHTML = `
+        <span>🌍 全球宏觀風險總分:</span>
+        <span class="mgb-score">${fs.toFixed(1)} / 100</span>
+        <span class="mgb-sep">|</span>
+        <span>狀態: ${escapeHtml(reg.badge)}</span>
+      `;
     }
 
     function applyMacroTableRowHighlights() {
@@ -2441,12 +2473,9 @@ ${tail}`;
       return parts.join("；") + "。";
     }
 
-    function renderMacroHeroCards(data, metrics, advanced, scanRows) {
+    function renderMacroHeroCards(data, metrics, advanced) {
       const host = document.getElementById("macroHeroGrid");
       if (!host) return;
-      const risk = calculateGlobalRiskScore(data, metrics, advanced, scanRows);
-      const score = risk.score;
-      const reg = risk.regime || globalRiskRegime(score);
 
       const vixM = findMetricByName(metrics, "VIX");
       const vixVal = num(vixM?.value);
@@ -2455,25 +2484,34 @@ ${tail}`;
       const y10Row = advanced ? findAdvancedByText(advanced, ["10Y", "國債"]) : null;
       const y10Val = num(y10Row?.current);
 
-      _macroTableHi.vix = Number.isFinite(score) && score < 45;
-      _macroTableHi.breadth = false;
-      _macroTableHi.flowIn = false;
-      _macroTableHi.flowOut = false;
-
+      let card1Badge = "— 待更新";
+      let card1Cls = "neutral-breadth";
+      _macroTableHi.vix = false;
+      if (Number.isFinite(vixVal)) {
+        if (vixVal < 18) {
+          card1Badge = "🟢 VIX 溫和（Risk-On）";
+          card1Cls = "risk-on";
+        } else {
+          card1Badge = "🔴 VIX 升溫（Risk-Off）";
+          card1Cls = "risk-off";
+          _macroTableHi.vix = true;
+        }
+      }
+      const card1Hero = Number.isFinite(vixVal) ? vixVal.toFixed(2) : "—";
       const card1Micro = [
-        `VIX: ${Number.isFinite(vixVal) ? vixVal.toFixed(2) : "—"}`,
-        `US10Y: ${Number.isFinite(y10Val) ? y10Val.toFixed(2) + "%" : "—"}`,
-        `DXY: ${Number.isFinite(dxyVal) ? dxyVal.toFixed(2) : "—"}`,
+        `美金 DXY: ${Number.isFinite(dxyVal) ? dxyVal.toFixed(2) : "—"}`,
+        `美債 US10Y: ${Number.isFinite(y10Val) ? y10Val.toFixed(2) + "%" : "—"}`,
       ].join(" | ");
 
       const br50 = breadthSma50Gauge(data, advanced);
-      let card2Hero = "—";
       let card2Badge = "🟡 資料不足";
       let card2Cls = "neutral-breadth";
-      let card2HeroUnit = "";
+      let card2Hero = "大盤骨架市寬: —";
+      _macroTableHi.breadth = false;
+      _macroTableHi.flowIn = false;
+      _macroTableHi.flowOut = false;
       if (Number.isFinite(br50.pct)) {
-        card2Hero = `${br50.pct.toFixed(0)}`;
-        card2HeroUnit = "% >SMA50";
+        card2Hero = `大盤骨架市寬: ${br50.pct.toFixed(0)}%`;
         if (br50.ok === true) {
           card2Badge = "🟢 Bullish Structural Strength";
           card2Cls = "bullish";
@@ -2487,23 +2525,25 @@ ${tail}`;
         }
       }
       const hsiRow = advanced ? findAdvancedByText(advanced, ["HSI", "恒生"]) : null;
-      const hsiDist = num(hsiRow?.dist_sma200);
       const hsiDd = num(hsiRow?.drawdown);
+      const sbYi = num(data?.southbound_connect?.net_yi);
+      const sbText = Number.isFinite(sbYi)
+        ? `港股通(北水): ${sbYi >= 0 ? "+" : ""}${sbYi.toFixed(2)} 億`
+        : "港股通(北水): —";
+      if (Number.isFinite(sbYi)) {
+        if (sbYi >= 0) _macroTableHi.flowIn = true;
+        else _macroTableHi.flowOut = true;
+      }
       const card2Micro = [
-        `HSI vs SMA200: ${Number.isFinite(hsiDist) ? macroFmtPctPlain(hsiDist) : "—"}`,
+        sbText,
         `52w High DD: ${Number.isFinite(hsiDd) ? macroFmtPctPlain(hsiDd) : "—"}`,
       ].join(" | ");
 
       const goldRow = advanced ? findAdvancedByText(advanced, ["GOLD", "黃金"]) : null;
       const wtiRow = advanced ? findAdvancedByText(advanced, ["WTI", "期油"]) : null;
-      const btcRow =
-        findMetricByName(metrics, "BTC") ||
-        (advanced ? findAdvancedByText(advanced, ["BTC", "BITCOIN", "₿"]) : null);
       const goldChg = num(goldRow?.change_pct);
       const wtiChg = num(wtiRow?.change_pct);
-      const btcChg =
-        macroPctFromMetric(metrics, advanced, "BTC", ["BTC", "BITCOIN"]) ??
-        num(btcRow?.change_pct ?? btcRow?.change);
+      const btcChg = macroPctFromMetric(metrics, advanced, "BTC", ["BTC", "BITCOIN", "₿"]);
       if (Number.isFinite(btcChg) && btcChg <= -3) _macroTableHi.flowOut = true;
       if (Number.isFinite(goldChg) && goldChg > 0.2) _macroTableHi.flowIn = true;
 
@@ -2524,33 +2564,29 @@ ${tail}`;
       const card3Hero = Number.isFinite(commodityAvg) ? macroFmtPctPlain(commodityAvg) : "—";
       const card3HeroTone = heroMetricToneFromPct(commodityAvg);
       const card3Micro = [
-        macroMicroChgHtml("Gold", goldChg),
-        macroMicroChgHtml("WTI", wtiChg),
-        macroMicroChgHtml("BTC", btcChg),
+        `黃金 (Gold): ${Number.isFinite(goldChg) ? macroFmtPctPlain(goldChg) : "—"}`,
+        `原油 (WTI): ${Number.isFinite(wtiChg) ? macroFmtPctPlain(wtiChg) : "—"}`,
+        `比特幣 (BTC): ${Number.isFinite(btcChg) ? macroFmtPctPlain(btcChg) : "—"}`,
       ].join(" | ");
-
-      const scoreHtml = Number.isFinite(score)
-        ? `<p class="mh-hero-metric">${score}<span class="mh-hero-unit">/100</span></p>`
-        : `<p class="mh-hero-metric">—</p>`;
 
       host.innerHTML = `
         <article class="card macro-hero-card">
           <p class="mh-title">① 資金溫度 · Macro Sentiment</p>
-          ${scoreHtml}
-          <span class="macro-status-badge ${reg.cls}">${escapeHtml(reg.badge)}</span>
+          <p class="mh-hero-metric">VIX 恐慌指數: ${escapeHtml(card1Hero)}</p>
+          <span class="macro-status-badge ${card1Cls}">${escapeHtml(card1Badge)}</span>
           <p class="mh-micro">${escapeHtml(card1Micro)}</p>
         </article>
         <article class="card macro-hero-card">
           <p class="mh-title">② 市場寬度 · Market Breadth</p>
-          <p class="mh-hero-metric">${escapeHtml(card2Hero)}${card2HeroUnit ? `<span class="mh-hero-unit">${escapeHtml(card2HeroUnit)}</span>` : ""}</p>
+          <p class="mh-hero-metric">${escapeHtml(card2Hero)}<span class="mh-hero-unit">(&gt;SMA50)</span></p>
           <span class="macro-status-badge ${card2Cls}">${escapeHtml(card2Badge)}</span>
           <p class="mh-micro">${escapeHtml(card2Micro)}</p>
         </article>
         <article class="card macro-hero-card">
           <p class="mh-title">③ 商品與避險早兆</p>
-          <p class="mh-hero-metric ${card3HeroTone}">${escapeHtml(card3Hero)}<span class="mh-hero-unit">1D 綜合</span></p>
+          <p class="mh-hero-metric ${card3HeroTone}">${escapeHtml(card3Hero)}<span class="mh-hero-unit">(1D 綜合)</span></p>
           <span class="macro-status-badge ${card3Cls}">${escapeHtml(card3Badge)}</span>
-          <p class="mh-micro">${card3Micro}</p>
+          <p class="mh-micro">${escapeHtml(card3Micro)}</p>
         </article>
       `;
     }
@@ -3590,13 +3626,13 @@ ${tail}`;
       const tbody = document.getElementById("macroTbody");
       const advBody = document.getElementById("macroAdvancedTbody");
       const sub = document.getElementById("macroSub");
-      const regimeChip = document.getElementById("macroRegimeChip");
+      const globalBanner = document.getElementById("macroGlobalBanner");
       if (!tbody) return;
       if (!data) {
         renderMacroTickerBar(null);
         const hero = document.getElementById("macroHeroGrid");
         if (hero) hero.innerHTML = "";
-        if (regimeChip) regimeChip.style.display = "none";
+        if (globalBanner) globalBanner.style.display = "none";
         destroyCharts(_chartsMacro);
         const mh = document.getElementById("macroChartGrid");
         if (mh) mh.innerHTML = "";
@@ -3625,8 +3661,9 @@ ${tail}`;
         ((Number(bm0?.hk?.sampled) > 0 && Number.isFinite(num(bm0?.hk?.above_ma50_pct))) ||
           (Number(bm0?.us?.sampled) > 0 && Number.isFinite(num(bm0?.us?.above_ma50_pct))));
       renderMacroTickerBar(data);
-      renderMacroHeroCards(data, metricsDisplay, advanced, rows);
-      renderMacroRegimeChip(data, calculateGlobalRiskScore(data, metricsDisplay, advanced, rows));
+      const macroRisk = calculateGlobalRiskScore(data, metricsDisplay, advanced);
+      renderMacroGlobalBanner(macroRisk);
+      renderMacroHeroCards(data, metricsDisplay, advanced);
       const hasSeries =
         data?.chart_series && typeof data.chart_series === "object" && Object.keys(data.chart_series).length > 0;
       if (!usableMetrics.length && !advKeys.length && !hasSeries && !hasBreadth) {
