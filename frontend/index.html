@@ -301,23 +301,11 @@
     }
     .macro-hero-card .mh-micro .micro-up { color: var(--ok); font-weight: 600; }
     .macro-hero-card .mh-micro .micro-down { color: var(--bad); font-weight: 600; }
-    .macro-hero-card .mh-commodity-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 10px;
-      margin-top: 2px;
-    }
-    .macro-hero-card .mh-commodity-chip {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 6px;
-      border: 1px solid var(--line);
-      background: var(--bg-elev);
-      font-variant-numeric: tabular-nums;
-    }
-    .macro-hero-card .mh-commodity-chip.up { color: var(--ok); border-color: #bbf7d0; background: #ecfdf5; }
-    .macro-hero-card .mh-commodity-chip.down { color: var(--bad); border-color: #fecaca; background: #fef2f2; }
+    .macro-hero-card .mh-hero-metric.tone-up { color: var(--ok); }
+    .macro-hero-card .mh-hero-metric.tone-down { color: var(--bad); }
+    .macro-hero-card .mh-hero-metric.tone-warn { color: var(--warn); }
+    .macro-hero-card .macro-status-badge { margin-top: 2px; }
+    .macro-hero-card .mh-micro:last-child { margin-top: auto; padding-top: 4px; }
     .macro-status-badge {
       display: inline-flex;
       align-items: center;
@@ -367,24 +355,39 @@
       border-color: rgba(239, 68, 68, 0.45);
       box-shadow: 0 0 18px rgba(251, 113, 133, 0.32);
     }
-    .macro-table-scroll {
-      display: block;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      margin: 0 12px 12px;
+    #macroTab .macro-block {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
     }
-    .macro-sticky-table {
-      min-width: 560px;
-      width: 100%;
+    #macroTab .macro-block .section-title {
+      margin: 0;
+      padding: 0 12px 10px;
+      font-size: 15px;
     }
-    .macro-sticky-table th,
-    .macro-sticky-table td {
-      white-space: nowrap;
+    #macroTab .macro-table-sub {
+      margin: 0;
+      padding: 4px 12px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
     }
-    .macro-sticky-table tr.macro-row-hi-vix td { background: #fef2f2; }
-    .macro-sticky-table tr.macro-row-hi-breadth td { background: #ecfdf5; }
-    .macro-sticky-table tr.macro-row-hi-flow td { background: #ecfdf5; }
-    .macro-sticky-table tr.macro-row-hi-flow-out td { background: #fef2f2; }
+    #macroTab .table-x-scroll {
+      margin: 0;
+      border-top: 1px solid var(--line);
+    }
+    #macroTab .table-x-scroll + .macro-table-sub {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+    #macroTab .table-x-scroll table {
+      min-width: 640px;
+    }
+    #macroTab .table-x-scroll tr.macro-row-hi-vix td { background: #fef2f2; }
+    #macroTab .table-x-scroll tr.macro-row-hi-breadth td { background: #ecfdf5; }
+    #macroTab .table-x-scroll tr.macro-row-hi-flow td { background: #ecfdf5; }
+    #macroTab .table-x-scroll tr.macro-row-hi-flow-out td { background: #fef2f2; }
     .boss-macro-board {
       margin: 0 12px 12px;
       border: 1px solid var(--line);
@@ -488,12 +491,6 @@
     .chip.risk-on { background: rgba(34,197,94,.17); border-color: rgba(34,197,94,.4); }
     .chip.neutral { background: rgba(245,158,11,.18); border-color: rgba(245,158,11,.45); }
     .chip.defensive { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.45); }
-    .macro-sticky-table thead th {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      background: var(--bg-elev);
-    }
     .macro-score-grid {
       display: grid;
       grid-template-columns: minmax(220px, 300px) minmax(220px, 300px) 1fr;
@@ -534,18 +531,12 @@
       min-height: 200px;
     }
     .macro-score-chart canvas { max-height: 170px !important; }
-    .macro-details { margin: 0 12px 12px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-    .macro-details summary {
-      cursor: pointer;
-      padding: 10px 12px;
-      background: var(--bg-elev);
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 600;
-      list-style: none;
+    #macroTab .macro-chart-block .macro-chart-grid {
+      padding: 0 12px 14px;
     }
-    .macro-details summary::-webkit-details-marker { display: none; }
-    .macro-details[open] summary { border-bottom: 1px solid var(--line); }
+    #macroTab .macro-chart-block .macro-chart-toolbar {
+      padding: 0 12px 10px;
+    }
     @media (max-width: 1180px) { .macro-score-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 900px) { .macro-score-grid { grid-template-columns: 1fr; } }
     th[data-hist-key], th[data-log-key] { cursor: pointer; user-select: none; }
@@ -944,31 +935,9 @@
           <span id="macroRegimeChip" class="macro-regime-chip" style="display:none;"></span>
         </div>
         <div id="macroHeroGrid" class="macro-hero-grid" aria-label="三原色狀態卡"></div>
-        <details class="macro-details">
-          <summary>即時數據表</summary>
-          <div class="macro-table-scroll">
-            <table class="macro-sticky-table">
-              <thead>
-                <tr>
-                  <th>Metric</th><th>Value</th><th>Δ</th>
-                </tr>
-              </thead>
-              <tbody id="macroTbody"></tbody>
-            </table>
-          </div>
-          <div class="macro-table-scroll">
-            <table class="macro-sticky-table">
-              <thead>
-                <tr>
-                  <th>指數</th><th>價位</th><th>Δ%</th><th>RSI</th><th>vs SMA200</th><th>52w DD</th>
-                </tr>
-              </thead>
-              <tbody id="macroAdvancedTbody"></tbody>
-            </table>
-          </div>
-        </details>
-        <details class="macro-details" id="macroChartsDetails">
-          <summary>主要指數／資產走勢（日線圖表）— 按此展開</summary>
+
+        <div class="macro-block macro-chart-block">
+          <h3 class="section-title">主要指數／資產走勢（日線圖表）</h3>
           <div class="macro-chart-toolbar">
             <label for="macroChartStyle" class="muted" style="font-size:12px;">Style</label>
             <select id="macroChartStyle">
@@ -979,7 +948,35 @@
             <button id="macroChartResetBtn" type="button" class="btn-sm">Reset Charts</button>
           </div>
           <div id="macroChartGrid" class="macro-chart-grid"></div>
-        </details>
+        </div>
+
+        <div class="macro-block macro-data-block">
+          <h3 class="section-title">即時數據表</h3>
+          <p class="macro-table-sub">Quick metrics（VIX · DXY · 指數 · 北水）</p>
+          <div class="table-x-scroll" role="region" aria-label="宏觀快訊表（可左右滑動）">
+            <table>
+              <thead class="sticky-head">
+                <tr>
+                  <th>Metric</th><th>Value</th><th>Δ</th>
+                </tr>
+              </thead>
+              <tbody id="macroTbody"></tbody>
+            </table>
+          </div>
+          <p class="macro-table-sub">Market dashboard（RSI · SMA200 · 52w DD）</p>
+          <div class="table-x-scroll" role="region" aria-label="宏觀進階表（可左右滑動）">
+            <table>
+              <thead class="sticky-head">
+                <tr>
+                  <th>指數</th><th>價位</th><th>Δ%</th><th>RSI</th><th>vs SMA200</th><th>52w DD</th>
+                </tr>
+              </thead>
+              <tbody id="macroAdvancedTbody"></tbody>
+            </table>
+          </div>
+          <p class="table-x-scroll-hint muted">← 左右滑動查看更多欄位 →</p>
+        </div>
+
         <div id="macroEmpty" class="empty" style="display:none;">No `macro_snapshot.json` yet.</div>
       </div>
     </section>
@@ -2230,12 +2227,23 @@ ${tail}`;
       return (pct >= 0 ? "+" : "") + pct.toFixed(d) + "%";
     }
 
-    function macroCommodityChipHtml(label, pct) {
-      if (!Number.isFinite(pct)) {
-        return `<span class="mh-commodity-chip">${escapeHtml(label)} —</span>`;
-      }
-      const cls = pct >= 0 ? "up" : "down";
-      return `<span class="mh-commodity-chip ${cls}">${escapeHtml(label)} ${macroFmtPctPlain(pct)}</span>`;
+    function macroMicroChgHtml(label, pct) {
+      if (!Number.isFinite(pct)) return `${escapeHtml(label)}: —`;
+      const cls = pct >= 0 ? "micro-up" : "micro-down";
+      return `<span class="${cls}">${escapeHtml(label)} ${macroFmtPctPlain(pct)}</span>`;
+    }
+
+    function commodityCompositeDayChg(goldChg, wtiChg, btcChg) {
+      const vals = [goldChg, wtiChg, btcChg].filter((x) => Number.isFinite(x));
+      if (!vals.length) return null;
+      return vals.reduce((a, b) => a + b, 0) / vals.length;
+    }
+
+    function heroMetricToneFromPct(pct) {
+      if (!Number.isFinite(pct)) return "";
+      if (pct >= 0.35) return "tone-up";
+      if (pct <= -0.35) return "tone-down";
+      return "tone-warn";
     }
 
     function scanSignalBreadthPts(scanRows) {
@@ -2462,8 +2470,10 @@ ${tail}`;
       let card2Hero = "—";
       let card2Badge = "🟡 資料不足";
       let card2Cls = "neutral-breadth";
+      let card2HeroUnit = "";
       if (Number.isFinite(br50.pct)) {
-        card2Hero = `${br50.pct.toFixed(0)}%`;
+        card2Hero = `${br50.pct.toFixed(0)}`;
+        card2HeroUnit = "% >SMA50";
         if (br50.ok === true) {
           card2Badge = "🟢 Bullish Structural Strength";
           card2Cls = "bullish";
@@ -2505,7 +2515,19 @@ ${tail}`;
       } else if (Number.isFinite(goldChg) && Number.isFinite(btcChg) && goldChg - btcChg > 1) {
         card3Badge = "🟡 避險資金轉強";
         card3Cls = "neutral-breadth";
+      } else if (Number.isFinite(wtiChg) && wtiChg > 3) {
+        card3Badge = "🟡 通脹早兆（油價急升）";
+        card3Cls = "neutral-breadth";
       }
+
+      const commodityAvg = commodityCompositeDayChg(goldChg, wtiChg, btcChg);
+      const card3Hero = Number.isFinite(commodityAvg) ? macroFmtPctPlain(commodityAvg) : "—";
+      const card3HeroTone = heroMetricToneFromPct(commodityAvg);
+      const card3Micro = [
+        macroMicroChgHtml("Gold", goldChg),
+        macroMicroChgHtml("WTI", wtiChg),
+        macroMicroChgHtml("BTC", btcChg),
+      ].join(" | ");
 
       const scoreHtml = Number.isFinite(score)
         ? `<p class="mh-hero-metric">${score}<span class="mh-hero-unit">/100</span></p>`
@@ -2520,18 +2542,15 @@ ${tail}`;
         </article>
         <article class="card macro-hero-card">
           <p class="mh-title">② 市場寬度 · Market Breadth</p>
-          <p class="mh-hero-metric">${escapeHtml(card2Hero)}</p>
+          <p class="mh-hero-metric">${escapeHtml(card2Hero)}${card2HeroUnit ? `<span class="mh-hero-unit">${escapeHtml(card2HeroUnit)}</span>` : ""}</p>
           <span class="macro-status-badge ${card2Cls}">${escapeHtml(card2Badge)}</span>
           <p class="mh-micro">${escapeHtml(card2Micro)}</p>
         </article>
         <article class="card macro-hero-card">
           <p class="mh-title">③ 商品與避險早兆</p>
-          <div class="mh-commodity-row">
-            ${macroCommodityChipHtml("Gold", goldChg)}
-            ${macroCommodityChipHtml("WTI", wtiChg)}
-            ${macroCommodityChipHtml("BTC", btcChg)}
-          </div>
+          <p class="mh-hero-metric ${card3HeroTone}">${escapeHtml(card3Hero)}<span class="mh-hero-unit">1D 綜合</span></p>
           <span class="macro-status-badge ${card3Cls}">${escapeHtml(card3Badge)}</span>
+          <p class="mh-micro">${card3Micro}</p>
         </article>
       `;
     }
@@ -3900,6 +3919,17 @@ ${tail}`;
         document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
         btn.classList.add("active");
         document.getElementById(tab).classList.add("active");
+        if (tab === "macroTab") {
+          requestAnimationFrame(() => {
+            for (const c of _chartsMacro) {
+              try {
+                c.resize();
+              } catch (_) {
+                /* noop */
+              }
+            }
+          });
+        }
       });
     });
 
@@ -3917,22 +3947,6 @@ ${tail}`;
         const host = document.getElementById("macroChartGrid");
         if (host) host.innerHTML = "";
         if (_lastMacroSeries) renderMacroLineCharts(_lastMacroSeries);
-      });
-    }
-
-    const macroChartsDetails = document.getElementById("macroChartsDetails");
-    if (macroChartsDetails) {
-      macroChartsDetails.addEventListener("toggle", () => {
-        if (!macroChartsDetails.open) return;
-        requestAnimationFrame(() => {
-          for (const c of _chartsMacro) {
-            try {
-              c.resize();
-            } catch (_) {
-              /* noop */
-            }
-          }
-        });
       });
     }
 

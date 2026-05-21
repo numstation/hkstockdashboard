@@ -7898,12 +7898,12 @@
             "risk_notes": "score=46;model=sell_put;trend=33.8(rs=25.0,adx=8.8,dmi=0.0);momentum=12.7(macd=8.0,mfi=4.7);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢明確"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "0001.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 71.45,
-            "risk_notes": "score=55;model=sell_put;trend=43.9(rs=25.0,adx=11.6,dmi=7.2);momentum=11.0(macd=2.0,mfi=9.0);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢明確"
+            "entry_price": 71.0,
+            "risk_notes": "score=54;model=sell_put;trend=43.9(rs=25.0,adx=11.6,dmi=7.2);momentum=9.7(macd=2.0,mfi=7.7);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢明確"
         },
         {
             "logged_at": "2026-05-21T01:55:15+08:00",
@@ -7938,12 +7938,12 @@
             "risk_notes": "fetch_failed"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "0006.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 65.1,
-            "risk_notes": "score=53;model=sell_put;trend=34.4(rs=25.0,adx=3.7,dmi=5.8);momentum=18.2(macd=13.0,mfi=5.2);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=趨勢升溫"
+            "entry_price": 64.95,
+            "risk_notes": "score=53;model=sell_put;trend=34.4(rs=25.0,adx=3.7,dmi=5.8);momentum=18.6(macd=13.0,mfi=5.6);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=趨勢升溫"
         },
         {
             "logged_at": "2026-05-21T01:55:15+08:00",
@@ -8074,12 +8074,12 @@
             "risk_notes": "fetch_failed"
         },
         {
-            "logged_at": "2026-05-21T01:55:15+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "0293.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": null,
-            "risk_notes": "fetch_failed"
+            "entry_price": 12.42,
+            "risk_notes": "score=49;model=sell_put;trend=25.5(rs=25.0,adx=0.0,dmi=0.5);momentum=23.3(macd=15.0,mfi=8.3);pattern=0.2(rvol=0.2,vwap_ext=N);macd=柱體翻正（動能轉強）;adx=極弱（盤整）"
         },
         {
             "logged_at": "2026-05-21T10:09:55+08:00",
@@ -8098,60 +8098,60 @@
             "risk_notes": "fetch_failed"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "0981.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 76.95,
-            "risk_notes": "score=58;model=sell_put;trend=40.1(rs=25.0,adx=6.7,dmi=8.3);momentum=18.0(macd=13.0,mfi=5.0);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=趨勢明確"
+            "entry_price": 74.1,
+            "risk_notes": "score=64;model=sell_put;trend=39.9(rs=25.0,adx=6.7,dmi=8.1);momentum=18.5(macd=13.0,mfi=5.5);pattern=5.4(rvol=5.4,vwap_ext=N);macd=空頭柱體收斂;adx=趨勢明確"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "2388.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 47.68,
-            "risk_notes": "score=64;model=sell_put;trend=42.1(rs=25.0,adx=7.1,dmi=10.0);momentum=21.5(macd=11.0,mfi=10.5);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體擴張;adx=趨勢明確 · ADX 上升"
+            "entry_price": 47.34,
+            "risk_notes": "score=64;model=sell_put;trend=42.1(rs=25.0,adx=7.1,dmi=10.0);momentum=21.8(macd=11.0,mfi=10.8);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體擴張;adx=趨勢明確 · ADX 上升"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "0992.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 13.36,
-            "risk_notes": "score=72;model=sell_put;trend=50.0(rs=25.0,adx=15.0,dmi=10.0);momentum=22.0(macd=13.0,mfi=9.0);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=極強（注意過熱） · ADX 上升"
+            "entry_price": 13.18,
+            "risk_notes": "score=80;model=sell_put;trend=50.0(rs=25.0,adx=15.0,dmi=10.0);momentum=22.5(macd=13.0,mfi=9.5);pattern=7.4(rvol=7.4,vwap_ext=N);macd=空頭柱體收斂;adx=極強（注意過熱） · ADX 上升"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "0941.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 86.6,
-            "risk_notes": "score=63;model=sell_put;trend=48.8(rs=25.0,adx=14.8,dmi=9.0);momentum=14.6(macd=2.0,mfi=12.6);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢明確"
+            "entry_price": 86.25,
+            "risk_notes": "score=63;model=sell_put;trend=48.8(rs=25.0,adx=14.8,dmi=9.0);momentum=14.0(macd=2.0,mfi=12.0);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢明確"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "0762.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 7.9,
+            "entry_price": 7.88,
             "risk_notes": "score=68;model=sell_put;trend=44.6(rs=25.0,adx=9.6,dmi=10.0);momentum=23.0(macd=8.0,mfi=15.0);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢明確 · ADX 上升"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "0688.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 15.73,
-            "risk_notes": "score=64;model=sell_put;trend=45.2(rs=25.0,adx=13.5,dmi=6.7);momentum=18.8(macd=8.0,mfi=10.8);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢明確"
+            "entry_price": 15.59,
+            "risk_notes": "score=64;model=sell_put;trend=45.2(rs=25.0,adx=13.5,dmi=6.7);momentum=18.6(macd=8.0,mfi=10.6);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢明確"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "0728.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 5.49,
-            "risk_notes": "score=66;model=sell_put;trend=45.9(rs=25.0,adx=11.6,dmi=9.3);momentum=20.1(macd=8.0,mfi=12.1);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢明確 · ADX 上升"
+            "entry_price": 5.46,
+            "risk_notes": "score=64;model=sell_put;trend=44.4(rs=25.0,adx=11.3,dmi=8.1);momentum=19.7(macd=8.0,mfi=11.7);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢明確"
         },
         {
             "logged_at": "2026-05-21T09:07:51+08:00",
@@ -8162,36 +8162,36 @@
             "risk_notes": "score=36;model=sell_put;trend=5.3(rs=0.0,adx=4.1,dmi=1.1);momentum=14.9(macd=13.0,mfi=1.9);pattern=16.2(rvol=16.2,vwap_ext=N);macd=空頭柱體收斂;adx=趨勢升溫"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "1024.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 46.1,
-            "risk_notes": "score=58;model=sell_put;trend=36.5(rs=25.0,adx=7.7,dmi=3.8);momentum=21.8(macd=8.0,mfi=13.8);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢明確"
+            "entry_price": 45.02,
+            "risk_notes": "score=56;model=sell_put;trend=34.5(rs=25.0,adx=7.5,dmi=2.0);momentum=21.1(macd=8.0,mfi=13.1);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢明確"
         },
         {
-            "logged_at": "2026-05-21T11:11:53+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "1919.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 15.24,
-            "risk_notes": "score=48;model=sell_put;trend=32.7(rs=25.0,adx=0.1,dmi=7.6);momentum=14.9(macd=11.0,mfi=3.9);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體擴張;adx=極弱（盤整）"
+            "entry_price": 15.36,
+            "risk_notes": "score=58;model=sell_put;trend=32.7(rs=25.0,adx=0.1,dmi=7.6);momentum=15.9(macd=11.0,mfi=4.9);pattern=9.0(rvol=9.0,vwap_ext=N);macd=多頭柱體擴張;adx=極弱（盤整）"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "2328.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 14.95,
-            "risk_notes": "score=55;model=sell_put;trend=32.0(rs=25.0,adx=4.9,dmi=2.1);momentum=23.0(macd=8.0,mfi=15.0);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢升溫"
+            "entry_price": 14.86,
+            "risk_notes": "score=54;model=sell_put;trend=31.4(rs=25.0,adx=4.8,dmi=1.6);momentum=22.7(macd=8.0,mfi=14.7);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢升溫"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "1347.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 132.9,
-            "risk_notes": "score=57;model=sell_put;trend=38.7(rs=25.0,adx=6.3,dmi=7.3);momentum=18.7(macd=13.0,mfi=5.7);pattern=0.0(rvol=0.0,vwap_ext=Y);macd=空頭柱體收斂;adx=趨勢升溫"
+            "entry_price": 127.2,
+            "risk_notes": "score=58;model=sell_put;trend=38.4(rs=25.0,adx=6.3,dmi=7.1);momentum=19.2(macd=13.0,mfi=6.2);pattern=0.3(rvol=0.3,vwap_ext=N);macd=空頭柱體收斂;adx=趨勢升溫"
         },
         {
             "logged_at": "2026-05-21T10:09:55+08:00",
@@ -8202,20 +8202,20 @@
             "risk_notes": "score=51;model=sell_put;trend=28.8(rs=25.0,adx=3.3,dmi=0.5);momentum=22.0(macd=11.0,mfi=11.0);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體擴張;adx=偏弱"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "2319.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 17.59,
-            "risk_notes": "score=62;model=sell_put;trend=35.3(rs=25.0,adx=6.5,dmi=3.8);momentum=26.5(macd=13.0,mfi=13.5);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=趨勢明確"
+            "entry_price": 17.49,
+            "risk_notes": "score=51;model=sell_put;trend=35.5(rs=25.0,adx=6.5,dmi=3.9);momentum=15.6(macd=2.0,mfi=13.6);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢明確"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "9888.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 128.9,
-            "risk_notes": "score=50;model=sell_put;trend=38.6(rs=25.0,adx=7.9,dmi=5.7);momentum=11.4(macd=2.0,mfi=9.4);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢明確"
+            "entry_price": 126.2,
+            "risk_notes": "score=48;model=sell_put;trend=36.8(rs=25.0,adx=7.7,dmi=4.1);momentum=10.9(macd=2.0,mfi=8.9);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢明確"
         },
         {
             "logged_at": "2026-05-21T09:07:51+08:00",
@@ -8226,12 +8226,12 @@
             "risk_notes": "score=28;model=sell_put;trend=15.0(rs=0.0,adx=15.0,dmi=0.0);momentum=13.0(macd=13.0,mfi=0.0);pattern=0.0(rvol=0.0,vwap_ext=Y);macd=空頭柱體收斂;adx=極強（注意過熱）"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "9618.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 125.5,
-            "risk_notes": "score=50;model=sell_put;trend=31.6(rs=25.0,adx=1.0,dmi=5.5);momentum=18.5(macd=8.0,mfi=10.5);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=偏弱"
+            "entry_price": 122.9,
+            "risk_notes": "score=47;model=sell_put;trend=28.6(rs=25.0,adx=0.7,dmi=2.9);momentum=18.1(macd=8.0,mfi=10.1);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=偏弱"
         },
         {
             "logged_at": "2026-05-21T09:07:51+08:00",
@@ -8250,20 +8250,20 @@
             "risk_notes": "score=26;model=sell_put;trend=0.0(rs=0.0,adx=0.0,dmi=0.0);momentum=16.4(macd=13.0,mfi=3.4);pattern=9.5(rvol=9.5,vwap_ext=N);macd=空頭柱體收斂;adx=極弱（盤整）"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "0823.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 41.28,
-            "risk_notes": "score=53;model=sell_put;trend=41.9(rs=25.0,adx=10.7,dmi=6.2);momentum=10.9(macd=2.0,mfi=8.9);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢明確"
+            "entry_price": 40.96,
+            "risk_notes": "score=53;model=sell_put;trend=41.9(rs=25.0,adx=10.7,dmi=6.2);momentum=11.1(macd=2.0,mfi=9.1);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢明確"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "1109.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 35.26,
-            "risk_notes": "score=51;model=sell_put;trend=41.9(rs=25.0,adx=11.6,dmi=5.3);momentum=8.9(macd=2.0,mfi=6.9);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢明確"
+            "entry_price": 35.02,
+            "risk_notes": "score=51;model=sell_put;trend=42.0(rs=25.0,adx=11.6,dmi=5.4);momentum=9.1(macd=2.0,mfi=7.1);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢明確"
         },
         {
             "logged_at": "2026-05-21T09:07:51+08:00",
@@ -8298,53 +8298,69 @@
             "risk_notes": "score=54;model=sell_put;trend=35.2(rs=25.0,adx=6.7,dmi=3.6);momentum=18.8(macd=13.0,mfi=5.8);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=趨勢明確"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T14:17:38+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "3690.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 84.05,
-            "risk_notes": "score=54;model=sell_put;trend=32.9(rs=25.0,adx=1.0,dmi=7.0);momentum=20.9(macd=13.0,mfi=7.9);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=偏弱"
+            "entry_price": 83.3,
+            "risk_notes": "score=54;model=sell_put;trend=32.9(rs=25.0,adx=1.0,dmi=6.9);momentum=21.0(macd=13.0,mfi=8.0);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=偏弱"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "2018.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 42.12,
-            "risk_notes": "score=53;model=sell_put;trend=34.6(rs=25.0,adx=3.6,dmi=6.0);momentum=17.9(macd=8.0,mfi=9.9);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢升溫"
+            "entry_price": 41.74,
+            "risk_notes": "score=53;model=sell_put;trend=34.6(rs=25.0,adx=3.6,dmi=6.0);momentum=18.1(macd=8.0,mfi=10.1);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢升溫"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "1113.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 51.5,
-            "risk_notes": "score=53;model=sell_put;trend=29.9(rs=25.0,adx=0.0,dmi=4.9);momentum=22.7(macd=13.0,mfi=9.7);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=極弱（盤整）"
+            "entry_price": 51.05,
+            "risk_notes": "score=53;model=sell_put;trend=29.9(rs=25.0,adx=0.0,dmi=4.9);momentum=22.8(macd=13.0,mfi=9.8);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=極弱（盤整）"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "1800.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 4.44,
-            "risk_notes": "score=49;model=sell_put;trend=33.7(rs=25.0,adx=8.7,dmi=0.0);momentum=15.4(macd=8.0,mfi=7.4);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢明確"
+            "entry_price": 4.42,
+            "risk_notes": "score=49;model=sell_put;trend=33.8(rs=25.0,adx=8.8,dmi=0.0);momentum=14.9(macd=8.0,mfi=6.9);pattern=0.0(rvol=0.0,vwap_ext=N);macd=多頭柱體收斂;adx=趨勢明確"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "3988.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 5.23,
-            "risk_notes": "score=49;model=sell_put;trend=37.2(rs=25.0,adx=6.2,dmi=6.0);momentum=11.4(macd=2.0,mfi=9.4);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢升溫"
+            "entry_price": 5.19,
+            "risk_notes": "score=48;model=sell_put;trend=37.2(rs=25.0,adx=6.2,dmi=6.0);momentum=10.9(macd=2.0,mfi=8.9);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體擴張;adx=趨勢升溫"
         },
         {
-            "logged_at": "2026-05-21T13:15:42+08:00",
+            "logged_at": "2026-05-21T15:19:32+08:00",
             "trigger_date": "2026-05-21",
             "ticker": "2382.HK",
             "strategy": "Sell Put 穩健收租",
-            "entry_price": 67.25,
-            "risk_notes": "score=51;model=sell_put;trend=29.1(rs=25.0,adx=1.8,dmi=2.3);momentum=18.5(macd=13.0,mfi=5.5);pattern=3.5(rvol=3.5,vwap_ext=N);macd=空頭柱體收斂;adx=偏弱"
+            "entry_price": 68.05,
+            "risk_notes": "score=73;model=sell_put;trend=33.0(rs=25.0,adx=2.3,dmi=5.7);momentum=20.4(macd=13.0,mfi=7.4);pattern=20.0(rvol=20.0,vwap_ext=N);macd=空頭柱體收斂;adx=偏弱"
+        },
+        {
+            "logged_at": "2026-05-21T14:17:38+08:00",
+            "trigger_date": "2026-05-21",
+            "ticker": "0868.HK",
+            "strategy": "Sell Put 穩健收租",
+            "entry_price": 10.45,
+            "risk_notes": "score=50;model=sell_put;trend=31.3(rs=25.0,adx=1.9,dmi=4.4);momentum=18.7(macd=13.0,mfi=5.7);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=偏弱"
+        },
+        {
+            "logged_at": "2026-05-21T15:19:32+08:00",
+            "trigger_date": "2026-05-21",
+            "ticker": "2359.HK",
+            "strategy": "Sell Put 穩健收租",
+            "entry_price": 131.2,
+            "risk_notes": "score=48;model=sell_put;trend=31.0(rs=25.0,adx=2.0,dmi=4.1);momentum=17.1(macd=13.0,mfi=4.1);pattern=0.0(rvol=0.0,vwap_ext=N);macd=空頭柱體收斂;adx=偏弱"
         }
     ],
-    "last_updated": "2026-05-21T13:15:42+08:00"
+    "last_updated": "2026-05-21T15:19:32+08:00"
 }
