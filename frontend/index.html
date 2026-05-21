@@ -215,128 +215,68 @@
     .btn-sm:hover { border-color: rgba(15, 118, 110, 0.45); }
     @keyframes macro-pulse {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+      50% { opacity: 0.45; }
     }
-    #macroTab .macro-panel {
-      background: linear-gradient(180deg, #141820 0%, #0f1218 100%);
-      border-color: rgba(255, 255, 255, 0.08);
-      color: #e2e8f0;
-    }
-    #macroTab .macro-panel-head {
+    .macro-panel-head {
       display: flex;
       flex-wrap: wrap;
       align-items: baseline;
       justify-content: space-between;
       gap: 8px 12px;
-      padding: 14px 14px 0;
-    }
-    #macroTab .macro-panel-head .section-title {
-      margin: 0;
-      color: #f1f5f9;
-      font-size: 1.15rem;
-      letter-spacing: 0.02em;
+      padding: 12px 12px 0;
     }
     .macro-sub-compact {
-      font-size: 11px;
-      color: #94a3b8;
+      font-size: 12px;
+      color: var(--muted);
       font-variant-numeric: tabular-nums;
     }
     .macro-regime-chip {
       font-size: 11px;
-      font-weight: 700;
-      padding: 5px 12px;
+      font-weight: 600;
+      padding: 4px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(15, 118, 110, 0.25);
-      color: #99f6e4;
-      max-width: 100%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      border: 1px solid var(--line);
+      background: var(--bg-elev);
+      color: var(--text);
     }
+    .macro-regime-chip.regime-on { background: #ecfdf5; color: var(--ok); border-color: #bbf7d0; }
+    .macro-regime-chip.regime-off { background: #fef2f2; color: var(--bad); border-color: #fecaca; }
+    .macro-regime-chip.regime-neutral { background: #fffbeb; color: var(--warn); border-color: #fde68a; }
     .macro-hero-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
-      padding: 14px;
+      padding: 0 12px 16px;
     }
     @media (max-width: 900px) { .macro-hero-grid { grid-template-columns: 1fr; } }
-    .macro-hero-card {
-      background: linear-gradient(165deg, #1e2433 0%, #151a26 100%);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 14px;
-      padding: 16px 16px 14px;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-      min-height: 148px;
+    .macro-hero-card.card {
+      min-height: 132px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
+      margin: 0;
     }
     .macro-hero-card.macro-skeleton .sk-block {
-      background: rgba(255, 255, 255, 0.1);
+      background: var(--line);
       border-radius: 8px;
       animation: macro-pulse 1.35s ease-in-out infinite;
     }
     .macro-hero-card.macro-skeleton .sk-block.h-title { height: 12px; width: 55%; }
-    .macro-hero-card.macro-skeleton .sk-block.h-val { height: 22px; width: 40%; margin-top: 8px; }
-    .macro-hero-card.macro-skeleton .sk-block.h-bar { height: 10px; width: 100%; margin-top: auto; }
+    .macro-hero-card.macro-skeleton .sk-block.h-sub { height: 14px; width: 75%; margin-top: 4px; }
+    .macro-hero-card.macro-skeleton .sk-block.h-badge { height: 28px; width: 60%; margin-top: auto; border-radius: 999px; }
     .macro-hero-card .mh-title {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #94a3b8;
-      margin: 0;
-    }
-    .macro-hero-card .mh-val {
-      font-size: 22px;
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.02em;
-      margin: 0;
-      line-height: 1.1;
-    }
-    .macro-hero-card .mh-val.tone-up { color: #4ade80; text-shadow: 0 0 18px rgba(74, 222, 128, 0.45); }
-    .macro-hero-card .mh-val.tone-warn { color: #fbbf24; text-shadow: 0 0 16px rgba(251, 191, 36, 0.35); }
-    .macro-hero-card .mh-val.tone-down { color: #fb7185; text-shadow: 0 0 18px rgba(251, 113, 133, 0.4); }
-    .macro-gauge-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-top: auto;
-      padding-top: 4px;
-    }
-    .macro-gauge-label {
-      font-size: 10px;
-      color: #64748b;
+      color: var(--muted);
+      font-size: 11px;
       font-weight: 600;
-      white-space: nowrap;
+      letter-spacing: 0.04em;
+      margin: 0;
     }
-    .macro-gauge-track {
+    .macro-hero-card .mh-sub {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin: 0;
       flex: 1;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .macro-gauge-fill {
-      height: 100%;
-      border-radius: 999px;
-      transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-      box-shadow: 0 0 14px currentColor;
-    }
-    .macro-gauge-fill.tone-up {
-      background: linear-gradient(90deg, #16a34a, #4ade80);
-      color: #4ade80;
-    }
-    .macro-gauge-fill.tone-warn {
-      background: linear-gradient(90deg, #d97706, #fbbf24);
-      color: #fbbf24;
-    }
-    .macro-gauge-fill.tone-down {
-      background: linear-gradient(90deg, #dc2626, #fb7185);
-      color: #fb7185;
     }
     .macro-status-badge {
       display: inline-flex;
@@ -387,47 +327,24 @@
       border-color: rgba(239, 68, 68, 0.45);
       box-shadow: 0 0 18px rgba(251, 113, 133, 0.32);
     }
-    #macroTab .macro-table-scroll {
+    .macro-table-scroll {
       display: block;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       margin: 0 12px 12px;
     }
-    #macroTab .macro-sticky-table {
+    .macro-sticky-table {
       min-width: 560px;
       width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
     }
-    #macroTab .macro-sticky-table th,
-    #macroTab .macro-sticky-table td {
+    .macro-sticky-table th,
+    .macro-sticky-table td {
       white-space: nowrap;
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
-    #macroTab .macro-sticky-table th {
-      background: rgba(255, 255, 255, 0.05);
-      color: #94a3b8;
-      font-weight: 600;
-    }
-    #macroTab .macro-sticky-table td { color: #e2e8f0; }
-    #macroTab .macro-sticky-table tr.macro-row-hi-vix td { background: rgba(251, 113, 133, 0.14); }
-    #macroTab .macro-sticky-table tr.macro-row-hi-breadth td { background: rgba(74, 222, 128, 0.1); }
-    #macroTab .macro-sticky-table tr.macro-row-hi-flow td { background: rgba(74, 222, 128, 0.08); }
-    #macroTab .macro-sticky-table tr.macro-row-hi-flow-out td { background: rgba(251, 113, 133, 0.12); }
-    #macroTab .macro-details {
-      margin: 0 12px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      background: rgba(0, 0, 0, 0.2);
-      overflow: hidden;
-    }
-    #macroTab .macro-details summary {
-      padding: 12px 14px;
-      font-weight: 600;
-      color: #cbd5e1;
-      background: rgba(255, 255, 255, 0.04);
-    }
+    .macro-sticky-table tr.macro-row-hi-vix td { background: #fef2f2; }
+    .macro-sticky-table tr.macro-row-hi-breadth td { background: #ecfdf5; }
+    .macro-sticky-table tr.macro-row-hi-flow td { background: #ecfdf5; }
+    .macro-sticky-table tr.macro-row-hi-flow-out td { background: #fef2f2; }
     .boss-macro-board {
       margin: 0 12px 12px;
       border: 1px solid var(--line);
@@ -668,21 +585,6 @@
       padding: 6px 8px;
       font-size: 12px;
     }
-    #macroTab .macro-chart-toolbar select {
-      background: #1e2433;
-      color: #e2e8f0;
-      border-color: rgba(255, 255, 255, 0.12);
-    }
-    #macroTab #macroChartResetBtn {
-      background: rgba(255, 255, 255, 0.08);
-      color: #e2e8f0;
-      border-color: rgba(255, 255, 255, 0.15);
-    }
-    #macroTab .macro-chart-cell {
-      background: #1a2030;
-      border-color: rgba(255, 255, 255, 0.1);
-    }
-    #macroTab .macro-chart-cell .mttl { color: #cbd5e1; }
     .macro-chart-cell {
       background: #ffffff;
       border: 1px solid var(--line);
@@ -995,14 +897,14 @@
     </section>
 
     <section id="macroTab" class="tab-panel">
-      <div class="table-wrap macro-panel">
+      <div class="table-wrap">
         <div class="macro-panel-head">
-          <h3 class="section-title">大佬三原色</h3>
+          <h3 class="section-title" style="margin:0;">大佬三原色</h3>
           <span id="macroSub" class="macro-sub-compact"></span>
           <span id="macroRegimeChip" class="macro-regime-chip" style="display:none;"></span>
         </div>
-        <div id="macroHeroGrid" class="macro-hero-grid" aria-label="三原色儀表"></div>
-        <details class="macro-details" open>
+        <div id="macroHeroGrid" class="macro-hero-grid" aria-label="三原色狀態卡"></div>
+        <details class="macro-details">
           <summary>即時數據表</summary>
           <div class="macro-table-scroll">
             <table class="macro-sticky-table">
@@ -1026,7 +928,7 @@
           </div>
         </details>
         <details class="macro-details" id="macroChartsDetails">
-          <summary>主要指數走勢（日線）</summary>
+          <summary>主要指數／資產走勢（日線圖表）</summary>
           <div class="macro-chart-toolbar">
             <label for="macroChartStyle" class="muted" style="font-size:12px;">Style</label>
             <select id="macroChartStyle">
@@ -2257,35 +2159,16 @@ ${tail}`;
 
     let _macroTableHi = { vix: false, breadth: false, flowIn: false, flowOut: false };
 
-    function macroClampPct(x, lo, hi) {
-      const n = Number(x);
-      if (!Number.isFinite(n)) return 0;
-      return Math.max(lo, Math.min(hi, n));
-    }
-
-    function macroGaugeHtml(pct, tone, leftLabel) {
-      const p = macroClampPct(pct, 0, 100);
-      return `
-        <div class="macro-gauge-row">
-          <span class="macro-gauge-label">${escapeHtml(leftLabel || "")}</span>
-          <div class="macro-gauge-track" role="progressbar" aria-valuenow="${p.toFixed(0)}" aria-valuemin="0" aria-valuemax="100">
-            <div class="macro-gauge-fill tone-${tone}" style="width:${p}%"></div>
-          </div>
-          <span class="macro-gauge-label">${p.toFixed(0)}%</span>
-        </div>
-      `;
-    }
-
     function showMacroSkeleton() {
       const host = document.getElementById("macroHeroGrid");
       if (!host) return;
       host.innerHTML = [1, 2, 3]
         .map(
           () => `
-        <article class="macro-hero-card macro-skeleton" aria-hidden="true">
+        <article class="card macro-hero-card macro-skeleton" aria-hidden="true">
           <div class="sk-block h-title"></div>
-          <div class="sk-block h-val"></div>
-          <div class="sk-block h-bar"></div>
+          <div class="sk-block h-sub"></div>
+          <div class="sk-block h-badge"></div>
         </article>`,
         )
         .join("");
@@ -2300,15 +2183,10 @@ ${tail}`;
         return;
       }
       const label = fs >= 62 ? "Risk-On" : fs <= 42 ? "Defensive" : "Neutral";
+      const cls = fs >= 62 ? "regime-on" : fs <= 42 ? "regime-off" : "regime-neutral";
+      el.className = `macro-regime-chip ${cls}`;
       el.style.display = "inline-block";
       el.textContent = `Score ${fs.toFixed(0)} · ${label}`;
-      el.style.background =
-        fs >= 62
-          ? "rgba(22, 163, 74, 0.35)"
-          : fs <= 42
-            ? "rgba(220, 38, 38, 0.35)"
-            : "rgba(217, 119, 6, 0.3)";
-      el.style.color = fs >= 62 ? "#bbf7d0" : fs <= 42 ? "#fecdd3" : "#fde68a";
     }
 
     function applyMacroTableRowHighlights() {
@@ -2397,73 +2275,71 @@ ${tail}`;
       if (!host) return;
       const vixM = findMetricByName(metrics, "VIX");
       const vixVal = num(vixM?.value);
-      let card1Tone = "warn";
-      let card1Val = "—";
-      let vixFill = 0;
+      let card1Badge = "— 待更新";
+      let card1Cls = "neutral-breadth";
       _macroTableHi.vix = false;
       if (Number.isFinite(vixVal)) {
-        card1Val = vixVal.toFixed(2);
-        vixFill = macroClampPct(((vixVal - 12) / (32 - 12)) * 100, 8, 100);
         if (vixVal < 18) {
-          card1Tone = "up";
-        } else if (vixVal < 25) {
-          card1Tone = "warn";
-          _macroTableHi.vix = true;
+          card1Badge = "🟢 Risk-On（放心進攻）";
+          card1Cls = "risk-on";
         } else {
-          card1Tone = "down";
+          card1Badge = "🔴 Risk-Off（防守克制）";
+          card1Cls = "risk-off";
           _macroTableHi.vix = true;
         }
       }
       const br50 = breadthSma50Gauge(data, advanced);
-      let card2Tone = "warn";
-      let card2Val = "—";
-      let breadthFill = 0;
+      let card2Badge = "🟡 資料不足";
+      let card2Cls = "neutral-breadth";
       _macroTableHi.breadth = false;
       if (Number.isFinite(br50.pct)) {
-        breadthFill = macroClampPct(br50.pct, 4, 100);
-        card2Val = `${br50.pct.toFixed(0)}%`;
         if (br50.ok === true) {
-          card2Tone = "up";
+          card2Badge = "🟢 Bullish Structural Strength";
+          card2Cls = "bullish";
           _macroTableHi.breadth = true;
         } else if (br50.ok === false) {
-          card2Tone = "warn";
+          card2Badge = "🟡 Range-Bound / Bearish Structural";
+          card2Cls = "neutral-breadth";
           _macroTableHi.breadth = true;
         } else {
-          card2Tone = "warn";
+          card2Badge = `🟡 ${br50.pct.toFixed(0)}% 參與度`;
         }
       }
       const sbYi = num(data?.southbound_connect?.net_yi);
-      let card3Tone = "warn";
-      let card3Val = "—";
-      let flowFill = 50;
+      let card3Badge = "— 北水待更新";
+      let card3Cls = "neutral-breadth";
       _macroTableHi.flowIn = false;
       _macroTableHi.flowOut = false;
       if (Number.isFinite(sbYi)) {
-        card3Val = `${sbYi >= 0 ? "+" : ""}${sbYi.toFixed(1)}億`;
-        flowFill = macroClampPct(50 + (sbYi / 40) * 45, 6, 94);
         if (sbYi >= 0) {
-          card3Tone = "up";
+          card3Badge = `🟢 北水持續流入（+${sbYi.toFixed(2)} 億）`;
+          card3Cls = "flow-in";
           _macroTableHi.flowIn = true;
         } else {
-          card3Tone = "down";
+          card3Badge = `🔴 北水抽水撤離（${sbYi.toFixed(2)} 億）`;
+          card3Cls = "flow-out";
           _macroTableHi.flowOut = true;
         }
       }
+      const card2Sub =
+        br50.source === "breadth_markets" && Number.isFinite(br50.pct)
+          ? `樣本股 &gt;SMA50：HK/US 約 ${br50.pct.toFixed(0)}%`
+          : "指數 vs SMA200 結構";
       host.innerHTML = `
-        <article class="macro-hero-card" data-pillar="sentiment">
-          <p class="mh-title">① 資金溫度</p>
-          <p class="mh-val tone-${card1Tone}">${escapeHtml(card1Val)}</p>
-          ${macroGaugeHtml(vixFill, card1Tone, "VIX")}
+        <article class="card macro-hero-card">
+          <p class="mh-title">① 資金溫度 · Macro Sentiment</p>
+          <p class="mh-sub">VIX ${Number.isFinite(vixVal) ? vixVal.toFixed(2) : "—"} · 門檻 18</p>
+          <span class="macro-status-badge ${card1Cls}">${escapeHtml(card1Badge)}</span>
         </article>
-        <article class="macro-hero-card" data-pillar="breadth">
-          <p class="mh-title">② 市場寬度 · &gt;SMA50</p>
-          <p class="mh-val tone-${card2Tone}">${escapeHtml(card2Val)}</p>
-          ${macroGaugeHtml(breadthFill, card2Tone, "參與度")}
+        <article class="card macro-hero-card">
+          <p class="mh-title">② 市場寬度 · Market Breadth</p>
+          <p class="mh-sub">${card2Sub}</p>
+          <span class="macro-status-badge ${card2Cls}">${escapeHtml(card2Badge)}</span>
         </article>
-        <article class="macro-hero-card" data-pillar="flow">
-          <p class="mh-title">③ 北水淨額</p>
-          <p class="mh-val tone-${card3Tone}">${escapeHtml(card3Val)}</p>
-          ${macroGaugeHtml(flowFill, card3Tone, "港股通")}
+        <article class="card macro-hero-card">
+          <p class="mh-title">③ 北水風向 · Southbound Capital</p>
+          <p class="mh-sub">港股通淨額 · 億人民幣</p>
+          <span class="macro-status-badge ${card3Cls}">${escapeHtml(card3Badge)}</span>
         </article>
       `;
     }
@@ -3520,7 +3396,7 @@ ${tail}`;
       if (advBody) advBody.innerHTML = "";
       if (sub) {
         sub.textContent = data?.last_updated
-          ? fmtDateLocal(data.last_updated)
+          ? "資料時間：" + fmtDateLocal(data.last_updated)
           : "";
       }
       const metrics = Array.isArray(data?.metrics) ? data.metrics : [];
