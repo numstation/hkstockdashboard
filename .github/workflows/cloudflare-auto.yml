@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       refresh_macro:
-        description: "Also refresh macro_snapshot"
+        description: "Legacy flag (macro now runs every CI refresh)"
         required: false
-        default: false
+        default: true
         type: boolean
 
 concurrency:

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Used by GitHub Actions: 133-stock scan + triggers; macro only on the hour (UTC).
+# Used by GitHub Actions: HK scan + triggers + macro (大佬三原色) every run.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -8,22 +8,13 @@ echo "[$(date -Iseconds)] CI refresh start"
 python3 run_scan_export_json.py --sleep 0.15 --skip-macro
 python3 scripts/export_triggers_from_scan.py
 
-# Mirror JSON beside index.html so GitHub Pages fetches work (frontend/data/*.json).
-mkdir -p frontend/data
-for f in daily_scan.json daily_scan_sell_put.json daily_scan_buy_stock.json daily_scan_buy_put.json \
-  macro_snapshot.json signals_history.json breadth_daily_history.json score_daily_history.json future_log.json; do
-  if [ -f "$ROOT/$f" ]; then
-    cp "$ROOT/$f" "$ROOT/frontend/data/$f"
-  fi
-done
-echo "Copied JSON → frontend/data/"
-
-MIN_UTC="$(date -u +%M)"
-if [ "$MIN_UTC" = "00" ] || [ "${REFRESH_MACRO:-}" = "1" ]; then
-  echo "Running macro_snapshot export (hourly / forced)"
-  python3 run_scan_export_json.py --macro-only
+echo "Running macro_snapshot export (大佬三原色 / VIX·DXY·市寬)"
+if python3 run_scan_export_json.py --macro-only; then
+  echo "macro_snapshot.json updated"
 else
-  echo "Skip macro this run (next at :00 UTC)"
+  echo "::warning:: macro_snapshot export failed — deploy keeps previous macro_snapshot.json if present"
 fi
+
+bash "$ROOT/scripts/sync_frontend_data.sh"
 
 echo "[$(date -Iseconds)] CI refresh done"

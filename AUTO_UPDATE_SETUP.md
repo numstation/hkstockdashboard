@@ -6,6 +6,22 @@ The site does **not** update by itself until GitHub Actions can **scan** and **d
 
 ---
 
+## 大佬三原色 / `macro_snapshot.json` looks stale
+
+The Macro tab reads **`macro_snapshot.json`** (`last_updated` at the top). If the date is days old while the stock scan updates:
+
+1. **CI used to skip macro on half the runs** (only at **:00 UTC**, not **:30**). That is fixed: **`scripts/ci_refresh.sh`** now runs **`python3 run_scan_export_json.py --macro-only`** on **every** refresh, then **`scripts/sync_frontend_data.sh`** before deploy.
+2. If Yahoo/rate limits fail, the log shows **`::warning:: macro_snapshot export failed`** and the site keeps the last good file — re-run Actions or run locally:
+   ```bash
+   python3 run_scan_export_json.py --macro-only
+   bash scripts/sync_frontend_data.sh
+   bash scripts/deploy_cloudflare.sh
+   ```
+3. Hard-refresh the dashboard (**Cmd+Shift+R**). Check live JSON:  
+   `https://hkstockdashboard.chrislau.workers.dev/frontend/data/macro_snapshot.json` → **`last_updated`** should match today after a green deploy.
+
+---
+
 ## Full Market History: **Buy Put** tab empty
 
 The history tab reads **`signals_history.json`**, filtered by **`score_model=buy_put`** and **`action=BUY_PUT`**.
