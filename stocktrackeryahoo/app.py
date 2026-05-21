@@ -766,11 +766,118 @@ def _build_macro_live_comment(
             f"{'流入支撐' if southbound_yi >= 0 else '抽水撤離'}"
         )
     if isinstance(final_score, (int, float)):
-        regime = "Risk-On" if final_score >= 62 else "Defensive" if final_score <= 42 else "Neutral"
-        parts.append(f"綜合分 {final_score:.1f}（{regime}）")
+        regime = "Risk-On" if final_score > 75 else "Risk-Off" if final_score < 45 else "Neutral"
+        parts.append(f"Global Risk {final_score:.0f}（{regime}）")
     if not parts:
         return "宏觀資料不足，待下次匯出更新。"
     return "；".join(parts) + "。"
+
+
+def _compute_global_risk_score(
+    *,
+    vix_val: float | None,
+    dxy_chg_pct: float | None,
+    y10_chg_pct: float | None,
+    breadth_markets: dict | None,
+    southbound_yi: float | None,
+    scan_strong: int | None = None,
+    scan_danger: int | None = None,
+) -> dict:
+    """
+    Global Risk Score 0–100 for option-trading macro context.
+    VIX (30) + Capital cost DXY/US10Y (30) + breadth (20) + northbound (20).
+    """
+    components: dict = {}
+
+    vix_pts = None
+    if isinstance(vix_val, (int, float)):
+        if vix_val < 15:
+            vix_pts = 30
+        elif vix_val <= 22:
+            vix_pts = 15
+        else:
+            vix_pts = 0
+        components["vix_pts"] = vix_pts
+
+    cap_pts = 0
+    cap_max = 0
+    if isinstance(dxy_chg_pct, (int, float)):
+        cap_max += 15
+        if dxy_chg_pct < 0:
+            cap_pts += 15
+        components["dxy_down_pts"] = 15 if dxy_chg_pct < 0 else 0
+    if isinstance(y10_chg_pct, (int, float)):
+        cap_max += 15
+        if y10_chg_pct < 0:
+            cap_pts += 15
+        components["y10_down_pts"] = 15 if y10_chg_pct < 0 else 0
+    components["capital_pts"] = cap_pts if cap_max else None
+
+    breadth_pts = None
+    if isinstance(scan_strong, int) and isinstance(scan_danger, int) and (scan_strong + scan_danger) > 0:
+        breadth_pts = int(round((scan_strong / (scan_strong + scan_danger)) * 20))
+        components["breadth_source"] = "scan_signals"
+    else:
+        bm = breadth_markets if isinstance(breadth_markets, dict) else {}
+        pcts: list[float] = []
+        for key in ("hk", "us"):
+            blk = bm.get(key)
+            if isinstance(blk, dict):
+                try:
+                    pcts.append(float(blk["above_ma50_pct"]))
+                except (TypeError, ValueError, KeyError):
+                    pass
+        if pcts:
+            avg = sum(pcts) / len(pcts)
+            breadth_pts = int(round(max(0.0, min(100.0, avg)) / 100.0 * 20))
+            components["breadth_source"] = "breadth_markets_ma50"
+    if breadth_pts is not None:
+        components["breadth_pts"] = breadth_pts
+
+    sb_pts = None
+    if isinstance(southbound_yi, (int, float)):
+        sb_pts = 20 if southbound_yi >= 0 else 0
+        components["southbound_pts"] = sb_pts
+
+    parts = [x for x in (vix_pts, cap_pts if cap_max else None, breadth_pts, sb_pts) if x is not None]
+    score = float(sum(parts)) if parts else None
+    regime = None
+    if score is not None:
+        if score > 75:
+            regime = "Risk-On"
+        elif score >= 45:
+            regime = "Neutral"
+        else:
+            regime = "Risk-Off"
+    return {
+        "score": score,
+        "regime": regime,
+        "formula": "VIX(30)+Capital(30)+Breadth(20)+Northbound(20)",
+        "components": components,
+    }
+
+
+def _scan_signal_breadth_counts(filename: str = "daily_scan_sell_put.json") -> tuple[int | None, int | None]:
+    """Count 強勢 vs 危險 from latest daily scan for global risk breadth bucket."""
+    data = _read_json_file(_resolve_repo_json_path(filename), None)
+    if not isinstance(data, dict):
+        return None, None
+    stocks = data.get("stocks")
+    if not isinstance(stocks, list):
+        return None, None
+    strong = 0
+    danger = 0
+    for row in stocks:
+        if not isinstance(row, dict):
+            continue
+        sig = str(row.get("signal") or row.get("Signal") or "").upper()
+        if "STRONG" in sig or "BUY" in sig:
+            strong += 1
+        elif "CAUTION" in sig or "SELL" in sig or "PROFIT" in sig:
+            danger += 1
+    if strong + danger == 0:
+        return None, None
+    return strong, danger
 
 
 def _yf_close_series_daily(ticker: str, period: str = "6mo", max_points: int = 120):
@@ -1420,9 +1527,12 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
     rsi_score = _score_rsi(spx_rsi)
     spread_score = _score_spread(spread)
     btc_score = _score_btc_change(_num(btc_chg))
-    final_score = None
+    legacy_score = None
     if all(x is not None for x in (vix_score, rsi_score, spread_score, btc_score)):
-        final_score = _clamp(vix_score * 0.25 + rsi_score * 0.25 + spread_score * 0.30 + btc_score * 0.20)
+        legacy_score = _clamp(vix_score * 0.25 + rsi_score * 0.25 + spread_score * 0.30 + btc_score * 0.20)
+
+    scan_strong, scan_danger = _scan_signal_breadth_counts()
+    final_score = legacy_score
 
     prev_payload = _read_json_file(out_path, {})
     breadth_markets: dict = {}
@@ -1474,6 +1584,18 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
     except Exception as e:
         print(f"Breadth markets (optional): {e}")
 
+    global_risk = _compute_global_risk_score(
+        vix_val=_num(vix_val),
+        dxy_chg_pct=_num(dxy_chg),
+        y10_chg_pct=y10_chg,
+        breadth_markets=breadth_markets,
+        southbound_yi=southbound_yi,
+        scan_strong=scan_strong,
+        scan_danger=scan_danger,
+    )
+    if global_risk.get("score") is not None:
+        final_score = global_risk["score"]
+
     score_history = []
     if isinstance(prev_payload, dict) and isinstance(prev_payload.get("macro_risk_history"), list):
         for item in prev_payload["macro_risk_history"]:
@@ -1507,12 +1629,17 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
         "chart_series": chart_series,
         "breadth_markets": breadth_markets,
         "macro_risk": {
-            "formula": "VIX*25% + RSI*25% + Spread*30% + BTC*20%",
+            "formula": global_risk.get("formula") or "VIX*25% + RSI*25% + Spread*30% + BTC*20%",
+            "global_risk": global_risk,
             "inputs": {
                 "vix": _num(vix_val),
+                "dxy_change_pct": _num(dxy_chg),
+                "y10_change_pct": y10_chg,
                 "spx_rsi": spx_rsi,
                 "yield_spread_10y_3m": spread,
                 "btc_change_pct": _num(btc_chg),
+                "scan_strong": scan_strong,
+                "scan_danger": scan_danger,
             },
             "components": {
                 "vix_score": vix_score,
