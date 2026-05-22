@@ -388,43 +388,12 @@
       .macro-hero-grid { grid-template-columns: 1fr; }
       .macro-hero-grid > * { grid-column: auto !important; }
     }
-    .macro-leading-card.card {
-      min-height: 132px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin: 0;
-      background: #fafafa;
-      border: 1px dashed #d4d4d8;
-      box-shadow: none;
-    }
-    .macro-leading-card .mh-disclaimer {
-      font-size: 10px;
-      color: #9ca3af;
-      margin: -4px 0 0;
-      font-weight: 500;
-      line-height: 1.4;
-    }
     .macro-hero-card .mh-hint {
       font-size: 10px;
       color: #9ca3af;
       line-height: 1.45;
       margin: 0;
       font-variant-numeric: tabular-nums;
-    }
-    .macro-leading-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      align-self: flex-start;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #78716c;
-      background: #fffef8;
-      border: 1px solid #fde68a;
-      line-height: 1.3;
     }
     .macro-hero-card.card {
       min-height: 132px;
@@ -2616,10 +2585,8 @@ ${tail}`;
             : `<span class="mgb-alert-tag">◆ 中度風險區間</span>`;
       el.innerHTML = `
         ${alertTag}
-        <span>🌍 全球宏觀危險指數（越高越危險）</span>
-        <span class="mgb-score">${fs.toFixed(1)} / 100</span>
-        <span class="mgb-sep">|</span>
-        <span>狀態 ${escapeHtml(reg.badge)}</span>
+        <span>🌍 全球宏觀風險狀態</span>
+        <span>${escapeHtml(reg.badge)}</span>
       `;
     }
 
@@ -2742,10 +2709,22 @@ ${tail}`;
 
       _macroTableHi.vix = Number.isFinite(vixPts) && vixPts >= 15;
       const box1Hero = Number.isFinite(vixVal) ? `VIX 指數: ${vixVal.toFixed(2)}` : "VIX 指數: —";
+      const vixHint = "區間：🟢 VIX < 15 低波安全 · 🟡 15–22 正常波動 · 🔴 >22 恐慌升溫";
 
-      const capMicro = `DXY: ${Number.isFinite(cap.dxyVal) ? cap.dxyVal.toFixed(2) : "—"} | US10Y: ${
-        Number.isFinite(cap.y10Val) ? cap.y10Val.toFixed(2) + "%" : "—"
-      }`;
+      const box2Hero =
+        Number.isFinite(cap.dxyVal) || Number.isFinite(cap.y10Val)
+          ? `DXY ${Number.isFinite(cap.dxyVal) ? cap.dxyVal.toFixed(2) : "—"} · 美債10Y ${
+              Number.isFinite(cap.y10Val) ? cap.y10Val.toFixed(2) + "%" : "—"
+            }`
+          : "美元指數 · 美債10年收益率";
+      const capHint =
+        "算法：DXY 與美債10年均高於各自20日均線＝資金收緊；僅一項高於＝收緊中；均低於＝流動性寬鬆";
+      const capMicro = [
+        cap.dxyAbove === true ? "DXY 高於20MA" : cap.dxyAbove === false ? "DXY 低於20MA" : null,
+        cap.y10Above === true ? "美債10Y 高於20MA" : cap.y10Above === false ? "美債10Y 低於20MA" : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
 
       const brPct = Number.isFinite(comp.breadth_sma50_pct)
         ? comp.breadth_sma50_pct
@@ -2795,11 +2774,12 @@ ${tail}`;
       const wtiChg = num(wtiRow?.change_pct);
       const btcChg = macroPctFromMetric(metrics, advanced, "BTC", ["BTC", "BITCOIN", "₿"]);
       const commodityAvg = commodityCompositeDayChg(goldChg, wtiChg, btcChg);
-      const leadHero = Number.isFinite(commodityAvg)
-        ? `避險資產動能: ${macroFmtPctPlain(commodityAvg)}`
-        : "避險資產動能: —";
-      const leadHeroTone = heroMetricToneFromPct(commodityAvg);
+      const box5Hero = Number.isFinite(commodityAvg)
+        ? `1日綜合動能: ${macroFmtPctPlain(commodityAvg)}`
+        : "1日綜合動能: —";
+      const box5HeroTone = heroMetricToneFromPct(commodityAvg);
       let leadBadge = "🟡 觀察商品波動";
+      const leadBadgeCls = "neutral-breadth";
       if (Number.isFinite(btcChg) && btcChg <= -3) leadBadge = "🔴 Risk-off 早兆（BTC 急跌）";
       else if (Number.isFinite(goldChg) && Number.isFinite(btcChg) && goldChg - btcChg > 1)
         leadBadge = "🟡 避險資金轉強";
@@ -2815,16 +2795,18 @@ ${tail}`;
           <p class="mh-title">① VIX 波動風險</p>
           <p class="mh-hero-metric">${escapeHtml(box1Hero)}</p>
           <span class="macro-status-badge ${vixBadge.cls}">${escapeHtml(vixBadge.text)}</span>
+          <p class="mh-hint">${escapeHtml(vixHint)}</p>
         </article>
         <article class="card macro-hero-card">
           <p class="mh-title">② 資金成本趨勢</p>
-          <p class="mh-hero-metric">美金/債息 20MA 趨勢</p>
+          <p class="mh-hero-metric">${escapeHtml(box2Hero)}</p>
           <span class="macro-status-badge ${capBadge.cls}">${escapeHtml(capBadge.text)}</span>
-          <p class="mh-micro">${escapeHtml(capMicro)}</p>
+          ${capMicro ? `<p class="mh-micro">${escapeHtml(capMicro)}</p>` : ""}
+          <p class="mh-hint">${escapeHtml(capHint)}</p>
         </article>
         <article class="card macro-hero-card">
           <p class="mh-title">③ 大盤骨架市寬</p>
-          <p class="mh-hero-metric">${escapeHtml(box3Hero)}<span class="mh-hero-unit"> (&gt;SMA50)</span></p>
+          <p class="mh-hero-metric">${escapeHtml(box3Hero)}</p>
           <span class="macro-status-badge ${brBadge.cls}">${escapeHtml(brBadge.text)}</span>
           <p class="mh-hint">${escapeHtml(brHint)}</p>
         </article>
@@ -2834,11 +2816,11 @@ ${tail}`;
           <span class="macro-status-badge ${flowBadge.cls}">${escapeHtml(flowBadge.text)}</span>
           <p class="mh-micro">${escapeHtml(box4Micro)}</p>
         </article>
-        <article class="card macro-leading-card">
+        <article class="card macro-hero-card">
           <p class="mh-title">⑤ 商品與避險早兆</p>
-          <p class="mh-disclaimer">(不計入總分 / 另類前瞻參考)</p>
-          <p class="mh-hero-metric ${leadHeroTone}">${escapeHtml(leadHero)}<span class="mh-hero-unit"> (1D)</span></p>
-          <span class="macro-leading-badge">${escapeHtml(leadBadge)}</span>
+          <p class="mh-hero-metric ${box5HeroTone}">${escapeHtml(box5Hero)}</p>
+          <span class="macro-status-badge ${leadBadgeCls}">${escapeHtml(leadBadge)}</span>
+          <p class="mh-hint">(不計入總分 / 另類前瞻參考)</p>
           <p class="mh-micro">${escapeHtml(leadMicro)}</p>
         </article>
       `;
