@@ -766,51 +766,134 @@ def _build_macro_live_comment(
             f"{'流入支撐' if southbound_yi >= 0 else '抽水撤離'}"
         )
     if isinstance(final_score, (int, float)):
-        regime = "Risk-On" if final_score > 75 else "Risk-Off" if final_score < 45 else "Neutral"
-        parts.append(f"Global Risk {final_score:.0f}（{regime}）")
+        regime = _risk_regime_from_score(float(final_score)) or "Neutral"
+        parts.append(f"Global Risk {final_score:.0f}（{regime}，越高越危險）")
     if not parts:
         return "宏觀資料不足，待下次匯出更新。"
     return "；".join(parts) + "。"
 
 
+def _chart_series_closes(chart_series: dict | None, key: str) -> list[float]:
+    if not isinstance(chart_series, dict):
+        return []
+    pts = chart_series.get(key)
+    if not isinstance(pts, list):
+        return []
+    out: list[float] = []
+    for pt in pts:
+        if not isinstance(pt, dict):
+            continue
+        try:
+            out.append(float(pt["c"]))
+        except (TypeError, ValueError, KeyError):
+            continue
+    return out
+
+
+def _sma_last(closes: list[float], window: int = 20) -> float | None:
+    if len(closes) < window:
+        return None
+    tail = closes[-window:]
+    return sum(tail) / float(window)
+
+
+def _southbound_5d_avg(
+    prev_payload: dict | None, net_yi: float | None, day: str
+) -> dict:
+    """Rolling 5-day mean of 港股通 net flow (億); keeps short daily history."""
+    hist: list[dict] = []
+    if isinstance(prev_payload, dict):
+        prev_sb = prev_payload.get("southbound_connect")
+        if isinstance(prev_sb, dict) and isinstance(prev_sb.get("history"), list):
+            for row in prev_sb["history"]:
+                if isinstance(row, dict) and row.get("d") is not None:
+                    try:
+                        hist.append({"d": str(row["d"]), "net_yi": float(row["net_yi"])})
+                    except (TypeError, ValueError):
+                        continue
+    if isinstance(net_yi, (int, float)):
+        replaced = False
+        for row in hist:
+            if row["d"] == day:
+                row["net_yi"] = float(net_yi)
+                replaced = True
+                break
+        if not replaced:
+            hist.append({"d": day, "net_yi": float(net_yi)})
+    hist = sorted({r["d"]: r for r in hist}.values(), key=lambda x: x["d"])[-30:]
+    avg5 = None
+    if hist:
+        tail = [r["net_yi"] for r in hist[-5:] if isinstance(r.get("net_yi"), (int, float))]
+        if tail:
+            avg5 = sum(tail) / len(tail)
+    return {"history": hist, "net_yi_5d_avg": avg5}
+
+
+def _risk_regime_from_score(score: float | None) -> str | None:
+    """Higher score = higher danger. <45 safe, 45-75 neutral, >75 risk-off."""
+    if score is None:
+        return None
+    if score < 45:
+        return "Risk-On"
+    if score > 75:
+        return "Risk-Off"
+    return "Neutral"
+
+
 def _compute_global_risk_score(
     *,
     vix_val: float | None,
-    dxy_chg_pct: float | None,
-    y10_chg_pct: float | None,
+    dxy_val: float | None,
+    y10_val: float | None,
+    chart_series: dict | None,
     breadth_markets: dict | None,
-    southbound_yi: float | None,
+    southbound_5d_avg: float | None,
 ) -> dict:
     """
-    Global Risk Score 0–100 for option-trading macro context.
-    VIX (30) + Capital cost DXY/US10Y (30) + breadth (20) + northbound (20).
-    Breadth uses global sample >SMA50% (breadth_markets), not scanner signal rows.
+    Global Risk Score 0–100 — higher = more danger (inverse of old health score).
+    VIX (30) + Capital vs 20MA (30) + breadth decay (20) + northbound 5d avg (20).
     """
     components: dict = {}
 
     vix_pts = None
     if isinstance(vix_val, (int, float)):
         if vix_val < 15:
-            vix_pts = 30
+            vix_pts = 0
         elif vix_val <= 22:
             vix_pts = 15
         else:
-            vix_pts = 0
+            vix_pts = 30
         components["vix_pts"] = vix_pts
 
-    cap_pts = 0
-    cap_max = 0
-    if isinstance(dxy_chg_pct, (int, float)):
-        cap_max += 15
-        if dxy_chg_pct < 0:
-            cap_pts += 15
-        components["dxy_down_pts"] = 15 if dxy_chg_pct < 0 else 0
-    if isinstance(y10_chg_pct, (int, float)):
-        cap_max += 15
-        if y10_chg_pct < 0:
-            cap_pts += 15
-        components["y10_down_pts"] = 15 if y10_chg_pct < 0 else 0
-    components["capital_pts"] = cap_pts if cap_max else None
+    cap_pts = None
+    cs = chart_series if isinstance(chart_series, dict) else {}
+    dxy_ma20 = _sma_last(_chart_series_closes(cs, "DXY"), 20)
+    y10_ma20 = _sma_last(_chart_series_closes(cs, "US10Y"), 20)
+    dxy_above = (
+        dxy_val > dxy_ma20
+        if isinstance(dxy_val, (int, float)) and isinstance(dxy_ma20, (int, float))
+        else None
+    )
+    y10_above = (
+        y10_val > y10_ma20
+        if isinstance(y10_val, (int, float)) and isinstance(y10_ma20, (int, float))
+        else None
+    )
+    flags = [x for x in (dxy_above, y10_above) if x is not None]
+    if len(flags) == 2:
+        if not any(flags):
+            cap_pts = 0
+        elif all(flags):
+            cap_pts = 30
+        else:
+            cap_pts = 15
+    elif len(flags) == 1:
+        cap_pts = 30 if flags[0] else 0
+    components["capital_pts"] = cap_pts
+    components["dxy_above_ma20"] = dxy_above
+    components["y10_above_ma20"] = y10_above
+    components["dxy_ma20"] = round(dxy_ma20, 4) if isinstance(dxy_ma20, (int, float)) else None
+    components["y10_ma20"] = round(y10_ma20, 4) if isinstance(y10_ma20, (int, float)) else None
 
     breadth_pts = None
     bm = breadth_markets if isinstance(breadth_markets, dict) else {}
@@ -824,30 +907,33 @@ def _compute_global_risk_score(
                 pass
     if pcts:
         avg_pct = max(0.0, min(100.0, sum(pcts) / len(pcts)))
-        breadth_pts = int(round((avg_pct / 100.0) * 20))
+        if avg_pct > 80:
+            breadth_pts = 0
+        elif avg_pct >= 40:
+            breadth_pts = 10
+        else:
+            breadth_pts = 20
         components["breadth_sma50_pct"] = round(avg_pct, 2)
-        components["breadth_source"] = "breadth_markets_ma50"
         components["breadth_pts"] = breadth_pts
 
     sb_pts = None
-    if isinstance(southbound_yi, (int, float)):
-        sb_pts = 20 if southbound_yi >= 0 else 0
+    if isinstance(southbound_5d_avg, (int, float)):
+        if southbound_5d_avg >= 30:
+            sb_pts = 0
+        elif southbound_5d_avg >= 0:
+            sb_pts = 10
+        else:
+            sb_pts = 20
+        components["southbound_5d_avg"] = round(float(southbound_5d_avg), 2)
         components["southbound_pts"] = sb_pts
 
-    parts = [x for x in (vix_pts, cap_pts if cap_max else None, breadth_pts, sb_pts) if x is not None]
+    parts = [x for x in (vix_pts, cap_pts, breadth_pts, sb_pts) if x is not None]
     score = float(sum(parts)) if parts else None
-    regime = None
-    if score is not None:
-        if score > 75:
-            regime = "Risk-On"
-        elif score >= 45:
-            regime = "Neutral"
-        else:
-            regime = "Risk-Off"
+    regime = _risk_regime_from_score(score)
     return {
         "score": score,
         "regime": regime,
-        "formula": "VIX(30)+Capital(30)+Breadth(20)+Northbound(20)",
+        "formula": "RiskV2: VIX(30)+Capital20MA(30)+BreadthInv(20)+Northbound5d(20)",
         "components": components,
     }
 
@@ -1306,7 +1392,12 @@ def _merge_macro_payload(prev: dict, new: dict) -> dict:
     prev_sb = prev.get("southbound_connect") if isinstance(prev.get("southbound_connect"), dict) else {}
     new_sb = merged.get("southbound_connect") if isinstance(merged.get("southbound_connect"), dict) else {}
     if new_sb.get("net_yi") is None and prev_sb.get("net_yi") is not None:
-        merged["southbound_connect"] = {**new_sb, "net_yi": prev_sb.get("net_yi")}
+        new_sb = {**new_sb, "net_yi": prev_sb.get("net_yi")}
+    if not new_sb.get("history") and prev_sb.get("history"):
+        new_sb = {**new_sb, "history": prev_sb.get("history")}
+    if new_sb.get("net_yi_5d_avg") is None and prev_sb.get("net_yi_5d_avg") is not None:
+        new_sb = {**new_sb, "net_yi_5d_avg": prev_sb.get("net_yi_5d_avg")}
+    merged["southbound_connect"] = new_sb
 
     prev_tb = prev.get("ticker_bar") if isinstance(prev.get("ticker_bar"), list) else []
     new_tb = merged.get("ticker_bar") if isinstance(merged.get("ticker_bar"), list) else []
@@ -1439,6 +1530,9 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
         dxy_chart = _yf_close_series_daily("DX=F", period="6mo")
     if dxy_chart:
         chart_series["DXY"] = dxy_chart
+    y10_chart = _yf_close_series_daily("^TNX", period="6mo")
+    if y10_chart:
+        chart_series["US10Y"] = y10_chart
 
     def _num(x):
         try:
@@ -1506,6 +1600,8 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
     final_score = legacy_score
 
     prev_payload = _read_json_file(out_path, {})
+    day = now_str.split("T")[0]
+    sb_pack = _southbound_5d_avg(prev_payload, southbound_yi, day)
     breadth_markets: dict = {}
     try:
         import sys
@@ -1557,10 +1653,11 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
 
     global_risk = _compute_global_risk_score(
         vix_val=_num(vix_val),
-        dxy_chg_pct=_num(dxy_chg),
-        y10_chg_pct=y10_chg,
+        dxy_val=_num(dxy_val),
+        y10_val=_num(y10),
+        chart_series=chart_series,
         breadth_markets=breadth_markets,
-        southbound_yi=southbound_yi,
+        southbound_5d_avg=sb_pack.get("net_yi_5d_avg"),
     )
     if global_risk.get("score") is not None:
         final_score = global_risk["score"]
@@ -1573,7 +1670,6 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
                     score_history.append({"d": str(item["d"]), "score": float(item["score"])})
                 except Exception:
                     continue
-    day = now_str.split("T")[0]
     if final_score is not None:
         replaced = False
         for h in score_history:
@@ -1622,6 +1718,8 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
             "label": "港股通（北水）淨額",
             "subtitle": "滬港通＋深港通",
             "net_yi": southbound_yi,
+            "net_yi_5d_avg": sb_pack.get("net_yi_5d_avg"),
+            "history": sb_pack.get("history") or [],
             "unit": "億人民幣",
         },
         "macro_comment": _build_macro_live_comment(
