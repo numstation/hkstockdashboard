@@ -121,6 +121,9 @@ def _stock_row_to_json(row: dict) -> dict:
         s_ix = str(ixm).strip()
         out["hs_index"] = s_ix
         out["HS_Index"] = s_ix
+    sn = row.get("stock_name")
+    if sn is not None and str(sn).strip() not in ("", "nan", "None", "N/A"):
+        out["stock_name"] = str(sn).strip()
     return out
 
 

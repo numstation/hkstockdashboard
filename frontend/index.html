@@ -821,9 +821,37 @@
       white-space: nowrap;
       vertical-align: middle;
     }
+    .col-ticker .ticker-cell-inner {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      vertical-align: middle;
+      max-width: 168px;
+    }
     .col-ticker .ticker-sym {
-      font-weight: 600;
-      margin-right: 6px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .col-ticker .ticker-name {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      line-height: 1.25;
+      max-width: 168px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .col-ticker .ticker-cell-links {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 6px;
+      vertical-align: middle;
     }
     .lnk-tv {
       font-size: 11px;
@@ -1023,7 +1051,7 @@
         <table id="stocksTable">
           <thead class="sticky-head">
             <tr>
-              <th data-key="ticker">Ticker · TV</th>
+              <th data-key="ticker">代號 · 名稱</th>
               <th data-key="hs_index" title="HSI = Hang Seng Index constituent. HSCEI = Hang Seng China Enterprises Index. N/A = neither (non‑HK tickers also N/A).">HSI / HSCEI</th>
               <th data-key="tech_score_d2" title="Score 2（前 2 個交易日）">Score 2</th>
               <th data-key="tech_score_d1" title="Score 1（前 1 個交易日）">Score 1</th>
@@ -1300,7 +1328,10 @@
 
     function buildAiPrompt(r) {
       const strat = lastScanStrategy || "-";
-      const ticker = r.ticker ?? r.Ticker ?? "N/A";
+      const tickerRaw = r.ticker ?? r.Ticker ?? "N/A";
+      const ticker = stockNameForRow(r)
+        ? `${formatTickerCode(tickerRaw)} (${stockNameForRow(r)})`
+        : formatTickerCode(tickerRaw);
       const sig = r.signal ?? r.Signal ?? "N/A";
       const close = typeof r.close === "number" && Number.isFinite(r.close) ? r.close.toFixed(2) : String(r.close ?? r.Close ?? "N/A");
       const macd = fmtNum(r.macd_hist ?? r["MACD Hist"], 4);
@@ -1630,7 +1661,7 @@ ${tail}`;
       for (const r of displayRows) {
         const tr = document.createElement("tr");
         const rawT = r.ticker ?? r.Ticker ?? "N/A";
-        const tvHtml = tradingViewLinkHtml(tradingViewUrl(rawT));
+        const tickerCell = tickerCellHtml(rawT, r, "TradingView →");
         const sc0 =
           typeof r.tech_score === "number" && Number.isFinite(r.tech_score) ? String(r.tech_score) : "—";
         const sc1 =
@@ -1654,7 +1685,7 @@ ${tail}`;
         const bandCell = bandIconHtml(r.signal ?? r.Signal ?? "N/A");
         const hsIx = escapeHtml(String(r.hs_index ?? r.HS_Index ?? "N/A").trim() || "N/A");
         tr.innerHTML = `
-          <td class="col-ticker"><span class="ticker-sym">${escapeHtml(rawT)}</span>${tvHtml}</td>
+          <td class="col-ticker">${tickerCell}</td>
           <td class="muted" style="font-size:12px;white-space:nowrap;" title="HSI / HSCEI vs built-in index lists">${hsIx}</td>
           <td class="muted" title="Score 2（前 2 交易日）">${sc2}</td>
           <td class="muted" title="Score 1（前 1 交易日）">${sc1}</td>
@@ -1823,6 +1854,75 @@ ${tail}`;
           if (c) c.destroy();
         } catch (_) { /* noop */ }
       }
+    }
+
+    let _hkStockNames = null;
+
+    async function loadHkStockNames() {
+      if (_hkStockNames) return _hkStockNames;
+      const data = await fetchJsonSafe("hk_stock_names.json");
+      _hkStockNames = data && typeof data === "object" && !Array.isArray(data) ? data : {};
+      return _hkStockNames;
+    }
+
+    function formatTickerCode(sym) {
+      const t = String(sym || "").trim().toUpperCase();
+      const m = t.match(/^(\d+)\.HK$/i);
+      if (m) return String(parseInt(m[1], 10)).padStart(4, "0");
+      return t || "—";
+    }
+
+    function hkTickerLookupKeys(sym) {
+      const t = String(sym || "").trim().toUpperCase();
+      if (!t.endsWith(".HK")) return [t];
+      const keys = new Set([t]);
+      let prefix = t.slice(0, -3);
+      if (prefix.length === 5 && prefix.startsWith("0")) keys.add(prefix.slice(1) + ".HK");
+      const num = parseInt(prefix, 10);
+      if (Number.isFinite(num)) {
+        keys.add(`${String(num).padStart(4, "0")}.HK`);
+        keys.add(`${num}.HK`);
+      }
+      return [...keys];
+    }
+
+    function stockNameForSymbol(sym, row) {
+      const fromRow = row?.stock_name ?? row?.stockName;
+      if (fromRow != null && String(fromRow).trim()) return String(fromRow).trim();
+      if (!_hkStockNames) return "";
+      for (const key of hkTickerLookupKeys(sym)) {
+        if (_hkStockNames[key]) return _hkStockNames[key];
+      }
+      return "";
+    }
+
+    function stockNameForRow(row) {
+      const sym = row?.ticker ?? row?.Ticker ?? "";
+      return stockNameForSymbol(sym, row);
+    }
+
+    function chartTickerLabel(rowOrSym) {
+      const sym =
+        typeof rowOrSym === "string"
+          ? rowOrSym
+          : String(rowOrSym?.ticker ?? rowOrSym?.Ticker ?? "").trim();
+      const code = formatTickerCode(sym);
+      const name = typeof rowOrSym === "object" && rowOrSym ? stockNameForRow(rowOrSym) : stockNameForSymbol(sym, null);
+      if (!name) return code;
+      const short = name.split(/\s+/).slice(0, 3).join(" ");
+      return short.length > 22 ? `${code}` : `${code} ${short}`;
+    }
+
+    function tickerCellHtml(sym, row, linkLabel) {
+      const raw = String(sym || (row?.ticker ?? row?.Ticker) || "").trim();
+      const code = formatTickerCode(raw);
+      const name = row ? stockNameForRow(row) : stockNameForSymbol(raw, null);
+      const tv = tradingViewLinkHtml(tradingViewUrl(raw), linkLabel);
+      const nameHtml = name ? `<span class="ticker-name">${escapeHtml(name)}</span>` : "";
+      return (
+        `<span class="ticker-cell-inner"><span class="ticker-sym">${escapeHtml(code)}</span>${nameHtml}</span>` +
+        `<span class="ticker-cell-links">${tv}</span>`
+      );
     }
 
     function tradingViewUrl(sym) {
@@ -2176,7 +2276,8 @@ ${tail}`;
       if (barEl) {
         const scored = (scanRows || [])
           .map((r) => ({
-            t: String(r.ticker ?? r.Ticker ?? "?").trim() || "?",
+            t: chartTickerLabel(r),
+            sym: String(r.ticker ?? r.Ticker ?? "?").trim() || "?",
             score: rowTechScore(r),
             rs: rowRs20(r),
             raw: r,
@@ -2259,7 +2360,8 @@ ${tail}`;
           pts.push({
             x: ax,
             y: rv,
-            label: String(r.ticker ?? r.Ticker ?? "?").trim() || "?",
+            label: chartTickerLabel(r),
+            sym: String(r.ticker ?? r.Ticker ?? "?").trim() || "?",
             score: Number.isFinite(sc) ? sc : null,
             adx: ax,
             rvol: rv,
@@ -3200,7 +3302,7 @@ ${tail}`;
       for (const s of list) {
         const tr = document.createElement("tr");
         const ht = s.ticker ?? "N/A";
-        const htCell = `<span class="ticker-sym">${escapeHtml(ht)}</span>${tradingViewLinkHtml(tradingViewUrl(ht), "TV →")}`;
+        const htCell = tickerCellHtml(ht, { ticker: ht, stock_name: s.stock_name }, "TV →");
         const entryD = s.entry_date ? String(s.entry_date).slice(0, 10) : String(s.date || "").slice(0, 10);
         const trackTag = s.trigger_track === "A" ? " A" : s.trigger_track === "B" ? " B" : "";
         const entryPx = num(s.entry_price ?? s.close);
@@ -3396,7 +3498,7 @@ ${tail}`;
         tr.innerHTML = `
           <td>${escapeHtml(fmtDateLocal(l.logged_at ?? l.timestamp))}</td>
           <td>${escapeHtml(fmtDateLocal(l.trigger_date ?? l.date))}</td>
-          <td>${escapeHtml(l.ticker ?? "N/A")}</td>
+          <td class="col-ticker">${tickerCellHtml(l.ticker, l, "TV →")}</td>
           <td>${escapeHtml(l.strategy ?? "N/A")}</td>
           <td>${fmtNum(l.entry_price, 2)}</td>
           <td class="muted">${notes}</td>
@@ -4066,6 +4168,7 @@ ${tail}`;
 
     async function loadData() {
       try {
+      await loadHkStockNames();
       let data = null;
       let lastStatus = "?";
       let rejectMismatch = false;

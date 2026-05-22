@@ -184,9 +184,97 @@ def _load_hk_tickers_from_csv(filename: str) -> list[str]:
     return list(dict.fromkeys(out))
 
 
+def _short_stock_name(full: str) -> str:
+    """Compact display name from hkstocklist.csv (drop legal suffix noise)."""
+    s = str(full or "").strip()
+    if not s:
+        return ""
+    for suf in (
+        " Holdings Limited",
+        " Holding Limited",
+        " Holdings Ltd.",
+        " Holdings Ltd",
+        " Holdings Plc.",
+        " Holdings Plc",
+        " Holdings",
+        " Limited",
+        " Ltd.",
+        " Ltd",
+        " Plc.",
+        " Plc",
+        " Inc.",
+        " Inc",
+        " Corporation",
+        " Corp.",
+        " Corp",
+        " Co. Ltd.",
+        " Co., Ltd.",
+        " Company Limited",
+        " Group Limited",
+        " Group Ltd.",
+        " Group Inc.",
+        " Group",
+    ):
+        if s.endswith(suf):
+            s = s[: -len(suf)].strip()
+    s = s.replace("  ", " ").strip()
+    if len(s) > 40:
+        s = s[:37].rstrip() + "…"
+    return s
+
+
+def _load_hk_name_map_from_csv(filename: str) -> dict[str, str]:
+    """Map normalized XXXX.HK ticker → short company name."""
+    path = Path(__file__).resolve().parent / filename
+    if not path.is_file():
+        return {}
+    out: dict[str, str] = {}
+
+    def _parse_code_cell(cell: str) -> int | None:
+        s = str(cell).replace("\ufeff", "").replace("\u00a0", " ").strip()
+        digits = "".join(ch for ch in s if ch.isdigit())
+        if not digits:
+            return None
+        try:
+            n = int(digits, 10)
+        except ValueError:
+            return None
+        return n if n > 0 else None
+
+    try:
+        with path.open(encoding="utf-8-sig", newline="") as f:
+            for row in csv.reader(f):
+                if not row or not str(row[0]).strip():
+                    continue
+                key = str(row[0]).strip()
+                if key.lower() == "code":
+                    continue
+                code = _parse_code_cell(key)
+                if code is None:
+                    try:
+                        code = int(key, 10)
+                    except ValueError:
+                        continue
+                if code <= 0:
+                    continue
+                sym = _norm_code(f"{code:04d}.HK" if code < 100_000 else f"{code}.HK")
+                raw_name = row[1].strip() if len(row) > 1 else ""
+                short = _short_stock_name(raw_name)
+                if short:
+                    out[sym] = short
+    except OSError:
+        return {}
+    return out
+
+
+def stock_name_for_ticker(ticker: str) -> str:
+    return HK_STOCK_NAME_MAP.get(_norm_code(str(ticker or "").strip().upper()), "")
+
+
 # HK universe: hkstocklist.csv overrides hk_top200.txt, else Tech+HSI+HKCEI.
 HK_UNIVERSE_TAG = "Tech+HSI+HKCEI"
 HK_FROM_STOCKLIST_CSV = _load_hk_tickers_from_csv("hkstocklist.csv")
+HK_STOCK_NAME_MAP = _load_hk_name_map_from_csv("hkstocklist.csv")
 HK_TOP200_TICKERS = _load_tickers_from_repo_file("hk_top200.txt", hk_norm=True)
 US_TOP200_TICKERS = _load_tickers_from_repo_file("us_top200.txt", hk_norm=False)
 if HK_FROM_STOCKLIST_CSV:
@@ -1361,6 +1449,9 @@ def technical_universe_row(ticker: str, *, period: str = "6mo", score_model: str
             "data_ok": True,
             "HS_Index": hk_index_membership(ticker),
         }
+        sn = stock_name_for_ticker(ticker)
+        if sn:
+            row_out["stock_name"] = sn
         row_out.update(arc_fields)
         return row_out
     except Exception:
