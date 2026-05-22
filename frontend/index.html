@@ -829,12 +829,22 @@
       vertical-align: middle;
       max-width: 168px;
     }
-    .col-ticker .ticker-sym {
+    .col-ticker .ticker-sym,
+    .col-ticker a.ticker-sym-link {
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
       letter-spacing: -0.02em;
       line-height: 1.2;
+    }
+    .col-ticker a.ticker-sym-link {
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .col-ticker a.ticker-sym-link:hover {
+      text-decoration: underline;
+      color: #0d9488;
     }
     .col-ticker .ticker-name {
       font-size: 11px;
@@ -846,25 +856,6 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .col-ticker .ticker-cell-links {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-left: 6px;
-      vertical-align: middle;
-    }
-    .lnk-tv {
-      font-size: 11px;
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 600;
-      white-space: nowrap;
-      display: inline-block;
-      vertical-align: middle;
-    }
-    .lnk-tv:hover { text-decoration: underline; color: #0d9488; }
-    .tv-link-mobile { display: none; }
-    .tv-link-desktop { display: inline; }
     .mode-switch { display: inline-flex; gap: 8px; margin-left: 8px; flex-wrap: wrap; justify-content: flex-end; }
     .mode-btn { border: 1px solid var(--line); background: var(--card); color: #44403c; border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: var(--shadow-sm); }
     .mode-btn:hover { background: var(--bg-elev); }
@@ -901,8 +892,6 @@
       .mode-switch { justify-content: flex-start; }
       .title { font-size: 1.25rem; }
       .table-x-scroll-hint { display: block; }
-      .tv-link-mobile { display: inline; }
-      .tv-link-desktop { display: none; }
       th, td { padding: 10px 12px; font-size: 13px; }
       .table-x-scroll table { min-width: 820px; }
     }
@@ -1661,7 +1650,7 @@ ${tail}`;
       for (const r of displayRows) {
         const tr = document.createElement("tr");
         const rawT = r.ticker ?? r.Ticker ?? "N/A";
-        const tickerCell = tickerCellHtml(rawT, r, "TradingView →");
+        const tickerCell = tickerCellHtml(rawT, r);
         const sc0 =
           typeof r.tech_score === "number" && Number.isFinite(r.tech_score) ? String(r.tech_score) : "—";
         const sc1 =
@@ -1913,16 +1902,16 @@ ${tail}`;
       return short.length > 22 ? `${code}` : `${code} ${short}`;
     }
 
-    function tickerCellHtml(sym, row, linkLabel) {
+    function tickerCellHtml(sym, row) {
       const raw = String(sym || (row?.ticker ?? row?.Ticker) || "").trim();
       const code = formatTickerCode(raw);
       const name = row ? stockNameForRow(row) : stockNameForSymbol(raw, null);
-      const tv = tradingViewLinkHtml(tradingViewUrl(raw), linkLabel);
+      const tvUrl = tradingViewUrl(raw);
+      const codeHtml = tvUrl
+        ? `<a class="ticker-sym-link" href="${escapeHtml(tvUrl)}" target="_blank" rel="noopener noreferrer" title="TradingView 圖表">${escapeHtml(code)}</a>`
+        : `<span class="ticker-sym">${escapeHtml(code)}</span>`;
       const nameHtml = name ? `<span class="ticker-name">${escapeHtml(name)}</span>` : "";
-      return (
-        `<span class="ticker-cell-inner"><span class="ticker-sym">${escapeHtml(code)}</span>${nameHtml}</span>` +
-        `<span class="ticker-cell-links">${tv}</span>`
-      );
+      return `<span class="ticker-cell-inner">${codeHtml}${nameHtml}</span>`;
     }
 
     function tradingViewUrl(sym) {
@@ -1935,16 +1924,6 @@ ${tail}`;
         }
       }
       return "https://www.tradingview.com/chart/?symbol=" + encodeURIComponent(t) + "&interval=1D";
-    }
-
-    function tradingViewLinkHtml(url, desktopLabel) {
-      if (!url) return "";
-      const label = desktopLabel || "TradingView →";
-      return (
-        `<a class="lnk-tv" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="TradingView">` +
-        `<span class="tv-link-desktop">${escapeHtml(label)}</span>` +
-        `<span class="tv-link-mobile" aria-hidden="true">🔗</span></a>`
-      );
     }
 
     /** tech_score from scan row */
@@ -3302,7 +3281,7 @@ ${tail}`;
       for (const s of list) {
         const tr = document.createElement("tr");
         const ht = s.ticker ?? "N/A";
-        const htCell = tickerCellHtml(ht, { ticker: ht, stock_name: s.stock_name }, "TV →");
+        const htCell = tickerCellHtml(ht, { ticker: ht, stock_name: s.stock_name });
         const entryD = s.entry_date ? String(s.entry_date).slice(0, 10) : String(s.date || "").slice(0, 10);
         const trackTag = s.trigger_track === "A" ? " A" : s.trigger_track === "B" ? " B" : "";
         const entryPx = num(s.entry_price ?? s.close);
@@ -3498,7 +3477,7 @@ ${tail}`;
         tr.innerHTML = `
           <td>${escapeHtml(fmtDateLocal(l.logged_at ?? l.timestamp))}</td>
           <td>${escapeHtml(fmtDateLocal(l.trigger_date ?? l.date))}</td>
-          <td class="col-ticker">${tickerCellHtml(l.ticker, l, "TV →")}</td>
+          <td class="col-ticker">${tickerCellHtml(l.ticker, l)}</td>
           <td>${escapeHtml(l.strategy ?? "N/A")}</td>
           <td>${fmtNum(l.entry_price, 2)}</td>
           <td class="muted">${notes}</td>
