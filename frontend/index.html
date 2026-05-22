@@ -367,21 +367,29 @@
     }
     .macro-hero-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
-      padding: 0 12px 10px;
+      padding: 0 12px 16px;
     }
-    @media (max-width: 1100px) {
-      .macro-hero-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (min-width: 900px) {
+      .macro-hero-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+      }
+      .macro-hero-grid > :nth-child(1) { grid-column: 1 / 3; }
+      .macro-hero-grid > :nth-child(2) { grid-column: 3 / 5; }
+      .macro-hero-grid > :nth-child(3) { grid-column: 5 / 7; }
+      .macro-hero-grid > :nth-child(4) { grid-column: 1 / 4; }
+      .macro-hero-grid > :nth-child(5) { grid-column: 4 / 7; }
+    }
+    @media (min-width: 561px) and (max-width: 899px) {
+      .macro-hero-grid > :nth-child(3) { grid-column: 1 / -1; }
     }
     @media (max-width: 560px) {
       .macro-hero-grid { grid-template-columns: 1fr; }
-    }
-    .macro-leading-wrap {
-      padding: 4px 12px 16px;
+      .macro-hero-grid > * { grid-column: auto !important; }
     }
     .macro-leading-card.card {
-      min-height: 120px;
+      min-height: 132px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -391,19 +399,27 @@
       box-shadow: none;
     }
     .macro-leading-card .mh-disclaimer {
-      font-size: 11px;
+      font-size: 10px;
       color: #9ca3af;
-      margin: 0;
+      margin: -4px 0 0;
       font-weight: 500;
+      line-height: 1.4;
+    }
+    .macro-hero-card .mh-hint {
+      font-size: 10px;
+      color: #9ca3af;
+      line-height: 1.45;
+      margin: 0;
+      font-variant-numeric: tabular-nums;
     }
     .macro-leading-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       align-self: flex-start;
-      padding: 8px 14px;
+      padding: 6px 12px;
       border-radius: 999px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: #78716c;
       background: #fffef8;
@@ -1095,8 +1111,7 @@
           <span id="macroSub" class="macro-sub-compact"></span>
         </div>
         <div id="macroGlobalBanner" class="macro-global-banner macro-skeleton" style="display:none;" role="status" aria-live="polite"></div>
-        <div id="macroHeroGrid" class="macro-hero-grid" aria-label="公式四因子狀態卡"></div>
-        <div id="macroLeadingGrid" class="macro-leading-wrap" aria-label="前瞻指標（不計入總分）"></div>
+        <div id="macroHeroGrid" class="macro-hero-grid" aria-label="宏觀因子與前瞻狀態卡"></div>
 
         <div class="macro-block macro-chart-block">
           <h3 class="section-title">主要指數／資產走勢（日線圖表）</h3>
@@ -2367,7 +2382,7 @@ ${tail}`;
       }
       const host = document.getElementById("macroHeroGrid");
       if (!host) return;
-      host.innerHTML = [1, 2, 3, 4]
+      host.innerHTML = [1, 2, 3, 4, 5]
         .map(
           () => `
         <article class="card macro-hero-card macro-skeleton" aria-hidden="true">
@@ -2377,15 +2392,6 @@ ${tail}`;
         </article>`,
         )
         .join("");
-      const lead = document.getElementById("macroLeadingGrid");
-      if (lead) {
-        lead.innerHTML = `
-        <article class="card macro-leading-card macro-skeleton" aria-hidden="true">
-          <div class="sk-block h-title"></div>
-          <div class="sk-block h-sub"></div>
-          <div class="sk-block h-badge"></div>
-        </article>`;
-      }
     }
 
     function macroPctFromMetric(metrics, advanced, metricName, advKeys) {
@@ -2512,17 +2518,6 @@ ${tail}`;
       if (pts <= 0) return { text: safe, cls: "risk-on" };
       if (pts < maxPts) return { text: mid, cls: "neutral-breadth" };
       return { text: danger, cls: "risk-off" };
-    }
-
-    /** Badge with score fraction e.g. 15/30 pts 🟡 正常波動 */
-    function pillarScoreBadge(pts, maxPts, labels) {
-      const base = pillarRiskBadge(pts, maxPts, labels);
-      if (!Number.isFinite(pts)) return base;
-      const { safe, mid, danger } = labels;
-      const pick = pts <= 0 ? safe : pts < maxPts ? mid : danger;
-      const short = String(pick).replace(/^🟢\s*|^🟡\s*|^🔴\s*/, "");
-      const emoji = pts <= 0 ? "🟢" : pts < maxPts ? "🟡" : "🔴";
-      return { text: `${pts}/${maxPts} pts ${emoji} ${short}`, cls: base.cls };
     }
 
     function calculateGlobalRiskScore(data, metrics, advanced) {
@@ -2723,7 +2718,6 @@ ${tail}`;
 
     function renderMacroHeroCards(data, metrics, advanced) {
       const host = document.getElementById("macroHeroGrid");
-      const leadHost = document.getElementById("macroLeadingGrid");
       if (!host) return;
 
       const risk = calculateGlobalRiskScore(data, metrics, advanced);
@@ -2735,12 +2729,12 @@ ${tail}`;
       const cap = capitalRiskFromMa20(data, metrics, advanced);
       const capPts = Number.isFinite(comp.capital_pts) ? comp.capital_pts : cap.pts;
 
-      const vixBadge = pillarScoreBadge(vixPts, 30, {
+      const vixBadge = pillarRiskBadge(vixPts, 30, {
         safe: "🟢 低波安全",
         mid: "🟡 正常波動",
         danger: "🔴 恐慌升溫",
       });
-      const capBadge = pillarScoreBadge(capPts, 30, {
+      const capBadge = pillarRiskBadge(capPts, 30, {
         safe: "🟢 流動性寬鬆",
         mid: "🟡 資金收緊",
         danger: "🔴 流動性擠壓",
@@ -2757,11 +2751,13 @@ ${tail}`;
         ? comp.breadth_sma50_pct
         : globalBreadthSma50Pct(data);
       const brPts = Number.isFinite(comp.breadth_pts) ? comp.breadth_pts : breadthRiskPts(brPct);
-      const brBadge = pillarScoreBadge(brPts, 20, {
+      const brBadge = pillarRiskBadge(brPts, 20, {
         safe: "🟢 結構強勢",
         mid: "🟡 結構整固",
         danger: "🔴 結構惡化",
       });
+      const brHint =
+        "算法：港股+美股樣本中，股價高於50日均線佔比之平均；>80%強勢、40–80%整固、<40%惡化";
       _macroTableHi.breadth = false;
       _macroTableHi.flowIn = false;
       _macroTableHi.flowOut = false;
@@ -2776,7 +2772,7 @@ ${tail}`;
       const sbPts = Number.isFinite(comp.southbound_pts)
         ? comp.southbound_pts
         : southboundRiskPts(sbAvg5);
-      const flowBadge = pillarScoreBadge(sbPts, 20, {
+      const flowBadge = pillarRiskBadge(sbPts, 20, {
         safe: "🟢 機構大買",
         mid: "🟡 溫和流入",
         danger: "🔴 強烈撤資",
@@ -2793,31 +2789,6 @@ ${tail}`;
         else if (sbAvg5 < 0) _macroTableHi.flowOut = true;
       }
 
-      host.innerHTML = `
-        <article class="card macro-hero-card">
-          <p class="mh-title">① VIX 波動風險 · Max 30</p>
-          <p class="mh-hero-metric">${escapeHtml(box1Hero)}</p>
-          <span class="macro-status-badge ${vixBadge.cls}">${escapeHtml(vixBadge.text)}</span>
-        </article>
-        <article class="card macro-hero-card">
-          <p class="mh-title">② 資金成本趨勢 · Max 30</p>
-          <p class="mh-hero-metric">美金/債息 20MA 趨勢</p>
-          <span class="macro-status-badge ${capBadge.cls}">${escapeHtml(capBadge.text)}</span>
-          <p class="mh-micro">${escapeHtml(capMicro)}</p>
-        </article>
-        <article class="card macro-hero-card">
-          <p class="mh-title">③ 大盤骨架市寬 · Max 20</p>
-          <p class="mh-hero-metric">${escapeHtml(box3Hero)}<span class="mh-hero-unit"> (&gt;SMA50)</span></p>
-          <span class="macro-status-badge ${brBadge.cls}">${escapeHtml(brBadge.text)}</span>
-        </article>
-        <article class="card macro-hero-card">
-          <p class="mh-title">④ 北水撤資動態 · Max 20</p>
-          <p class="mh-hero-metric">${escapeHtml(box4Hero)}</p>
-          <span class="macro-status-badge ${flowBadge.cls}">${escapeHtml(flowBadge.text)}</span>
-          <p class="mh-micro">${escapeHtml(box4Micro)}</p>
-        </article>
-      `;
-
       const goldRow = advanced ? findAdvancedByText(advanced, ["GOLD", "黃金"]) : null;
       const wtiRow = advanced ? findAdvancedByText(advanced, ["WTI", "期油"]) : null;
       const goldChg = num(goldRow?.change_pct);
@@ -2825,8 +2796,8 @@ ${tail}`;
       const btcChg = macroPctFromMetric(metrics, advanced, "BTC", ["BTC", "BITCOIN", "₿"]);
       const commodityAvg = commodityCompositeDayChg(goldChg, wtiChg, btcChg);
       const leadHero = Number.isFinite(commodityAvg)
-        ? `避險資產動能: ${macroFmtPctPlain(commodityAvg)} (1D 綜合)`
-        : "避險資產動能: — (1D 綜合)";
+        ? `避險資產動能: ${macroFmtPctPlain(commodityAvg)}`
+        : "避險資產動能: —";
       const leadHeroTone = heroMetricToneFromPct(commodityAvg);
       let leadBadge = "🟡 觀察商品波動";
       if (Number.isFinite(btcChg) && btcChg <= -3) leadBadge = "🔴 Risk-off 早兆（BTC 急跌）";
@@ -2839,16 +2810,38 @@ ${tail}`;
         `比特幣(BTC): ${Number.isFinite(btcChg) ? macroFmtPctPlain(btcChg) : "—"}`,
       ].join(" | ");
 
-      if (leadHost) {
-        leadHost.innerHTML = `
+      host.innerHTML = `
+        <article class="card macro-hero-card">
+          <p class="mh-title">① VIX 波動風險</p>
+          <p class="mh-hero-metric">${escapeHtml(box1Hero)}</p>
+          <span class="macro-status-badge ${vixBadge.cls}">${escapeHtml(vixBadge.text)}</span>
+        </article>
+        <article class="card macro-hero-card">
+          <p class="mh-title">② 資金成本趨勢</p>
+          <p class="mh-hero-metric">美金/債息 20MA 趨勢</p>
+          <span class="macro-status-badge ${capBadge.cls}">${escapeHtml(capBadge.text)}</span>
+          <p class="mh-micro">${escapeHtml(capMicro)}</p>
+        </article>
+        <article class="card macro-hero-card">
+          <p class="mh-title">③ 大盤骨架市寬</p>
+          <p class="mh-hero-metric">${escapeHtml(box3Hero)}<span class="mh-hero-unit"> (&gt;SMA50)</span></p>
+          <span class="macro-status-badge ${brBadge.cls}">${escapeHtml(brBadge.text)}</span>
+          <p class="mh-hint">${escapeHtml(brHint)}</p>
+        </article>
+        <article class="card macro-hero-card">
+          <p class="mh-title">④ 北水撤資動態</p>
+          <p class="mh-hero-metric">${escapeHtml(box4Hero)}</p>
+          <span class="macro-status-badge ${flowBadge.cls}">${escapeHtml(flowBadge.text)}</span>
+          <p class="mh-micro">${escapeHtml(box4Micro)}</p>
+        </article>
         <article class="card macro-leading-card">
-          <p class="mh-title">⑤ 商品與避險早兆 · Leading Indicator</p>
+          <p class="mh-title">⑤ 商品與避險早兆</p>
           <p class="mh-disclaimer">(不計入總分 / 另類前瞻參考)</p>
-          <p class="mh-hero-metric ${leadHeroTone}">${escapeHtml(leadHero)}</p>
+          <p class="mh-hero-metric ${leadHeroTone}">${escapeHtml(leadHero)}<span class="mh-hero-unit"> (1D)</span></p>
           <span class="macro-leading-badge">${escapeHtml(leadBadge)}</span>
           <p class="mh-micro">${escapeHtml(leadMicro)}</p>
-        </article>`;
-      }
+        </article>
+      `;
     }
 
     function renderMacroLineCharts(series) {
@@ -3892,8 +3885,6 @@ ${tail}`;
         renderMacroTickerBar(null);
         const hero = document.getElementById("macroHeroGrid");
         if (hero) hero.innerHTML = "";
-        const lead = document.getElementById("macroLeadingGrid");
-        if (lead) lead.innerHTML = "";
         if (globalBanner) globalBanner.style.display = "none";
         applyMacroGlobalRegimeTheme(null);
         destroyCharts(_chartsMacro);
