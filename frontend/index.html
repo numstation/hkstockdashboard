@@ -530,6 +530,44 @@
     #macroTab .table-x-scroll table {
       min-width: 640px;
     }
+    #macroTab .macro-data-table th,
+    #macroTab .macro-data-table td {
+      padding: 12px 16px;
+      vertical-align: middle;
+    }
+    #macroTab .macro-data-table thead.sticky-head th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f8fafc;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--line);
+      cursor: default;
+    }
+    #macroTab .macro-data-table thead th.macro-th-label {
+      text-align: left;
+    }
+    #macroTab .macro-data-table thead th.macro-th-num {
+      text-align: right;
+    }
+    #macroTab .macro-data-table .macro-td-label {
+      text-align: left;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    #macroTab .macro-data-table .macro-td-num {
+      text-align: right;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    #macroTab .macro-data-table .macro-td-num.macro-num-up { color: var(--ok); font-weight: 600; }
+    #macroTab .macro-data-table .macro-td-num.macro-num-down { color: var(--bad); font-weight: 600; }
     #macroTab .table-x-scroll tr.macro-row-hi-vix td { background: #fef2f2; }
     #macroTab .table-x-scroll tr.macro-row-hi-breadth td { background: #ecfdf5; }
     #macroTab .table-x-scroll tr.macro-row-hi-flow td { background: #ecfdf5; }
@@ -1100,10 +1138,12 @@
           <h3 class="section-title">即時數據表</h3>
           <p class="macro-table-sub">Quick metrics（VIX · DXY · 指數 · 北水）</p>
           <div class="table-x-scroll" role="region" aria-label="宏觀快訊表（可左右滑動）">
-            <table>
+            <table class="macro-data-table">
               <thead class="sticky-head">
                 <tr>
-                  <th>Metric</th><th>Value</th><th>Δ</th>
+                  <th class="macro-th-label">Metric</th>
+                  <th class="macro-th-num">Value</th>
+                  <th class="macro-th-num">Δ</th>
                 </tr>
               </thead>
               <tbody id="macroTbody"></tbody>
@@ -1111,10 +1151,15 @@
           </div>
           <p class="macro-table-sub">Market dashboard（RSI · SMA200 · 52w DD）</p>
           <div class="table-x-scroll" role="region" aria-label="宏觀進階表（可左右滑動）">
-            <table>
+            <table class="macro-data-table">
               <thead class="sticky-head">
                 <tr>
-                  <th>指數</th><th>價位</th><th>Δ%</th><th>RSI</th><th>vs SMA200</th><th>52w DD</th>
+                  <th class="macro-th-label">指數</th>
+                  <th class="macro-th-num">價位</th>
+                  <th class="macro-th-num">Δ%</th>
+                  <th class="macro-th-num">RSI</th>
+                  <th class="macro-th-num">vs SMA200</th>
+                  <th class="macro-th-num">52w DD</th>
                 </tr>
               </thead>
               <tbody id="macroAdvancedTbody"></tbody>
@@ -2595,7 +2640,7 @@ ${tail}`;
       const tbody = document.getElementById("macroTbody");
       if (tbody) {
         for (const tr of tbody.querySelectorAll("tr")) {
-          const name = (tr.cells[0]?.textContent || "").toUpperCase();
+          const name = (tr.dataset.metricKey || tr.cells[0]?.textContent || "").toUpperCase();
           tr.classList.remove("macro-row-hi-vix", "macro-row-hi-breadth", "macro-row-hi-flow", "macro-row-hi-flow-out");
           if (hi.vix && (name.includes("VIX") || name.includes("DXY") || name.includes("10Y") || name.includes("US 10"))) {
             tr.classList.add("macro-row-hi-vix");
@@ -2620,7 +2665,7 @@ ${tail}`;
       const advBody = document.getElementById("macroAdvancedTbody");
       if (advBody) {
         for (const tr of advBody.querySelectorAll("tr")) {
-          const name = (tr.cells[0]?.textContent || "").toUpperCase();
+          const name = (tr.dataset.metricKey || tr.cells[0]?.textContent || "").toUpperCase();
           tr.classList.remove("macro-row-hi-vix", "macro-row-hi-breadth", "macro-row-hi-flow", "macro-row-hi-flow-out");
           if (hi.vix && name.includes("VIX")) tr.classList.add("macro-row-hi-vix");
           if (hi.breadth && (name.includes("S&P") || name.includes("SPX") || name.includes("恒生") || name.includes("HSI"))) {
@@ -3431,6 +3476,53 @@ ${tail}`;
       // Calibrated to user's reference: BTC -0.10% -> 49.0
       return clamp01to100(50 + btcPct * 10);
     }
+    function stripEmojiDecorators(text) {
+      return String(text || "")
+        .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "")
+        .replace(/[⚡📈📊💵₿]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function formatMacroQuickMetricName(name) {
+      const raw = stripEmojiDecorators(name);
+      const u = raw.toUpperCase();
+      if (u.includes("VIX")) return "VIX 恐慌指數";
+      if (u === "HSI" || u.includes("恒生") || u.includes("恒指")) return "恒生指數 (HSI)";
+      if (u.includes("DXY") || u.includes("美元指數") || u.includes("美元")) return "美金指數 (DXY)";
+      if (u.includes("BTC") || u.includes("BITCOIN")) return "比特幣 (BTC)";
+      if (u.includes("北水") || u.includes("港股通") || u.includes("南向")) return "港股通北水淨額";
+      if (u.includes("上證") || u.includes("SSE")) return "上證指數 (SSE)";
+      return raw;
+    }
+
+    function formatMacroAdvancedName(name) {
+      const raw = stripEmojiDecorators(name);
+      const u = raw.toUpperCase();
+      if (u.includes("S&P") || u.includes("SPX") || (u.includes("500") && u.includes("美"))) return "標普500 (S&P 500)";
+      if (u.includes("NASDAQ") || u.includes("納斯")) return "納斯達克 (NASDAQ)";
+      if (u.includes("HSI") || u.includes("恒生") || u.includes("恒指")) return "恒生指數 (HSI)";
+      if (u.includes("SSE") || u.includes("上證")) return "上證指數 (SSE)";
+      if (u.includes("VIX") || u.includes("恐慌")) return "VIX 恐慌指數";
+      if (u.includes("WTI") || u.includes("期油")) return "原油 (WTI)";
+      if (u.includes("GOLD") || u.includes("黃金")) return "黃金 (Gold)";
+      if (u.includes("DXY") || u.includes("美元指數") || u.includes("美元")) return "美金指數 (DXY)";
+      if (u.includes("BITCOIN") || u.includes("BTC")) return "比特幣 (BTC)";
+      if (u.includes("10Y") || u.includes("國債") || u.includes("美債")) return "美債 10Y";
+      if (u.includes("USD/HKD") || u.includes("港匯")) return "USD/HKD";
+      return raw;
+    }
+
+    function macroMetricRowKey(name) {
+      return stripEmojiDecorators(name).toUpperCase();
+    }
+
+    function macroTdChangeClass(changeStr) {
+      const chg = parsePctChange(changeStr);
+      if (chg == null || chg === 0) return "";
+      return chg > 0 ? "macro-num-up" : "macro-num-down";
+    }
+
     function findAdvancedByText(advanced, needles) {
       if (!advanced || typeof advanced !== "object") return null;
       const keys = Object.keys(advanced);
@@ -3914,10 +4006,13 @@ ${tail}`;
 
       for (const m of metricsDisplay) {
         const tr = document.createElement("tr");
+        const label = formatMacroQuickMetricName(m.name);
+        const chgCls = macroTdChangeClass(m.change);
+        tr.dataset.metricKey = macroMetricRowKey(m.name);
         tr.innerHTML = `
-          <td>${escapeHtml(m.name ?? "N/A")}</td>
-          <td>${escapeHtml(String(m.value ?? "N/A"))}</td>
-          <td>${escapeHtml(String(m.change ?? "N/A"))}</td>
+          <td class="macro-td-label">${escapeHtml(label)}</td>
+          <td class="macro-td-num">${escapeHtml(String(m.value ?? "N/A"))}</td>
+          <td class="macro-td-num ${chgCls}">${escapeHtml(String(m.change ?? "N/A"))}</td>
         `;
         tbody.appendChild(tr);
       }
@@ -3948,13 +4043,18 @@ ${tail}`;
           const dist = num(row.dist_sma200);
           const dd = num(row.drawdown);
           const tr = document.createElement("tr");
+          const label = formatMacroAdvancedName(name);
+          const chgCls = chg != null && chg !== 0 ? (chg > 0 ? "macro-num-up" : "macro-num-down") : "";
+          const distCls = dist != null && dist !== 0 ? (dist > 0 ? "macro-num-up" : "macro-num-down") : "";
+          const ddCls = dd != null && dd !== 0 ? (dd > 0 ? "macro-num-up" : "macro-num-down") : "";
+          tr.dataset.metricKey = macroMetricRowKey(name);
           tr.innerHTML = `
-            <td>${escapeHtml(name)}</td>
-            <td>${cur != null ? escapeHtml(fmtMacroNum(cur, 2)) : "—"}</td>
-            <td>${chg != null ? escapeHtml(fmtMacroPct(chg)) : "—"}</td>
-            <td>${rsi != null ? fmtMacroNum(rsi, 1) : "—"}</td>
-            <td>${dist != null ? escapeHtml(fmtMacroPct(dist)) : "—"}</td>
-            <td>${dd != null ? escapeHtml(fmtMacroPct(dd)) : "—"}</td>
+            <td class="macro-td-label">${escapeHtml(label)}</td>
+            <td class="macro-td-num">${cur != null ? escapeHtml(fmtMacroNum(cur, 2)) : "—"}</td>
+            <td class="macro-td-num ${chgCls}">${chg != null ? escapeHtml(fmtMacroPct(chg)) : "—"}</td>
+            <td class="macro-td-num">${rsi != null ? escapeHtml(fmtMacroNum(rsi, 1)) : "—"}</td>
+            <td class="macro-td-num ${distCls}">${dist != null ? escapeHtml(fmtMacroPct(dist)) : "—"}</td>
+            <td class="macro-td-num ${ddCls}">${dd != null ? escapeHtml(fmtMacroPct(dd)) : "—"}</td>
           `;
           advBody.appendChild(tr);
         }
