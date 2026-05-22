@@ -230,46 +230,139 @@
       color: var(--muted);
       font-variant-numeric: tabular-nums;
     }
+    .macro-tab-shell.macro-regime-off .macro-hero-card.card {
+      background: #fffafa;
+      border-color: #fecaca;
+      box-shadow: 0 1px 3px rgba(185, 28, 28, 0.1);
+    }
+    .macro-tab-shell.macro-regime-neutral .macro-hero-card.card {
+      background: #fffef8;
+      border-color: #fde68a;
+      box-shadow: var(--shadow-card);
+    }
+    .macro-tab-shell.macro-regime-on .macro-hero-card.card {
+      background: #fafffaf9;
+      border-color: #bbf7d0;
+      box-shadow: var(--shadow-card);
+    }
+    .macro-tab-shell.macro-regime-off .macro-hero-card .mh-hero-metric.tone-up,
+    .macro-tab-shell.macro-regime-off .macro-hero-card .mh-hero-metric.tone-warn {
+      color: var(--text);
+    }
+    .macro-tab-shell.macro-regime-off .macro-hero-card .mh-micro .micro-up,
+    .macro-tab-shell.macro-regime-off .macro-hero-card .mh-micro .micro-down {
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .macro-tab-shell.macro-regime-off .macro-status-badge.risk-on,
+    .macro-tab-shell.macro-regime-off .macro-status-badge.bullish,
+    .macro-tab-shell.macro-regime-off .macro-status-badge.flow-in {
+      color: #5c6b62;
+      background: #f4f7f5;
+      border-color: #dce5df;
+      box-shadow: none;
+      font-weight: 600;
+    }
+    .macro-tab-shell.macro-regime-off .macro-status-badge.neutral-breadth {
+      color: #78716c;
+      background: #fafaf9;
+      border-color: var(--line);
+      box-shadow: none;
+      font-weight: 600;
+    }
+    .macro-tab-shell.macro-regime-off .macro-status-badge.risk-off,
+    .macro-tab-shell.macro-regime-off .macro-status-badge.flow-out {
+      color: #9f1239;
+      background: #fff1f2;
+      border-color: #fecdd3;
+      box-shadow: none;
+      font-weight: 600;
+    }
+    .macro-tab-shell.macro-regime-neutral .macro-status-badge {
+      box-shadow: none;
+      font-weight: 600;
+    }
+    .macro-tab-shell.macro-regime-neutral .macro-status-badge.risk-on,
+    .macro-tab-shell.macro-regime-neutral .macro-status-badge.bullish,
+    .macro-tab-shell.macro-regime-neutral .macro-status-badge.flow-in {
+      color: #3f6f52;
+      background: #f6faf7;
+      border-color: #d8ebe0;
+    }
+    .macro-tab-shell.macro-regime-on .macro-status-badge {
+      box-shadow: none;
+    }
     .macro-global-banner {
-      margin: 10px 12px 0;
-      padding: 12px 16px;
+      margin: 12px 12px 6px;
+      padding: 14px 18px;
       border-radius: 12px;
       border: 1px solid var(--line);
       background: var(--bg-elev);
       color: var(--text);
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
-      line-height: 1.5;
+      line-height: 1.45;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 6px 10px;
+      gap: 8px 12px;
       font-variant-numeric: tabular-nums;
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-card);
     }
     .macro-global-banner.macro-skeleton {
-      min-height: 48px;
+      min-height: 52px;
       animation: macro-pulse 1.35s ease-in-out infinite;
     }
     .macro-global-banner.regime-on {
-      background: linear-gradient(90deg, #ecfdf5 0%, #fafaf9 100%);
-      border-color: #bbf7d0;
+      background: #ecfdf5;
+      border: 2px solid #86efac;
+      color: #14532d;
     }
     .macro-global-banner.regime-off {
-      background: linear-gradient(90deg, #fef2f2 0%, #fafaf9 100%);
-      border-color: #fecaca;
+      background: #b91c1c;
+      border: 2px solid #991b1b;
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(185, 28, 28, 0.32);
+    }
+    .macro-global-banner .mgb-alert-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .macro-global-banner.regime-off .mgb-alert-tag {
+      background: rgba(0, 0, 0, 0.2);
+      text-transform: uppercase;
+    }
+    .macro-global-banner.regime-on .mgb-alert-tag {
+      background: rgba(21, 128, 61, 0.12);
+      color: #166534;
+    }
+    .macro-global-banner.regime-neutral .mgb-alert-tag {
+      background: rgba(180, 83, 9, 0.12);
+      color: #92400e;
     }
     .macro-global-banner.regime-neutral {
-      background: linear-gradient(90deg, #fffbeb 0%, #fafaf9 100%);
-      border-color: #fde68a;
+      background: #fffbeb;
+      border: 2px solid #fcd34d;
+      color: #92400e;
     }
     .macro-global-banner .mgb-score {
-      font-size: 1.15rem;
+      font-size: 1.35rem;
       font-weight: 800;
       letter-spacing: -0.02em;
     }
-    .macro-global-banner .mgb-sep {
-      color: var(--muted);
+    .macro-global-banner.regime-off .mgb-score,
+    .macro-global-banner.regime-off .mgb-sep {
+      color: #ffffff;
+    }
+    .macro-global-banner.regime-on .mgb-sep,
+    .macro-global-banner.regime-neutral .mgb-sep {
+      color: inherit;
+      opacity: 0.65;
       font-weight: 500;
     }
     .macro-hero-grid {
@@ -958,7 +1051,7 @@
     </section>
 
     <section id="macroTab" class="tab-panel">
-      <div class="table-wrap">
+      <div class="table-wrap macro-tab-shell" id="macroTabShell">
         <div class="macro-panel-head">
           <h3 class="section-title" style="margin:0;">大佬三原色</h3>
           <span id="macroSub" class="macro-sub-compact"></span>
@@ -2359,24 +2452,50 @@ ${tail}`;
       return { score: null, regime: globalRiskRegime(null), components, fromBackend: false };
     }
 
+    function macroRegimeThemeClass(risk) {
+      const fs = risk?.score;
+      if (!Number.isFinite(fs)) return "";
+      const reg = risk.regime || globalRiskRegime(fs);
+      if (reg.cls === "risk-on") return "macro-regime-on";
+      if (reg.cls === "risk-off") return "macro-regime-off";
+      return "macro-regime-neutral";
+    }
+
+    function applyMacroGlobalRegimeTheme(risk) {
+      const shell = document.getElementById("macroTabShell");
+      if (!shell) return;
+      shell.classList.remove("macro-regime-on", "macro-regime-off", "macro-regime-neutral");
+      const cls = macroRegimeThemeClass(risk);
+      if (cls) shell.classList.add(cls);
+    }
+
     function renderMacroGlobalBanner(risk) {
       const el = document.getElementById("macroGlobalBanner");
       if (!el) return;
       const fs = risk?.score;
       if (!Number.isFinite(fs)) {
         el.style.display = "none";
+        applyMacroGlobalRegimeTheme(null);
         return;
       }
       const reg = risk.regime || globalRiskRegime(fs);
       const regimeCls =
         reg.cls === "risk-on" ? "regime-on" : reg.cls === "risk-off" ? "regime-off" : "regime-neutral";
+      applyMacroGlobalRegimeTheme(risk);
       el.className = `macro-global-banner ${regimeCls}`;
       el.style.display = "flex";
+      const alertTag =
+        reg.cls === "risk-off"
+          ? `<span class="mgb-alert-tag">⚠ 宏觀防守</span>`
+          : reg.cls === "risk-on"
+            ? `<span class="mgb-alert-tag">✓ 宏觀進攻</span>`
+            : `<span class="mgb-alert-tag">◆ 宏觀中性</span>`;
       el.innerHTML = `
-        <span>🌍 全球宏觀風險總分:</span>
+        ${alertTag}
+        <span>🌍 全球宏觀風險總分</span>
         <span class="mgb-score">${fs.toFixed(1)} / 100</span>
         <span class="mgb-sep">|</span>
-        <span>狀態: ${escapeHtml(reg.badge)}</span>
+        <span>狀態 ${escapeHtml(reg.badge)}</span>
       `;
     }
 
@@ -3633,6 +3752,7 @@ ${tail}`;
         const hero = document.getElementById("macroHeroGrid");
         if (hero) hero.innerHTML = "";
         if (globalBanner) globalBanner.style.display = "none";
+        applyMacroGlobalRegimeTheme(null);
         destroyCharts(_chartsMacro);
         const mh = document.getElementById("macroChartGrid");
         if (mh) mh.innerHTML = "";
@@ -3663,6 +3783,7 @@ ${tail}`;
       renderMacroTickerBar(data);
       const macroRisk = calculateGlobalRiskScore(data, metricsDisplay, advanced);
       renderMacroGlobalBanner(macroRisk);
+      applyMacroGlobalRegimeTheme(macroRisk);
       renderMacroHeroCards(data, metricsDisplay, advanced);
       const hasSeries =
         data?.chart_series && typeof data.chart_series === "object" && Object.keys(data.chart_series).length > 0;
