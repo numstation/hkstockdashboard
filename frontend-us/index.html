@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>技術掃描 · Dashboard</title>
+  <title>US 技術掃描 · Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -856,6 +856,19 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    body.market-us .col-hs-index { display: none; }
+    body.market-us #macroHeroGrid > article:nth-child(4) { display: none; }
+    @media (min-width: 900px) {
+      body.market-us #macroHeroGrid > article:nth-child(5) { grid-column: 1 / 7; }
+    }
+    .market-nav-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      margin-left: 10px;
+    }
+    .market-nav-link:hover { text-decoration: underline; }
     .mode-switch { display: inline-flex; gap: 8px; margin-left: 8px; flex-wrap: wrap; justify-content: flex-end; }
     .mode-btn { border: 1px solid var(--line); background: var(--card); color: #44403c; border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: var(--shadow-sm); }
     .mode-btn:hover { background: var(--bg-elev); }
@@ -967,19 +980,19 @@
     }
   </style>
 </head>
-<body>
+<body class="market-us">
   <div id="macroTickerBar" class="macro-ticker-bar" role="region" aria-label="宏觀快訊走馬燈">
     <div class="macro-ticker-track">
       <div id="macroTickerScroll" class="macro-ticker-scroll">
-        <span class="macro-ticker-placeholder">載入宏觀快訊（HSI · 上證 · 10Y · DXY · VIX · 北水）…</span>
+        <span class="macro-ticker-placeholder">載入宏觀快訊（S&amp;P · NASDAQ · 10Y · DXY · VIX）…</span>
       </div>
     </div>
   </div>
   <div class="container">
     <div class="header">
       <div>
-        <h1 class="title">技術掃描</h1>
-        <div class="sub">全市場 RVOL / ADX / MACD 與綜合評分 · JSON 驅動<a class="market-nav-link" href="/frontend-us/" style="font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;margin-left:10px;">US 美股版 →</a></div>
+        <h1 class="title">US 技術掃描</h1>
+        <div class="sub">美股 Top 200 · RVOL / ADX / MACD 與綜合評分 · JSON 驅動<a class="market-nav-link" href="/frontend/">← HK 港股版</a></div>
       </div>
       <div class="mode-switch">
         <button id="modeSellPutBtn" class="mode-btn active" type="button">Sell Put 穩健收租</button>
@@ -1010,7 +1023,7 @@
         <div class="chart-cell"><div class="ttl">尋寶象限圖：趨勢強度 vs 爆發量 (ADX vs RVOL)</div><canvas id="chScatter" aria-label="ADX vs RVOL quadrant"></canvas></div>
       </div>
       <p class="muted" style="margin:12px 0 0;font-size:11px;line-height:1.5;">
-        VIX／DXY／市寬等由「大佬三原色」Macro 分頁讀取 <code>macro_snapshot.json</code>；走勢圖在該頁摺疊區內。</p>
+        VIX／DXY／市寬等由「大佬三原色」Macro 分頁讀取共用 <code>macro_snapshot.json</code>（與 HK 版同步）；北水卡片已隱藏。</p>
     </div>
 
     <div class="tabs">
@@ -1041,7 +1054,7 @@
           <thead class="sticky-head">
             <tr>
               <th data-key="ticker">代號 · 名稱</th>
-              <th data-key="hs_index" title="HSI = Hang Seng Index constituent. HSCEI = Hang Seng China Enterprises Index. N/A = neither (non‑HK tickers also N/A).">HSI / HSCEI</th>
+              <th data-key="hs_index" class="col-hs-index" title="HK only — hidden on US dashboard">HSI / HSCEI</th>
               <th data-key="tech_score_d2" title="Score 2（前 2 個交易日）">Score 2</th>
               <th data-key="tech_score_d1" title="Score 1（前 1 個交易日）">Score 1</th>
               <th data-key="tech_score" title="Score 0（今日）">Score 0</th>
@@ -1196,6 +1209,11 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <script>
+    /** US dashboard — do not edit HK `frontend/index.html` when changing US-only behavior. */
+    const DASHBOARD_MARKET = "us";
+    const STOCK_NAMES_FILE = "us_stock_names.json";
+    const SCAN_FILE_PREFIX = "daily_scan_us";
+
     let rows = [];
     let sortKey = "tech_score";
     let sortAsc = false;
@@ -1633,8 +1651,8 @@ ${tail}`;
         const hintEl = document.getElementById("tableSliceHint");
         if (hintEl) { hintEl.style.display = "none"; hintEl.textContent = ""; }
         empty.textContent = dailyScanJsonOk
-          ? "已載入 daily_scan.json，但 stocks 為空。請在專案根目錄執行：`python3 run_scan_export_json.py`（預設讀取 hkstocklist.csv）。"
-          : "尚無掃描表。請在專案根執行 `python3 run_scan_export_json.py` 產生 daily_scan.json（可設 cron／launchd 每 30 分鐘刷新）。";
+          ? "已載入 daily_scan_us.json，但 stocks 為空。請執行：`python3 run_scan_export_json.py US --scan-prefix us --skip-macro`。"
+          : "尚無 US 掃描表。請執行 `python3 run_scan_export_json.py US --scan-prefix us --skip-macro` 產生 daily_scan_us.json。";
         empty.style.display = "block";
         return;
       }
@@ -1675,7 +1693,7 @@ ${tail}`;
         const hsIx = escapeHtml(String(r.hs_index ?? r.HS_Index ?? "N/A").trim() || "N/A");
         tr.innerHTML = `
           <td class="col-ticker">${tickerCell}</td>
-          <td class="muted" style="font-size:12px;white-space:nowrap;" title="HSI / HSCEI vs built-in index lists">${hsIx}</td>
+          <td class="muted col-hs-index" style="font-size:12px;white-space:nowrap;" title="HK only">${hsIx}</td>
           <td class="muted" title="Score 2（前 2 交易日）">${sc2}</td>
           <td class="muted" title="Score 1（前 1 交易日）">${sc1}</td>
           <td><strong title="Score 0（今日）">${sc0}</strong></td>
@@ -1710,7 +1728,7 @@ ${tail}`;
 
     const EMPTY_MESSAGES = {
       emptyState: "No stocks in current scan.",
-      historyEmpty: "No `signals_history.json` yet.",
+      historyEmpty: "No US trigger history yet (signals_history_us.json). Scanner tab uses daily_scan_us.json.",
       logEmpty: "No `future_log.json` yet.",
       macroEmpty: "No `macro_snapshot.json` yet.",
     };
@@ -1730,6 +1748,8 @@ ${tail}`;
      */
     function getFrontendBaseUrl() {
       const { origin, pathname } = window.location;
+      const mUs = pathname.match(/^(.*\/frontend-us)(?:\/.*)?$/i);
+      if (mUs) return origin + mUs[1] + "/";
       const m = pathname.match(/^(.*\/frontend)(?:\/.*)?$/i);
       if (m) return origin + m[1] + "/";
       const dir = pathname.replace(/\/[^/]*$/, "");
@@ -1752,6 +1772,11 @@ ${tail}`;
     }
 
     function dailyScanFilenameByModel(model) {
+      if (DASHBOARD_MARKET === "us") {
+        if (String(model) === "buy_stock") return "daily_scan_us_buy_stock.json";
+        if (String(model) === "buy_put") return "daily_scan_us_buy_put.json";
+        return "daily_scan_us_sell_put.json";
+      }
       if (String(model) === "buy_stock") return "daily_scan_buy_stock.json";
       if (String(model) === "buy_put") return "daily_scan_buy_put.json";
       return "daily_scan_sell_put.json";
@@ -1761,6 +1786,9 @@ ${tail}`;
     function inferModelFromScanUrl(url) {
       const path = String(url || "").split("?")[0].toLowerCase();
       const base = path.split("/").pop() || "";
+      if (base === "daily_scan_us_buy_stock.json") return "buy_stock";
+      if (base === "daily_scan_us_buy_put.json") return "buy_put";
+      if (base === "daily_scan_us_sell_put.json") return "sell_put";
       if (base === "daily_scan_buy_stock.json") return "buy_stock";
       if (base === "daily_scan_buy_put.json") return "buy_put";
       if (base === "daily_scan_sell_put.json") return "sell_put";
@@ -1794,7 +1822,11 @@ ${tail}`;
     function dailyScanUrlCandidatesForActiveModel() {
       const m = String(activeScoreModel || "sell_put");
       const tail = [];
-      if (m === "sell_put") {
+      if (DASHBOARD_MARKET === "us") {
+        if (m === "sell_put") tail.push("daily_scan_us_sell_put.json", "daily_scan_us.json");
+        else if (m === "buy_stock") tail.push("daily_scan_us_buy_stock.json", "daily_scan_us.json");
+        else if (m === "buy_put") tail.push("daily_scan_us_buy_put.json", "daily_scan_us.json");
+      } else if (m === "sell_put") {
         tail.push("daily_scan_sell_put.json", "daily_scan.json");
       } else if (m === "buy_stock") {
         tail.push("daily_scan_buy_stock.json", "daily_scan.json");
@@ -1849,15 +1881,38 @@ ${tail}`;
 
     async function loadHkStockNames() {
       if (_hkStockNames) return _hkStockNames;
-      const data = await fetchJsonSafe("hk_stock_names.json");
+      const data = await fetchJsonSafe(STOCK_NAMES_FILE);
       _hkStockNames = data && typeof data === "object" && !Array.isArray(data) ? data : {};
       return _hkStockNames;
+    }
+
+    function macroSnapshotUrlCandidates() {
+      const { origin } = window.location;
+      return [
+        origin + "/frontend/data/macro_snapshot.json",
+        ...jsonUrlCandidates("macro_snapshot.json"),
+      ];
+    }
+
+    async function fetchMacroSnapshot() {
+      for (const url of macroSnapshotUrlCandidates()) {
+        try {
+          const sep = url.includes("?") ? "&" : "?";
+          const res = await fetch(url + sep + "ts=" + Date.now(), { cache: "no-store" });
+          if (!res.ok) continue;
+          return await res.json();
+        } catch {
+          /* try next */
+        }
+      }
+      return null;
     }
 
     function formatTickerCode(sym) {
       const t = String(sym || "").trim().toUpperCase();
       const m = t.match(/^(\d+)\.HK$/i);
       if (m) return String(parseInt(m[1], 10)).padStart(4, "0");
+      if (DASHBOARD_MARKET === "us" && t && !t.includes(".")) return t;
       return t || "—";
     }
 
@@ -1922,6 +1977,9 @@ ${tail}`;
         if (Number.isFinite(num)) {
           return "https://www.tradingview.com/chart/?symbol=HKEX%3A" + num + "&interval=1D";
         }
+      }
+      if (DASHBOARD_MARKET === "us" && /^[A-Z][A-Z0-9.\-]{0,9}$/.test(t)) {
+        return "https://www.tradingview.com/chart/?symbol=" + encodeURIComponent("NASDAQ:" + t) + "&interval=1D";
       }
       return "https://www.tradingview.com/chart/?symbol=" + encodeURIComponent(t) + "&interval=1D";
     }
@@ -4030,7 +4088,7 @@ ${tail}`;
 
     async function loadMacro() {
       showMacroSkeleton();
-      const data = await fetchJsonSafe("macro_snapshot.json");
+      const data = await fetchMacroSnapshot();
       const tbody = document.getElementById("macroTbody");
       const advBody = document.getElementById("macroAdvancedTbody");
       const sub = document.getElementById("macroSub");

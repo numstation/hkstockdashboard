@@ -102,10 +102,39 @@ def parse_args(argv: list[str]):
             i += 1
         elif a == "--single-model":
             both_models = False
+        elif a == "--scan-prefix" and i + 1 < len(argv):
+            rest.insert(0, f"__scan_prefix__={argv[i + 1].strip().lower()}")
+            i += 1
         else:
             rest.append(a)
         i += 1
-    return strategy, rest, signals_only, sleep_s, macro_only, skip_macro, score_model, both_models
+    scan_prefix = ""
+    rest2: list[str] = []
+    for a in rest:
+        if a.startswith("__scan_prefix__="):
+            scan_prefix = a.split("=", 1)[1].strip().lower()
+        else:
+            rest2.append(a)
+    return strategy, rest2, signals_only, sleep_s, macro_only, skip_macro, score_model, both_models, scan_prefix
+
+
+def _scan_export_names(scan_prefix: str, score_model: str) -> tuple[str, list[tuple[str, str]]]:
+    """Return (primary daily_scan filename, [(model, per-model filename), ...])."""
+    p = (scan_prefix or "").strip().lower()
+    if p == "us":
+        primary = "daily_scan_us.json"
+        models = [
+            ("sell_put", "daily_scan_us_sell_put.json"),
+            ("buy_stock", "daily_scan_us_buy_stock.json"),
+            ("buy_put", "daily_scan_us_buy_put.json"),
+        ]
+        return primary, models
+    models = [
+        ("sell_put", "daily_scan_sell_put.json"),
+        ("buy_stock", "daily_scan_buy_stock.json"),
+        ("buy_put", "daily_scan_buy_put.json"),
+    ]
+    return "daily_scan.json", models
 
 
 def load_exporters():
@@ -193,9 +222,11 @@ def _future_log_subset(df: pd.DataFrame | None, *, universe_mode: bool) -> pd.Da
 
 def main() -> int:
     argv = [a.strip() for a in sys.argv[1:] if a.strip()]
-    strategy, pos, signals_only, sleep_s, macro_only, skip_macro, score_model, both_models = parse_args(
+    strategy, pos, signals_only, sleep_s, macro_only, skip_macro, score_model, both_models, scan_prefix = parse_args(
         argv
     )
+    primary_scan_name, model_export_names = _scan_export_names(scan_prefix, score_model)
+    us_only = scan_prefix == "us"
 
     if macro_only:
         exporters = load_exporters()
@@ -253,15 +284,9 @@ def main() -> int:
             log_df if log_df is not None else pd.DataFrame(), strategy, schema_version=schema_ver
         )
     else:
-        model_runs = (
-            [
-                ("sell_put", "daily_scan_sell_put.json"),
-                ("buy_stock", "daily_scan_buy_stock.json"),
-                ("buy_put", "daily_scan_buy_put.json"),
-            ]
-            if both_models
-            else [(score_model, f"daily_scan_{score_model}.json")]
-        )
+        model_runs = model_export_names if both_models else [(score_model, f"daily_scan_{score_model}.json")]
+        if us_only and not both_models:
+            model_runs = [(score_model, f"daily_scan_us_{score_model}.json")]
         dfs_by_model: dict[str, pd.DataFrame] = {}
         for m, out_name in model_runs:
             print(f"\n[model] computing {m} ...")
@@ -281,7 +306,7 @@ def main() -> int:
         exporters.export_results_to_json(
             df_primary_scan,
             strategy_primary,
-            filename="daily_scan.json",
+            filename=primary_scan_name,
             score_model_slug=mirror,
             schema_version=schema_ver,
         )
@@ -290,40 +315,43 @@ def main() -> int:
             exported_first_df = df_primary_scan
         df = exported_first_df
         universe_mode = True
-        trade_logged = 0
-        for m, df_m in dfs_by_model.items():
-            strategy_m = strategy_display_name(m, strategy)
+        if not us_only:
+            trade_logged = 0
+            for m, df_m in dfs_by_model.items():
+                strategy_m = strategy_display_name(m, strategy)
+                try:
+                    trade_logged += exporters.export_trade_signals_history_to_json(
+                        df_m, strategy_m, score_model_slug=m, schema_version=schema_ver
+                    )
+                except Exception as e:
+                    print(f"[warn] trade history export failed ({m}): {e}", file=sys.stderr)
+            print(f"Trade triggers logged this run: {trade_logged}")
             try:
-                trade_logged += exporters.export_trade_signals_history_to_json(
-                    df_m, strategy_m, score_model_slug=m, schema_version=schema_ver
-                )
+                synced = exporters.export_trade_signals_from_scan_files(strategy_name=strategy)
+                if synced:
+                    print(f"Trade triggers synced from scan JSON files: {synced}")
             except Exception as e:
-                print(f"[warn] trade history export failed ({m}): {e}", file=sys.stderr)
-        print(f"Trade triggers logged this run: {trade_logged}")
-        try:
-            synced = exporters.export_trade_signals_from_scan_files(strategy_name=strategy)
-            if synced:
-                print(f"Trade triggers synced from scan JSON files: {synced}")
-        except Exception as e:
-            print(f"[warn] scan-file trade sync failed: {e}", file=sys.stderr)
-        for m, out_name in model_runs:
-            try:
-                exporters.backfill_daily_breadth_from_scan_json(out_name, m)
-            except Exception as e:
-                print(f"[warn] breadth backfill failed ({out_name}): {e}", file=sys.stderr)
-        log_df = _future_log_subset(df, universe_mode=universe_mode)
-        exporters.append_future_log_to_json(
-            log_df if log_df is not None else pd.DataFrame(), strategy, schema_version=schema_ver
-        )
-    if not skip_macro:
+                print(f"[warn] scan-file trade sync failed: {e}", file=sys.stderr)
+            for m, out_name in model_runs:
+                try:
+                    exporters.backfill_daily_breadth_from_scan_json(out_name, m)
+                except Exception as e:
+                    print(f"[warn] breadth backfill failed ({out_name}): {e}", file=sys.stderr)
+            log_df = _future_log_subset(df, universe_mode=universe_mode)
+            exporters.append_future_log_to_json(
+                log_df if log_df is not None else pd.DataFrame(), strategy, schema_version=schema_ver
+            )
+        else:
+            print("US scan-only export (skipped HK trade history / future_log / breadth backfill).")
+    if not skip_macro and not us_only:
         exporters.export_macro_snapshot_to_json(schema_version=schema_ver)
-    else:
-        print("Skipped macro_snapshot export (--skip-macro).")
+    elif skip_macro or us_only:
+        print("Skipped macro_snapshot export (--skip-macro or US scan-only).")
 
     n_ok = int(df["data_ok"].sum()) if universe_mode and not df.empty and "data_ok" in df.columns else len(df)
     print(
         f"Done. Rows: {len(df)} | data_ok≈{n_ok} | schema={schema_ver} | "
-        f"daily_scan.json primary={mirror!r} | ROOT={ROOT}"
+        f"primary={primary_scan_name!r} | ROOT={ROOT}"
     )
     return 0
 
