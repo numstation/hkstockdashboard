@@ -72,6 +72,7 @@ _fetch_live_json() {
 _pull_live_market_data() {
   local market="$1"
   local data_dir="$2"
+  local required="${3:-0}"
   local -a files
   local url_prefix
 
@@ -93,13 +94,15 @@ _pull_live_market_data() {
     fi
   done
   echo "    fetched ${ok}/${#files[@]} files"
-  if [[ "$market" == "hk" && ! -f "${data_dir}/daily_scan.json" ]]; then
-    echo "::error:: Could not fetch live HK daily_scan.json — aborting deploy."
-    exit 1
-  fi
-  if [[ "$market" == "us" && ! -f "${data_dir}/daily_scan_us.json" ]]; then
-    echo "::error:: Could not fetch live US daily_scan_us.json — aborting deploy."
-    exit 1
+
+  local primary=""
+  if [[ "$market" == "hk" ]]; then primary="daily_scan.json"; else primary="daily_scan_us.json"; fi
+  if [[ ! -f "${data_dir}/${primary}" ]]; then
+    if [[ "$required" == "1" ]]; then
+      echo "::error:: Could not fetch live ${market} ${primary} — aborting deploy."
+      exit 1
+    fi
+    echo "::warning:: live ${market} ${primary} missing — deploy continues with partial ${market} data."
   fi
 }
 
@@ -111,7 +114,7 @@ _prepare_hk_data() {
     echo "==> Refresh HK JSON from repo scan"
     bash "$ROOT/scripts/sync_frontend_data.sh"
   else
-    _pull_live_market_data hk "$data_dir"
+    _pull_live_market_data hk "$data_dir" 1
     if [[ -f "$ROOT/hkstocklist.csv" ]]; then
       python3 "$ROOT/scripts/export_hk_stock_names.py"
     fi
@@ -126,7 +129,7 @@ _prepare_us_data() {
     echo "==> Refresh US JSON from repo scan"
     bash "$ROOT/scripts/sync_frontend_us_data.sh"
   else
-    _pull_live_market_data us "$data_dir"
+    _pull_live_market_data us "$data_dir" 0
     if [[ -f "$ROOT/us_top200.txt" ]]; then
       python3 "$ROOT/scripts/export_us_stock_names.py"
     fi
