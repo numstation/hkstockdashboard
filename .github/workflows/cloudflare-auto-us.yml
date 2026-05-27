@@ -1,0 +1,58 @@
+# US dashboard auto-update — separate schedule from HK (NYSE/Nasdaq regular hours).
+# HK workflow: cloudflare-auto.yml (≈ HKT 09:00–16:30).
+# This workflow: ≈ HKT 22:00–06:00 (covers US 09:30–16:00 Eastern in UTC).
+
+name: Cloudflare auto update (US)
+
+on:
+  schedule:
+    # UTC Mon–Fri every 30m, 14:00–22:30 ≈ US cash session + buffer (HKT ~22:00–06:30)
+    - cron: "0,30 14-22 * * 1-5"
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-dashboard-us
+  cancel-in-progress: false
+
+jobs:
+  scan-us-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SCAN_VALIDATE_MIN_OK: "30"
+      SCAN_VALIDATE_FILES: "daily_scan_us.json"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-scan.txt
+
+      - name: Setup Node (Wrangler)
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r requirements-scan.txt
+
+      - name: Scan US universe → JSON
+        run: bash scripts/ci_refresh_us.sh
+
+      - name: Validate US scan quality
+        run: python3 scripts/validate_scan_json.py
+
+      - name: Deploy to Cloudflare Workers
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
+            echo "::error::Missing GitHub secret CLOUDFLARE_API_TOKEN"
+            exit 1
+          fi
+          bash scripts/deploy_cloudflare.sh
+          echo "Live US: https://hkstockdashboard.chrislau.workers.dev/frontend-us/"

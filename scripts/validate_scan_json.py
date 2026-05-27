@@ -32,10 +32,14 @@ def check(path: Path) -> tuple[int, int, str | None]:
 def main() -> int:
     min_ok = _min_ok()
     print(f"validate_scan_json: SCAN_VALIDATE_MIN_OK={min_ok}")
-    files = [
-        ROOT / "daily_scan_sell_put.json",
-        ROOT / "daily_scan.json",
-    ]
+    env_list = os.environ.get("SCAN_VALIDATE_FILES", "").strip()
+    if env_list:
+        files = [ROOT / p.strip() for p in env_list.split(",") if p.strip()]
+    else:
+        files = [
+            ROOT / "daily_scan_sell_put.json",
+            ROOT / "daily_scan.json",
+        ]
     failed = False
     for path in files:
         ok, total, lu = check(path)

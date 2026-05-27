@@ -120,7 +120,9 @@ After a successful update, the workflow name is **“Dashboard refresh (scan + a
 
 ### 3. Push this project (or enable the workflow file)
 
-Ensure `.github/workflows/cloudflare-auto.yml` is on your `main` branch (commit + push).
+Ensure both workflow files are on `main`:
+- `.github/workflows/cloudflare-auto.yml` (HK)
+- `.github/workflows/cloudflare-auto-us.yml` (US)
 
 ### 4. Test manually once
 
@@ -139,9 +141,12 @@ If step 4 fails with `Missing CLOUDFLARE_API_TOKEN`, repeat step 2.
 
 | When | What happens |
 |------|----------------|
-| **Mon–Fri** every **30 min** (HK ~09:00–16:30) | Scan 133 stocks → validate → deploy Cloudflare |
-| **You push** code | Old workflow may also run (Pages + Cloudflare if token set) |
-| **Manual** | Actions → **Cloudflare auto update** → Run workflow |
+| **Mon–Fri** every **30 min** (HK ~09:00–16:30) | **HK** scan → `daily_scan.json` → deploy (`cloudflare-auto.yml`) |
+| **Mon–Fri** every **30 min** (HK ~22:00–06:30) | **US** scan → `daily_scan_us.json` → deploy (`cloudflare-auto-us.yml`) |
+| **You push** code | Dashboard workflow may also run (HK scan + deploy if token set) |
+| **Manual** | Actions → **Cloudflare auto update** or **Cloudflare auto update (US)** → Run workflow |
+
+US and HK use **different GitHub cron windows** because US cash session is evening–early-morning in Hong Kong (not the same as HKEX 09:00–16:30).
 
 You do **not** need to run Terminal commands when this works.
 
@@ -156,6 +161,7 @@ You do **not** need to run Terminal commands when this works.
 | Red X on **Deploy** | Wrong or missing `CLOUDFLARE_API_TOKEN` |
 | Cloudflare old time, Actions green | Hard refresh browser; check JSON URL `last_updated` |
 | No runs on schedule | Repo default branch must be `main` or `master`; cron is UTC |
+| US page stale after ~4:30pm HKT | Normal — US updates on **evening** schedule; see `cloudflare-auto-us.yml` |
 
 ---
 
@@ -177,6 +183,9 @@ Add (weekdays 9:15 AM HK ≈ adjust for your timezone):
 
 ## Summary
 
-**Auto-update = GitHub secret `CLOUDFLARE_API_TOKEN` + workflow `cloudflare-auto.yml` running on schedule.**
+**Auto-update = GitHub secret `CLOUDFLARE_API_TOKEN` + HK/US workflows on schedule.**
+
+- HK: https://hkstockdashboard.chrislau.workers.dev/frontend/
+- US: https://hkstockdashboard.chrislau.workers.dev/frontend-us/
 
 Without the token, only manual `bash scripts/deploy_cloudflare.sh` updates Cloudflare.
