@@ -11,5 +11,6 @@ else
   echo "::warning:: US scan export failed — deploy keeps previous frontend-us/data if present"
   exit 1
 fi
+
 bash "$ROOT/scripts/sync_frontend_us_data.sh"
 echo "[$(date -Iseconds)] CI US refresh done"

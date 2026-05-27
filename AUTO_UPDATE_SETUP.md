@@ -148,6 +148,8 @@ If step 4 fails with `Missing CLOUDFLARE_API_TOKEN`, repeat step 2.
 
 US and HK use **different GitHub cron windows** because US cash session is evening–early-morning in Hong Kong (not the same as HKEX 09:00–16:30).
 
+Both workflows deploy the **same Cloudflare Worker**. `scripts/deploy_cloudflare.sh` uses **`DEPLOY_MARKET`** so each run only refreshes its own scan JSON and **pulls the other market from the live site** — HK deploy must not wipe US data, and US deploy must not overwrite HK with stale git files.
+
 You do **not** need to run Terminal commands when this works.
 
 ---
@@ -161,7 +163,8 @@ You do **not** need to run Terminal commands when this works.
 | Red X on **Deploy** | Wrong or missing `CLOUDFLARE_API_TOKEN` |
 | Cloudflare old time, Actions green | Hard refresh browser; check JSON URL `last_updated` |
 | No runs on schedule | Repo default branch must be `main` or `master`; cron is UTC |
-| US page stale after ~4:30pm HKT | Normal — US updates on **evening** schedule; see `cloudflare-auto-us.yml` |
+| US page stale after ~4:30pm HKT | Normal until evening US cron; HK deploy no longer clears US JSON |
+| HK page goes stale after US deploy | Fixed: US workflow sets `DEPLOY_MARKET=us` and pulls HK JSON from live |
 
 ---
 

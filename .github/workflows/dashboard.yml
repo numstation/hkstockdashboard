@@ -71,6 +71,7 @@ jobs:
 
       - name: Deploy to Cloudflare Workers
         env:
+          DEPLOY_MARKET: hk
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           # Yahoo/rate limits in CI often dip below 50 data_ok; tune or unset for strict deploys.
           SCAN_VALIDATE_MIN_OK: "40"

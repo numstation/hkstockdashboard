@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: cloudflare-dashboard-us
+  group: cloudflare-dashboard-deploy
   cancel-in-progress: false
 
 jobs:
@@ -48,6 +48,7 @@ jobs:
 
       - name: Deploy to Cloudflare Workers
         env:
+          DEPLOY_MARKET: us
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
