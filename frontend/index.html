@@ -2581,15 +2581,15 @@ ${tail}`;
 
     function southbound5dAvg(data) {
       const sb = data?.southbound_connect;
-      const direct = num(sb?.net_yi_5d_avg);
-      if (Number.isFinite(direct)) return direct;
       const hist = Array.isArray(sb?.history) ? sb.history : [];
       const vals = hist
         .slice(-5)
         .map((h) => num(h?.net_yi))
         .filter((x) => Number.isFinite(x));
       if (vals.length) return vals.reduce((a, b) => a + b, 0) / vals.length;
-      return num(sb?.net_yi);
+      const direct = num(sb?.net_yi_5d_avg);
+      if (Number.isFinite(direct)) return direct;
+      return null;
     }
 
     function southboundRiskPts(avg5) {
@@ -2883,11 +2883,14 @@ ${tail}`;
         danger: "🔴 強烈撤資",
       });
       const sbYi = num(data?.southbound_connect?.net_yi);
+      const sbHistDays = Array.isArray(data?.southbound_connect?.history)
+        ? data.southbound_connect.history.length
+        : 0;
       const box4Hero = Number.isFinite(sbAvg5)
         ? `港股通 5日均: ${sbAvg5 >= 0 ? "+" : ""}${sbAvg5.toFixed(2)} 億`
         : "港股通 5日均線";
       const box4Micro = Number.isFinite(sbYi)
-        ? `今日單日: ${sbYi >= 0 ? "+" : ""}${sbYi.toFixed(2)} 億`
+        ? `今日單日: ${sbYi >= 0 ? "+" : ""}${sbYi.toFixed(2)} 億${sbHistDays > 0 && sbHistDays < 5 ? `（${sbHistDays}日樣本）` : ""}`
         : "今日單日: —";
       if (Number.isFinite(sbAvg5)) {
         if (sbAvg5 >= 30) _macroTableHi.flowIn = true;

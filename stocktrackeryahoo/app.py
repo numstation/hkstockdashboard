@@ -800,35 +800,150 @@ def _sma_last(closes: list[float], window: int = 20) -> float | None:
     return sum(tail) / float(window)
 
 
+def _merge_southbound_histories(*hist_lists) -> list[dict]:
+    """Merge daily 港股通 rows by date (d), keeping the latest net_yi per day."""
+    by_d: dict[str, dict] = {}
+    for hist in hist_lists:
+        if not isinstance(hist, list):
+            continue
+        for row in hist:
+            if not isinstance(row, dict) or row.get("d") is None:
+                continue
+            try:
+                d = str(row["d"]).strip()[:10]
+                net = float(row["net_yi"])
+            except (TypeError, ValueError):
+                continue
+            by_d[d] = {"d": d, "net_yi": round(net, 2)}
+    return sorted(by_d.values(), key=lambda x: x["d"])[-30:]
+
+
+def _fetch_remote_json(url: str, timeout: float = 12.0) -> dict | None:
+    try:
+        import requests
+    except ImportError:
+        return None
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        ),
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=timeout)
+        if resp.status_code != 200:
+            return None
+        data = resp.json()
+        return data if isinstance(data, dict) else None
+    except Exception:
+        return None
+
+
+def _fetch_southbound_history_em(max_days: int = 10) -> list[dict]:
+    """
+    Recent 南向资金 (MUTUAL_TYPE=006) daily net flow from East Money datacenter.
+    NET_DEAL_AMT is in 百萬元; divide by 100 → 億元 (same scale as kamt netBuyAmt/1e4).
+    """
+    try:
+        import requests
+    except ImportError:
+        return []
+    url = "https://datacenter-web.eastmoney.com/api/data/v1/get"
+    params = {
+        "sortColumns": "TRADE_DATE",
+        "sortTypes": "-1",
+        "pageSize": str(max(5, min(max_days, 20))),
+        "pageNumber": "1",
+        "reportName": "RPT_MUTUAL_DEAL_HISTORY",
+        "columns": "TRADE_DATE,NET_DEAL_AMT",
+        "source": "WEB",
+        "client": "WEB",
+        "filter": '(MUTUAL_TYPE="006")',
+    }
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        ),
+        "Referer": "https://data.eastmoney.com/hsgt/",
+    }
+    try:
+        resp = requests.get(url, params=params, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            return []
+        body = resp.json()
+        rows = (body.get("result") or {}).get("data") if isinstance(body, dict) else None
+        if not isinstance(rows, list):
+            return []
+        out: list[dict] = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            raw_d = row.get("TRADE_DATE")
+            raw_net = row.get("NET_DEAL_AMT")
+            if raw_d is None or raw_net is None:
+                continue
+            try:
+                d = str(raw_d).strip()[:10]
+                net_yi = round(float(raw_net) / 100.0, 2)
+            except (TypeError, ValueError):
+                continue
+            out.append({"d": d, "net_yi": net_yi})
+        return out
+    except Exception as e:
+        print(f"Southbound history API: {e}")
+        return []
+
+
+def _macro_prev_for_southbound(out_path: str) -> dict:
+    """Build prev payload for southbound history: local file + live deploy + EM backfill."""
+    prev_local = _read_json_file(out_path, {})
+    if not isinstance(prev_local, dict):
+        prev_local = {}
+
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    prev_fe = _read_json_file(os.path.join(repo_root, "frontend", "data", "macro_snapshot.json"), {})
+    if not isinstance(prev_fe, dict):
+        prev_fe = {}
+
+    base = os.environ.get("DASHBOARD_BASE_URL", "https://hkstockdashboard.chrislau.workers.dev").rstrip("/")
+    prev_live = _fetch_remote_json(f"{base}/frontend/data/macro_snapshot.json") or {}
+
+    local_hist = (prev_local.get("southbound_connect") or {}).get("history")
+    fe_hist = (prev_fe.get("southbound_connect") or {}).get("history")
+    live_hist = (prev_live.get("southbound_connect") or {}).get("history")
+    em_hist = _fetch_southbound_history_em(10)
+
+    merged_hist = _merge_southbound_histories(local_hist, fe_hist, live_hist, em_hist)
+    return {"southbound_connect": {"history": merged_hist}}
+
+
 def _southbound_5d_avg(
     prev_payload: dict | None, net_yi: float | None, day: str
 ) -> dict:
     """Rolling 5-day mean of 港股通 net flow (億); keeps short daily history."""
-    hist: list[dict] = []
+    prev_hist: list[dict] = []
     if isinstance(prev_payload, dict):
         prev_sb = prev_payload.get("southbound_connect")
         if isinstance(prev_sb, dict) and isinstance(prev_sb.get("history"), list):
-            for row in prev_sb["history"]:
-                if isinstance(row, dict) and row.get("d") is not None:
-                    try:
-                        hist.append({"d": str(row["d"]), "net_yi": float(row["net_yi"])})
-                    except (TypeError, ValueError):
-                        continue
+            prev_hist = prev_sb["history"]
+    hist = _merge_southbound_histories(prev_hist, _fetch_southbound_history_em(10))
     if isinstance(net_yi, (int, float)):
+        day_key = str(day).strip()[:10]
         replaced = False
         for row in hist:
-            if row["d"] == day:
-                row["net_yi"] = float(net_yi)
+            if row.get("d") == day_key:
+                row["net_yi"] = round(float(net_yi), 2)
                 replaced = True
                 break
         if not replaced:
-            hist.append({"d": day, "net_yi": float(net_yi)})
-    hist = sorted({r["d"]: r for r in hist}.values(), key=lambda x: x["d"])[-30:]
+            hist.append({"d": day_key, "net_yi": round(float(net_yi), 2)})
+        hist = _merge_southbound_histories(hist)
     avg5 = None
     if hist:
         tail = [r["net_yi"] for r in hist[-5:] if isinstance(r.get("net_yi"), (int, float))]
         if tail:
-            avg5 = sum(tail) / len(tail)
+            avg5 = round(sum(tail) / len(tail), 2)
     return {"history": hist, "net_yi_5d_avg": avg5}
 
 
@@ -1396,9 +1511,17 @@ def _merge_macro_payload(prev: dict, new: dict) -> dict:
     new_sb = merged.get("southbound_connect") if isinstance(merged.get("southbound_connect"), dict) else {}
     if new_sb.get("net_yi") is None and prev_sb.get("net_yi") is not None:
         new_sb = {**new_sb, "net_yi": prev_sb.get("net_yi")}
-    if not new_sb.get("history") and prev_sb.get("history"):
-        new_sb = {**new_sb, "history": prev_sb.get("history")}
-    if new_sb.get("net_yi_5d_avg") is None and prev_sb.get("net_yi_5d_avg") is not None:
+    merged_hist = _merge_southbound_histories(prev_sb.get("history"), new_sb.get("history"))
+    if merged_hist:
+        new_sb = {**new_sb, "history": merged_hist}
+        tail = [
+            r["net_yi"]
+            for r in merged_hist[-5:]
+            if isinstance(r.get("net_yi"), (int, float))
+        ]
+        if tail:
+            new_sb["net_yi_5d_avg"] = round(sum(tail) / len(tail), 2)
+    elif new_sb.get("net_yi_5d_avg") is None and prev_sb.get("net_yi_5d_avg") is not None:
         new_sb = {**new_sb, "net_yi_5d_avg": prev_sb.get("net_yi_5d_avg")}
     merged["southbound_connect"] = new_sb
 
@@ -1604,7 +1727,7 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
 
     prev_payload = _read_json_file(out_path, {})
     day = now_str.split("T")[0]
-    sb_pack = _southbound_5d_avg(prev_payload, southbound_yi, day)
+    sb_pack = _southbound_5d_avg(_macro_prev_for_southbound(out_path), southbound_yi, day)
     breadth_markets: dict = {}
     try:
         import sys

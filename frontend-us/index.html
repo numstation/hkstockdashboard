@@ -2639,15 +2639,15 @@ ${tail}`;
 
     function southbound5dAvg(data) {
       const sb = data?.southbound_connect;
-      const direct = num(sb?.net_yi_5d_avg);
-      if (Number.isFinite(direct)) return direct;
       const hist = Array.isArray(sb?.history) ? sb.history : [];
       const vals = hist
         .slice(-5)
         .map((h) => num(h?.net_yi))
         .filter((x) => Number.isFinite(x));
       if (vals.length) return vals.reduce((a, b) => a + b, 0) / vals.length;
-      return num(sb?.net_yi);
+      const direct = num(sb?.net_yi_5d_avg);
+      if (Number.isFinite(direct)) return direct;
+      return null;
     }
 
     function southboundRiskPts(avg5) {
