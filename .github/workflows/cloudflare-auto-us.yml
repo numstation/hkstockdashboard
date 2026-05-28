@@ -1,13 +1,21 @@
 # US dashboard auto-update — separate schedule from HK (NYSE/Nasdaq regular hours).
 # HK workflow: cloudflare-auto.yml (≈ HKT 09:00–16:30).
-# This workflow: ≈ HKT 22:00–06:00 (covers US 09:30–16:00 Eastern in UTC).
+# This workflow: ≈ HKT 22:00–06:15 (covers US 09:30–16:00 Eastern in UTC).
+# Cadence: ~35 min between scheduled starts (not 30) — US scan takes ~15–20 min for
+# 200 tickers × 3 models; 30 min slots caused queue/backlog and 1h+ gaps on GitHub.
 
 name: Cloudflare auto update (US)
 
 on:
   schedule:
-    # UTC Mon–Fri every 30m, 14:00–22:30 ≈ US cash session + buffer (HKT ~22:00–06:30)
-    - cron: "0,30 14-22 * * 1-5"
+    # ~every 35 min, UTC 14:00–22:10 ≈ HKT 22:00–06:10 (Mon–Fri)
+    # GitHub cron cannot do "*/35"; six lines = 0,35 / 10,45 / 20,55 minute cycle.
+    - cron: "0 14-21 * * 1-5"
+    - cron: "35 14-21 * * 1-5"
+    - cron: "10 15-22 * * 1-5"
+    - cron: "45 15-22 * * 1-5"
+    - cron: "20 15-21 * * 1-5"
+    - cron: "55 15-21 * * 1-5"
   workflow_dispatch:
 
 concurrency:

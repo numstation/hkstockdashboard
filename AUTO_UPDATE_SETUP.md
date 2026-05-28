@@ -142,11 +142,11 @@ If step 4 fails with `Missing CLOUDFLARE_API_TOKEN`, repeat step 2.
 | When | What happens |
 |------|----------------|
 | **Mon–Fri** every **30 min** (HK ~09:00–16:30) | **HK** scan → `daily_scan.json` → deploy (`cloudflare-auto.yml`) |
-| **Mon–Fri** every **30 min** (HK ~22:00–06:30) | **US** scan → `daily_scan_us.json` → deploy (`cloudflare-auto-us.yml`) |
+| **Mon–Fri** every **~35 min** (HK ~22:00–06:10) | **US** scan → `daily_scan_us.json` → deploy (`cloudflare-auto-us.yml`) |
 | **You push** code | Dashboard workflow may also run (HK scan + deploy if token set) |
 | **Manual** | Actions → **Cloudflare auto update** or **Cloudflare auto update (US)** → Run workflow |
 
-US and HK use **different GitHub cron windows** because US cash session is evening–early-morning in Hong Kong (not the same as HKEX 09:00–16:30).
+US and HK use **different GitHub cron windows** because US cash session is evening–early-morning in Hong Kong (not the same as HKEX 09:00–16:30). US runs are spaced **~35 minutes** apart (not 30) so a ~15–20 minute Yahoo scan can finish before the next run starts — otherwise runs queue up and `last_updated` can jump by 1 hour or more.
 
 Both workflows deploy the **same Cloudflare Worker**. `scripts/deploy_cloudflare.sh` uses **`DEPLOY_MARKET`** so each run only refreshes its own scan JSON and **pulls the other market from the live site** — HK deploy must not wipe US data, and US deploy must not overwrite HK with stale git files.
 
