@@ -2650,6 +2650,30 @@ ${tail}`;
       return null;
     }
 
+    function southboundTodayYi(data) {
+      const sb = data?.southbound_connect;
+      const direct = num(sb?.net_yi);
+      if (Number.isFinite(direct)) {
+        return { net: direct, date: sb?.net_yi_date || null };
+      }
+      const hist = Array.isArray(sb?.history) ? sb.history : [];
+      if (!hist.length) return { net: null, date: null };
+      const last = hist[hist.length - 1];
+      const net = num(last?.net_yi);
+      return {
+        net: Number.isFinite(net) ? net : null,
+        date: last?.d ? String(last.d).slice(0, 10) : null,
+      };
+    }
+
+    function hkTodayKey() {
+      try {
+        return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Hong_Kong" }).format(new Date());
+      } catch (_) {
+        return new Date().toISOString().slice(0, 10);
+      }
+    }
+
     function southboundRiskPts(avg5) {
       if (!Number.isFinite(avg5)) return null;
       if (avg5 >= 30) return 0;
@@ -2940,12 +2964,17 @@ ${tail}`;
         mid: "🟡 溫和流入",
         danger: "🔴 強烈撤資",
       });
-      const sbYi = num(data?.southbound_connect?.net_yi);
+      const sbDay = southboundTodayYi(data);
+      const sbYi = sbDay.net;
+      const sbDayLabel =
+        sbDay.date && sbDay.date !== hkTodayKey()
+          ? `最近交易日(${sbDay.date.slice(5)})`
+          : "今日單日";
       const box4Hero = Number.isFinite(sbAvg5)
         ? `港股通 5日均: ${sbAvg5 >= 0 ? "+" : ""}${sbAvg5.toFixed(2)} 億`
         : "港股通 5日均線";
       const box4Micro = Number.isFinite(sbYi)
-        ? `今日單日: ${sbYi >= 0 ? "+" : ""}${sbYi.toFixed(2)} 億`
+        ? `${sbDayLabel}: ${sbYi >= 0 ? "+" : ""}${sbYi.toFixed(2)} 億`
         : "今日單日: —";
       if (Number.isFinite(sbAvg5)) {
         if (sbAvg5 >= 30) _macroTableHi.flowIn = true;

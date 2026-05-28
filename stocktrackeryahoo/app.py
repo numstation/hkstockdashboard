@@ -947,6 +947,26 @@ def _southbound_5d_avg(
     return {"history": hist, "net_yi_5d_avg": avg5}
 
 
+def _southbound_display_net_yi(
+    live_yi: float | None, sb_pack: dict, day: str
+) -> tuple[float | None, str | None]:
+    """Prefer live kamt net; else latest completed day from merged history."""
+    day_key = str(day).strip()[:10]
+    if isinstance(live_yi, (int, float)):
+        return round(float(live_yi), 2), day_key
+    hist = sb_pack.get("history") if isinstance(sb_pack.get("history"), list) else []
+    for row in reversed(hist):
+        if not isinstance(row, dict):
+            continue
+        try:
+            net = float(row["net_yi"])
+        except (TypeError, ValueError, KeyError):
+            continue
+        d = str(row.get("d") or "").strip()[:10] or None
+        return round(net, 2), d
+    return None, None
+
+
 def _risk_regime_from_score(score: float | None) -> str | None:
     """Higher score = higher danger. <45 safe, 45-75 neutral, >75 risk-off."""
     if score is None:
@@ -1521,6 +1541,14 @@ def _merge_macro_payload(prev: dict, new: dict) -> dict:
         ]
         if tail:
             new_sb["net_yi_5d_avg"] = round(sum(tail) / len(tail), 2)
+        if new_sb.get("net_yi") is None and merged_hist:
+            latest = merged_hist[-1]
+            if isinstance(latest.get("net_yi"), (int, float)):
+                new_sb = {
+                    **new_sb,
+                    "net_yi": round(float(latest["net_yi"]), 2),
+                    "net_yi_date": str(latest.get("d") or "").strip()[:10] or None,
+                }
     elif new_sb.get("net_yi_5d_avg") is None and prev_sb.get("net_yi_5d_avg") is not None:
         new_sb = {**new_sb, "net_yi_5d_avg": prev_sb.get("net_yi_5d_avg")}
     merged["southbound_connect"] = new_sb
@@ -1728,6 +1756,7 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
     prev_payload = _read_json_file(out_path, {})
     day = now_str.split("T")[0]
     sb_pack = _southbound_5d_avg(_macro_prev_for_southbound(out_path), southbound_yi, day)
+    sb_display_yi, sb_display_date = _southbound_display_net_yi(southbound_yi, sb_pack, day)
     breadth_markets: dict = {}
     try:
         import sys
@@ -1843,7 +1872,8 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
         "southbound_connect": {
             "label": "港股通（北水）淨額",
             "subtitle": "滬港通＋深港通",
-            "net_yi": southbound_yi,
+            "net_yi": sb_display_yi,
+            "net_yi_date": sb_display_date,
             "net_yi_5d_avg": sb_pack.get("net_yi_5d_avg"),
             "history": sb_pack.get("history") or [],
             "unit": "億人民幣",
@@ -1869,12 +1899,12 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
             southbound_yi=southbound_yi,
         ),
     }
-    if isinstance(southbound_yi, (int, float)):
-        sign = "+" if southbound_yi >= 0 else ""
+    if isinstance(sb_display_yi, (int, float)):
+        sign = "+" if sb_display_yi >= 0 else ""
         payload["metrics"].append(
             {
                 "name": "北水淨額",
-                "value": f"{sign}{southbound_yi:.2f}億",
+                "value": f"{sign}{sb_display_yi:.2f}億",
                 "change": "滬港+深港",
             }
         )
