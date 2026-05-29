@@ -121,6 +121,24 @@ _prepare_hk_data() {
   bash "$ROOT/scripts/sync_frontend_data.sh"
 }
 
+_ensure_us_data_files() {
+  local data_dir="$1"
+  local -a extra=(us_stock_names.json)
+  local -a files=("${US_JSON_FILES[@]}" "${extra[@]}")
+  local filled=0
+
+  for f in "${files[@]}"; do
+    if [[ -f "${data_dir}/${f}" ]] && _is_valid_json "${data_dir}/${f}"; then
+      continue
+    fi
+    if _fetch_live_json "/frontend-us/data/${f}" "${data_dir}/${f}"; then
+      filled=$((filled + 1))
+      echo "    restored US from live: ${f}"
+    fi
+  done
+  echo "    US live backfill: ${filled} file(s)"
+}
+
 _prepare_us_data() {
   local data_dir="$ROOT/frontend-us/data"
   mkdir -p "$data_dir"
@@ -133,7 +151,7 @@ _prepare_us_data() {
       || echo "::warning:: merge_live_dashboard_json failed before US sync"
     bash "$ROOT/scripts/sync_frontend_us_data.sh"
   else
-    echo "==> US JSON: copy from repo (HK-only deploy — no live pull)"
+    echo "==> US JSON: sync repo → fill gaps from live (HK-only deploy must not wipe US scans)"
     bash "$ROOT/scripts/sync_frontend_us_data.sh" 2>/dev/null || true
     for f in daily_scan_us.json daily_scan_us_sell_put.json daily_scan_us_buy_stock.json \
       daily_scan_us_buy_put.json breadth_daily_history_us.json signals_history_us.json \
@@ -143,6 +161,9 @@ _prepare_us_data() {
       fi
     done
   fi
+
+  echo "==> US JSON: backfill missing/invalid files from live (keeps US page when HK CI deploys)"
+  _ensure_us_data_files "$data_dir"
 }
 
 echo "==> Deploy market scope: ${DEPLOY_MARKET}"

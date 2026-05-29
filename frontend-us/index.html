@@ -1910,16 +1910,27 @@ ${tail}`;
       if (putBtn) putBtn.classList.toggle("active", activeScoreModel === "buy_put");
     }
 
+    async function fetchJsonAtUrl(url) {
+      const sep = url.includes("?") ? "&" : "?";
+      const res = await fetch(url + sep + "ts=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) return { error: String(res.status) };
+      const text = await res.text();
+      const trimmed = text.trim();
+      if (!trimmed || trimmed.startsWith("<")) {
+        return { error: "not_json (got HTML — file missing on server?)" };
+      }
+      try {
+        return { data: JSON.parse(trimmed) };
+      } catch (e) {
+        return { error: e instanceof Error ? e.message : "parse_error" };
+      }
+    }
+
     async function fetchJsonSafe(filename) {
       for (const url of jsonUrlCandidates(filename)) {
         try {
-          const sep = url.includes("?") ? "&" : "?";
-          const res = await fetch(url + sep + "ts=" + Date.now(), { cache: "no-store" });
-          if (!res.ok) continue;
-          const text = await res.text();
-          const trimmed = text.trim();
-          if (!trimmed || trimmed.startsWith("<")) continue;
-          return JSON.parse(trimmed);
+          const out = await fetchJsonAtUrl(url);
+          if (out && out.data != null) return out.data;
         } catch {
           /* try next */
         }
@@ -4651,11 +4662,12 @@ ${tail}`;
       const urls = [...new Set(dailyScanUrlCandidatesForActiveModel())];
       for (const url of urls) {
         try {
-          const sep = url.includes("?") ? "&" : "?";
-          const res = await fetch(url + sep + "ts=" + Date.now(), { cache: "no-store" });
-          lastStatus = String(res.status);
-          if (!res.ok) continue;
-          const parsed = await res.json();
+          const out = await fetchJsonAtUrl(url);
+          if (!out || out.data == null) {
+            lastStatus = out?.error || "fetch_failed";
+            continue;
+          }
+          const parsed = out.data;
           if (!scanPayloadMatchesMode(parsed, activeScoreModel, url)) {
             rejectMismatch = true;
             lastStatus = "wrong_engine";
@@ -4693,14 +4705,14 @@ ${tail}`;
             activeScoreModel +
             " (last: " +
             lastStatus +
-            "). Tried e.g. `frontend/data/" +
+            "). Tried e.g. `frontend-us/data/" +
             want +
-            "` and repo root. Base: " +
+            "`. Base: " +
             getDashboardBaseUrl() +
             "." +
             hintBuyPut +
             hintMismatch +
-            " Re-run GitHub Actions or `bash scripts/sync_frontend_data.sh` then push.",
+            " Re-run US scan (`bash scripts/ci_refresh_us.sh`) or deploy with `DEPLOY_MARKET=both bash scripts/deploy_cloudflare.sh`.",
         );
       } else {
         dailyScanJsonOk = true;
