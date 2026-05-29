@@ -28,6 +28,61 @@ The Macro tab reads **`macro_snapshot.json`** (`last_updated` at the top). If th
 
 ---
 
+## Breadth chart missing days (e.g. only 18–22 May + today)
+
+**Cause:** GitHub Actions checks out **`breadth_daily_history.json`** / **`signals_history.json`** from git, which often lag by many days. Each scheduled deploy copies that sparse file to Cloudflare and only appends **today’s** scan — so dates that were fixed manually but **never committed** disappear on the next auto run.
+
+**Fix in repo:** `scripts/merge_live_dashboard_json.py` runs at the start of **`ci_refresh.sh`** and before HK deploy, merging live `/frontend/data/*.json` into the workspace. After changing this, run one full local scan + deploy, and **commit** updated history JSON (or keep running merge + scan until git catches up).
+
+**Quick check:**  
+`curl -s …/breadth_daily_history.json | jq '[.days[].date]|unique'` — should include each trading day in the last 7 sessions.
+
+**Backfill one missing day** (scores + breadth, fixes 連續性 when a session was lost):
+
+```bash
+.venv-scan/bin/python scripts/backfill_trading_day.py --date 2026-05-27
+bash scripts/sync_frontend_data.sh
+DEPLOY_MARKET=hk bash scripts/deploy_cloudflare.sh
+```
+
+US breadth uses **`breadth_daily_history_us.json`** (separate file). Manual deploy should use **`DEPLOY_MARKET=both`** so HK history is not replaced by stale live JSON when only updating US.
+
+---
+
+## HK / US deploy loop (one market wipes the other)
+
+**Symptom:** HK loses 25–28 May after a US deploy; US breadth shows one bar only.
+
+**Cause:** `DEPLOY_MARKET=us` used to **pull HK JSON from live** (already sparse) and redeploy it. Scheduled HK CI then deploys stale git checkout again. US **`breadth_daily_history_us.json`** was never on live (404) → chart fell back to today only.
+
+**Fix in repo:** `deploy_cloudflare.sh` now **always merge live + repo then sync** for HK; US uses repo + merge. Use **`DEPLOY_MARKET=both`** for local deploys. Push `scripts/merge_live_dashboard_json.py` + deploy script changes to **`main`** so CI keeps the union.
+
+### Anti-loop (history keeps disappearing)
+
+Three scripts run on **every CI refresh and deploy**:
+
+| Script | Role |
+|--------|------|
+| `merge_live_dashboard_json.py` | Union live + repo + `frontend/data` — **never drop** a breadth date |
+| `ensure_recent_breadth.py` | Yahoo backfill for **missing weekdays** in last 10 sessions (fixes 25–28 May when git never had them) |
+| `guard_deploy_history.py` | **Aborts deploy** if bundled JSON would have **fewer** breadth dates than live |
+
+HK and US workflows both deploy with **`DEPLOY_MARKET=both`** so one market’s deploy cannot wipe the other.
+
+---
+
+## Hard refresh on Mac (when Cmd+Shift+R does nothing)
+
+JSON loads already use `?ts=` cache-bust — stale UI is usually **old HTML**, not cached JSON.
+
+| Browser | Try |
+|---------|-----|
+| **Safari** | Enable **Develop** menu (Safari → Settings → Advanced → “Show Develop”). Then **Develop → Empty Caches**, then **Cmd+R**. |
+| **Chrome** | **View → Developer → Empty Cache and Hard Reload** (DevTools open), or hold **Shift** and click the reload button. |
+| **Any** | Open dashboard in a **Private / Incognito** window once to confirm. |
+
+---
+
 ## Full Market History: **Buy Put** tab empty
 
 The history tab reads **`signals_history.json`**, filtered by **`score_model=buy_put`** and **`action=BUY_PUT`**.

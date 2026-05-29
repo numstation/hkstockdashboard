@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+"""
+Block deploy if bundled JSON would shrink dashboard history vs live site.
+
+Prevents the loop: fix scan → deploy → breadth loses 25–28 May → user reports → repeat.
+"""
+from __future__ import annotations
+
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+BASE_URL = os.environ.get("DASHBOARD_BASE_URL", "https://hkstockdashboard.chrislau.workers.dev").rstrip("/")
+UA = "Mozilla/5.0 (compatible; backtest-dashboard-guard/1.0)"
+
+
+def _fetch(url_path: str) -> dict | None:
+    url = f"{BASE_URL}{url_path}"
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    try:
+        with urllib.request.urlopen(req, timeout=90) as resp:
+            raw = resp.read().decode("utf-8")
+            if raw.lstrip().startswith("<"):
+                return None
+            return json.loads(raw)
+    except (urllib.error.URLError, json.JSONDecodeError, TimeoutError):
+        return None
+
+
+def _read(path: Path) -> dict | None:
+    if not path.is_file():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+
+
+def _sell_put_dates(payload: dict | None) -> set[str]:
+    if not isinstance(payload, dict):
+        return set()
+    out: set[str] = set()
+    for entry in payload.get("days") or []:
+        if not isinstance(entry, dict):
+            continue
+        if str(entry.get("model") or "") != "sell_put":
+            continue
+        d = str(entry.get("date") or "")[:10]
+        if len(d) == 10:
+            out.add(d)
+    return out
+
+
+def _check_breadth(label: str, live_path: str, local_path: Path) -> list[str]:
+    live = _fetch(live_path)
+    local = _read(local_path)
+    live_dates = _sell_put_dates(live)
+    local_dates = _sell_put_dates(local)
+    if not live_dates:
+        print(f"[guard] {label}: no live breadth (skip regression check)")
+        return []
+    lost = sorted(live_dates - local_dates)
+    if lost:
+        return [f"{label}: would drop sell_put dates {lost} (live={len(live_dates)} local={len(local_dates)})"]
+    print(f"[guard] {label}: OK — local has all {len(live_dates)} live sell_put dates (+{len(local_dates - live_dates)} new)")
+    return []
+
+
+def main() -> int:
+    if os.environ.get("ALLOW_HISTORY_REGRESSION", "").strip() in ("1", "true", "yes"):
+        print("[guard] ALLOW_HISTORY_REGRESSION set — skipped")
+        return 0
+
+    errors: list[str] = []
+    errors.extend(
+        _check_breadth(
+            "HK breadth",
+            "/frontend/data/breadth_daily_history.json",
+            ROOT / "frontend" / "data" / "breadth_daily_history.json",
+        )
+    )
+    errors.extend(
+        _check_breadth(
+            "US breadth",
+            "/frontend-us/data/breadth_daily_history_us.json",
+            ROOT / "frontend-us" / "data" / "breadth_daily_history_us.json",
+        )
+    )
+
+    if errors:
+        for e in errors:
+            print(f"[guard] ERROR: {e}", file=sys.stderr)
+        print(
+            "[guard] Deploy aborted — run merge + ensure_recent_breadth, or set ALLOW_HISTORY_REGRESSION=1 to override",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

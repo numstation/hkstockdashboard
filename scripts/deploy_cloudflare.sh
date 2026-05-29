@@ -34,6 +34,7 @@ US_JSON_FILES=(
   daily_scan_us_sell_put.json
   daily_scan_us_buy_stock.json
   daily_scan_us_buy_put.json
+  breadth_daily_history_us.json
 )
 
 _is_valid_json() {
@@ -110,15 +111,12 @@ _prepare_hk_data() {
   local data_dir="$ROOT/frontend/data"
   mkdir -p "$data_dir"
 
-  if [[ "$DEPLOY_MARKET" == "hk" || "$DEPLOY_MARKET" == "both" ]]; then
-    echo "==> Refresh HK JSON from repo scan"
-    bash "$ROOT/scripts/sync_frontend_data.sh"
-  else
-    _pull_live_market_data hk "$data_dir" 1
-    if [[ -f "$ROOT/hkstocklist.csv" ]]; then
-      python3 "$ROOT/scripts/export_hk_stock_names.py"
-    fi
-  fi
+  echo "==> HK JSON: ensure recent breadth → merge live+repo → sync"
+  python3 "$ROOT/scripts/ensure_recent_breadth.py" --market HK --days 10 --sleep 0.05 \
+    || echo "::warning:: ensure_recent_breadth HK failed"
+  python3 "$ROOT/scripts/merge_live_dashboard_json.py" \
+    || echo "::warning:: merge_live_dashboard_json failed — continuing with repo files"
+  bash "$ROOT/scripts/sync_frontend_data.sh"
 }
 
 _prepare_us_data() {
@@ -126,13 +124,21 @@ _prepare_us_data() {
   mkdir -p "$data_dir"
 
   if [[ "$DEPLOY_MARKET" == "us" || "$DEPLOY_MARKET" == "both" ]]; then
-    echo "==> Refresh US JSON from repo scan"
+    echo "==> US JSON: ensure recent breadth → merge live+repo → sync"
+    python3 "$ROOT/scripts/ensure_recent_breadth.py" --market US --days 10 --sleep 0.05 \
+      || echo "::warning:: ensure_recent_breadth US failed"
+    python3 "$ROOT/scripts/merge_live_dashboard_json.py" \
+      || echo "::warning:: merge_live_dashboard_json failed before US sync"
     bash "$ROOT/scripts/sync_frontend_us_data.sh"
   else
-    _pull_live_market_data us "$data_dir" 0
-    if [[ -f "$ROOT/us_top200.txt" ]]; then
-      python3 "$ROOT/scripts/export_us_stock_names.py"
-    fi
+    echo "==> US JSON: copy from repo (HK-only deploy — no live pull)"
+    bash "$ROOT/scripts/sync_frontend_us_data.sh" 2>/dev/null || true
+    for f in daily_scan_us.json daily_scan_us_sell_put.json daily_scan_us_buy_stock.json \
+      daily_scan_us_buy_put.json breadth_daily_history_us.json; do
+      if [[ -f "$ROOT/$f" ]]; then
+        cp "$ROOT/$f" "$data_dir/$f"
+      fi
+    done
   fi
 }
 
@@ -162,6 +168,9 @@ cat > "$PUBLIC/index.html" <<'EOF'
 </html>
 EOF
 
+echo "==> Guard: block deploy if history would shrink vs live"
+python3 "$ROOT/scripts/guard_deploy_history.py"
+
 echo "==> Install npm deps (Wrangler)"
 cd "$CF"
 if [[ -f package-lock.json ]]; then
@@ -180,4 +189,4 @@ fi
 echo "Done (${DEPLOY_MARKET}). Open:"
 echo "  HK: https://hkstockdashboard.chrislau.workers.dev/frontend/"
 echo "  US: https://hkstockdashboard.chrislau.workers.dev/frontend-us/"
-echo "Hard-refresh browser: Cmd+Shift+R"
+echo "Hard-refresh browser: Safari Develop→Empty Caches then reload; Chrome hold Shift+click Reload"

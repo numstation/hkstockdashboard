@@ -5,6 +5,13 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 echo "[$(date -Iseconds)] CI refresh start"
+
+echo "==> Merge live history into repo (union — never shrink)"
+python3 "$ROOT/scripts/merge_live_dashboard_json.py" || echo "::warning:: merge_live_dashboard_json failed — continuing"
+
+echo "==> Self-heal missing weekday breadth (before scan)"
+python3 "$ROOT/scripts/ensure_recent_breadth.py" --market HK --days 10 --sleep 0.08 || echo "::warning:: ensure_recent_breadth HK failed"
+
 python3 run_scan_export_json.py --sleep 0.15 --skip-macro
 python3 scripts/export_triggers_from_scan.py
 
@@ -14,6 +21,12 @@ if python3 run_scan_export_json.py --macro-only; then
 else
   echo "::warning:: macro_snapshot export failed — deploy keeps previous macro_snapshot.json if present"
 fi
+
+echo "==> Self-heal missing weekday breadth (last 10 sessions)"
+python3 "$ROOT/scripts/ensure_recent_breadth.py" --market HK --days 10 --sleep 0.08 || echo "::warning:: ensure_recent_breadth HK failed"
+
+echo "==> Merge again after scan + backfill"
+python3 "$ROOT/scripts/merge_live_dashboard_json.py" || echo "::warning:: post-scan merge failed"
 
 bash "$ROOT/scripts/sync_frontend_data.sh"
 

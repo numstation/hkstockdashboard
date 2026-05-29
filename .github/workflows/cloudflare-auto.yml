@@ -64,5 +64,5 @@ jobs:
             echo "See DEPLOY_CLOUDFLARE.md → Automate section."
             exit 1
           fi
-          bash scripts/deploy_cloudflare.sh
+          DEPLOY_MARKET=both bash scripts/deploy_cloudflare.sh
           echo "Live: https://hkstockdashboard.chrislau.workers.dev/frontend/"

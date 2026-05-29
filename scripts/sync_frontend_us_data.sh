@@ -6,7 +6,8 @@ mkdir -p "$ROOT/frontend-us/data"
 if [[ -f "$ROOT/us_top200.txt" ]]; then
   python3 "$ROOT/scripts/export_us_stock_names.py"
 fi
-for f in daily_scan_us.json daily_scan_us_sell_put.json daily_scan_us_buy_stock.json daily_scan_us_buy_put.json; do
+for f in daily_scan_us.json daily_scan_us_sell_put.json daily_scan_us_buy_stock.json daily_scan_us_buy_put.json \
+  breadth_daily_history_us.json; do
   if [[ -f "$ROOT/$f" ]]; then
     cp "$ROOT/$f" "$ROOT/frontend-us/data/$f"
   fi
