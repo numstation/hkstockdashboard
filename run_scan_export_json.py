@@ -225,8 +225,6 @@ def main() -> int:
     strategy, pos, signals_only, sleep_s, macro_only, skip_macro, score_model, both_models, scan_prefix = parse_args(
         argv
     )
-    primary_scan_name, model_export_names = _scan_export_names(scan_prefix, score_model)
-    us_only = scan_prefix == "us"
 
     if macro_only:
         exporters = load_exporters()
@@ -251,9 +249,37 @@ def main() -> int:
     ):
         tickers = get_tickers(pos[0].upper())
         label = pos[0].upper()
+        if label == "US":
+            scan_prefix = "us"
     else:
         tickers = pos
         label = "custom"
+
+    primary_scan_name, model_export_names = _scan_export_names(scan_prefix, score_model)
+    us_only = scan_prefix == "us"
+
+    def _looks_hk_universe(symbols: list[str]) -> bool:
+        sample = [str(t).upper() for t in (symbols or [])[:25]]
+        if not sample:
+            return not us_only
+        hk_hits = sum(1 for t in sample if t.endswith(".HK"))
+        return hk_hits >= max(3, len(sample) // 2)
+
+    export_names = [primary_scan_name] + [n for _, n in model_export_names]
+    for out_name in export_names:
+        is_us_file = "daily_scan_us" in out_name
+        if us_only and not is_us_file:
+            print(f"ERROR: US scan must write daily_scan_us_*.json, not {out_name!r}", file=sys.stderr)
+            return 1
+        if not us_only and is_us_file:
+            print(f"ERROR: HK scan must not write {out_name!r}", file=sys.stderr)
+            return 1
+    if us_only and _looks_hk_universe(tickers):
+        print("ERROR: US scan but ticker list looks like HK (.HK symbols)", file=sys.stderr)
+        return 1
+    if not us_only and not _looks_hk_universe(tickers):
+        print("ERROR: HK scan but ticker list looks like US (no .HK symbols)", file=sys.stderr)
+        return 1
 
     if not tickers:
         print("No tickers to scan.")
@@ -332,6 +358,15 @@ def main() -> int:
                     print(f"Trade triggers synced from scan JSON files: {synced}")
             except Exception as e:
                 print(f"[warn] scan-file trade sync failed: {e}", file=sys.stderr)
+            try:
+                closed_synced = exporters.export_closed_transactions_to_json(
+                    signals_filename="signals_history.json",
+                    output_filename="closed_transactions.json",
+                    schema_version=schema_ver,
+                )
+                print(f"Closed transactions archived this run: {closed_synced}")
+            except Exception as e:
+                print(f"[warn] closed-transactions export failed: {e}", file=sys.stderr)
             for m, out_name in model_runs:
                 try:
                     exporters.backfill_daily_breadth_from_scan_json(out_name, m)
@@ -342,7 +377,52 @@ def main() -> int:
                 log_df if log_df is not None else pd.DataFrame(), strategy, schema_version=schema_ver
             )
         else:
-            print("US scan-only export (skipped HK trade history / future_log / breadth backfill).")
+            us_breadth = "breadth_daily_history_us.json"
+            us_signals = "signals_history_us.json"
+            us_closed = "closed_transactions_us.json"
+            us_scan_files = exporters.daily_scan_files_for_market("US")
+            trade_logged = 0
+            for m, df_m in dfs_by_model.items():
+                strategy_m = strategy_display_name(m, strategy)
+                try:
+                    trade_logged += exporters.export_trade_signals_history_to_json(
+                        df_m,
+                        strategy_m,
+                        score_model_slug=m,
+                        filename=us_signals,
+                        schema_version=schema_ver,
+                    )
+                except Exception as e:
+                    print(f"[warn] US trade history export failed ({m}): {e}", file=sys.stderr)
+            print(f"US trade triggers logged this run: {trade_logged}")
+            try:
+                synced = exporters.export_trade_signals_from_scan_files(
+                    filenames=us_scan_files,
+                    strategy_name=strategy,
+                    signals_filename=us_signals,
+                )
+                if synced:
+                    print(f"US trade triggers synced from scan JSON files: {synced}")
+            except Exception as e:
+                print(f"[warn] US scan-file trade sync failed: {e}", file=sys.stderr)
+            try:
+                closed_synced = exporters.export_closed_transactions_to_json(
+                    signals_filename=us_signals,
+                    output_filename=us_closed,
+                    scan_filenames=us_scan_files,
+                    schema_version=schema_ver,
+                )
+                print(f"US closed transactions archived this run: {closed_synced}")
+            except Exception as e:
+                print(f"[warn] US closed-transactions export failed: {e}", file=sys.stderr)
+            for m, out_name in model_runs:
+                try:
+                    exporters.backfill_daily_breadth_from_scan_json(
+                        out_name, m, breadth_filename=us_breadth
+                    )
+                except Exception as e:
+                    print(f"[warn] US breadth backfill failed ({out_name}): {e}", file=sys.stderr)
+            print(f"US breadth history → {us_breadth!r} (HK trade history / future_log untouched)")
     if not skip_macro and not us_only:
         exporters.export_macro_snapshot_to_json(schema_version=schema_ver)
     elif skip_macro or us_only:

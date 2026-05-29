@@ -232,6 +232,7 @@ def main() -> int:
 
     for filename, url_path, merge_fn in [
         ("signals_history.json", "/frontend/data/signals_history.json", merge_signals),
+        ("signals_history_us.json", "/frontend-us/data/signals_history_us.json", merge_signals),
         ("score_daily_history.json", "/frontend/data/score_daily_history.json", merge_score_history),
     ]:
         path = ROOT / filename

@@ -35,6 +35,8 @@ US_JSON_FILES=(
   daily_scan_us_buy_stock.json
   daily_scan_us_buy_put.json
   breadth_daily_history_us.json
+  signals_history_us.json
+  closed_transactions_us.json
 )
 
 _is_valid_json() {
@@ -134,7 +136,8 @@ _prepare_us_data() {
     echo "==> US JSON: copy from repo (HK-only deploy — no live pull)"
     bash "$ROOT/scripts/sync_frontend_us_data.sh" 2>/dev/null || true
     for f in daily_scan_us.json daily_scan_us_sell_put.json daily_scan_us_buy_stock.json \
-      daily_scan_us_buy_put.json breadth_daily_history_us.json; do
+      daily_scan_us_buy_put.json breadth_daily_history_us.json signals_history_us.json \
+      closed_transactions_us.json; do
       if [[ -f "$ROOT/$f" ]]; then
         cp "$ROOT/$f" "$data_dir/$f"
       fi

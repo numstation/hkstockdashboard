@@ -897,6 +897,37 @@
     .action-badge.buy_call { background: rgba(59,130,246,.14); color: #1d4ed8; }
     .action-badge.sell_put { background: rgba(34,197,94,.14); color: #15803d; }
     .action-badge.buy_put { background: rgba(239,68,68,.14); color: #b91c1c; }
+    .closed-log-section {
+      margin: 16px 12px 12px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .closed-log-section > summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 4px 0 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .closed-log-section > summary::-webkit-details-marker { display: none; }
+    .closed-log-section > summary::before {
+      content: "▸ ";
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .closed-log-section[open] > summary::before { content: "▾ "; }
+    #closedTransactionsTable th.col-num,
+    #closedTransactionsTable td.col-num,
+    #historyTable td:nth-child(n+5):not(.col-ticker) {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+    #historyTable td.col-ticker { text-align: left; }
+    #closedTransactionsTable td.col-reason { text-align: left; font-family: inherit; font-size: 12px; line-height: 1.45; }
+    .exit-type-stop { color: #b91c1c; font-weight: 600; }
+    .exit-type-tp { color: #15803d; font-weight: 600; }
     @media (max-width: 960px) { .cards { grid-template-columns: repeat(2, minmax(0,1fr)); } }
     @media (max-width: 639px) {
       .container { padding: 16px 12px 24px; max-width: 100%; }
@@ -1017,7 +1048,7 @@
         <div class="chart-cell chart-cell--rank"><div class="ttl">強勢股綜合評分排行 (Top 10)</div><canvas id="chRsiBar" aria-label="Top 10 quant score ranking"></canvas></div>
         <div class="chart-cell chart-cell--breadth">
           <div class="ttl">每日訊號市寬（強勢 / 觀望 / 危險）</div>
-          <div id="breadthChartHint" class="chart-breadth-hint">資料來源：breadth_daily_history.json · 堆疊柱狀＋強勢佔比折線</div>
+          <div id="breadthChartHint" class="chart-breadth-hint">資料來源：breadth_daily_history_us.json · 堆疊柱狀＋強勢佔比折線</div>
           <canvas id="chHistDaily" aria-label="Stacked daily signal breadth"></canvas>
         </div>
         <div class="chart-cell"><div class="ttl">尋寶象限圖：趨勢強度 vs 爆發量 (ADX vs RVOL)</div><canvas id="chScatter" aria-label="ADX vs RVOL quadrant"></canvas></div>
@@ -1115,6 +1146,31 @@
         </div>
         <p class="table-x-scroll-hint muted">← 左右滑動查看更多欄位 →</p>
         <div id="historyEmpty" class="empty" style="display:none;">No `signals_history.json` yet.</div>
+
+        <details id="closedTransactionsPanel" class="closed-log-section" open>
+          <summary>⚖️ 歷史平倉戰績 (Closed Transactions Log) <span id="closedCountBadge" class="muted" style="font-weight:500;"></span></summary>
+          <p class="muted" style="margin: 0 0 10px; font-size: 12px; line-height: 1.55;">
+            觸發止蝕／止賺規則後自動移出「持倉中」列表；紀錄存於本機瀏覽器（換裝置或清除快取會重置）。
+          </p>
+          <div class="table-x-scroll" role="region" aria-label="歷史平倉表（可左右滑動）">
+            <table id="closedTransactionsTable">
+              <thead class="sticky-head">
+                <tr>
+                  <th>平倉日期</th>
+                  <th>Ticker</th>
+                  <th>操作模式</th>
+                  <th class="col-num">入場價</th>
+                  <th class="col-num">平倉價</th>
+                  <th class="col-num">最終損益 %</th>
+                  <th class="col-num">持股天數</th>
+                  <th>出場原因</th>
+                </tr>
+              </thead>
+              <tbody id="closedTransactionsTbody"></tbody>
+            </table>
+          </div>
+          <div id="closedTransactionsEmpty" class="empty" style="display:none;">尚無平倉紀錄。</div>
+        </details>
       </div>
     </section>
 
@@ -1213,6 +1269,9 @@
     const DASHBOARD_MARKET = "us";
     const STOCK_NAMES_FILE = "us_stock_names.json";
     const SCAN_FILE_PREFIX = "daily_scan_us";
+    const SIGNALS_HISTORY_FILE = "signals_history_us.json";
+    const CLOSED_TX_FILE = "closed_transactions_us.json";
+    const US_UNIVERSE_TOTAL = 200;
 
     let rows = [];
     let sortKey = "tech_score";
@@ -1261,7 +1320,11 @@
     let dailyScanJsonOk = false;
 
     let historySignals = [];
+    let closedTransactions = [];
+    const CLOSED_TX_LS_KEY = "usstockdashboard_closed_transactions_v1";
     let breadthDailyHistory = null;
+    let lastScanTradingDay = "";
+    let lastScanMeta = null;
     let histSortKey = "entry_date";
     let histSortAsc = false;
     let historyFilter = "";
@@ -1436,6 +1499,7 @@ ${tail}`;
       "2026-05-14",
       "2026-05-15",
     ]);
+    const BREADTH_DAYS_TO_SHOW = 7;
 
     const BAND_CHART_LABEL = { green: "強勢", yellow: "觀望", red: "危險" };
 
@@ -1852,7 +1916,10 @@ ${tail}`;
           const sep = url.includes("?") ? "&" : "?";
           const res = await fetch(url + sep + "ts=" + Date.now(), { cache: "no-store" });
           if (!res.ok) continue;
-          return await res.json();
+          const text = await res.text();
+          const trimmed = text.trim();
+          if (!trimmed || trimmed.startsWith("<")) continue;
+          return JSON.parse(trimmed);
         } catch {
           /* try next */
         }
@@ -1954,7 +2021,8 @@ ${tail}`;
       const name = typeof rowOrSym === "object" && rowOrSym ? stockNameForRow(rowOrSym) : stockNameForSymbol(sym, null);
       if (!name) return code;
       const short = name.split(/\s+/).slice(0, 3).join(" ");
-      return short.length > 22 ? `${code}` : `${code} ${short}`;
+      const compact = short.length > 16 ? `${short.slice(0, 15)}…` : short;
+      return `${code} ${compact}`;
     }
 
     function tickerCellHtml(sym, row) {
@@ -2104,15 +2172,37 @@ ${tail}`;
       },
     };
 
+    function scanUniverseTotal(scanRows) {
+      const fromMeta = Number(lastScanMeta?.total);
+      if (Number.isFinite(fromMeta) && fromMeta > 0) return fromMeta;
+      if (Array.isArray(scanRows) && scanRows.length) return scanRows.length;
+      return US_UNIVERSE_TOTAL;
+    }
+
+    /** US Yahoo scans often land at 196–200 rows (data_ok gaps) — do not drop valid breadth days. */
+    function breadthTotalMatchesUniverse(total, expectedTotal) {
+      const totalN = Number(total);
+      const exp = Number(expectedTotal);
+      if (!Number.isFinite(totalN) || totalN <= 0) return false;
+      if (!Number.isFinite(exp) || exp <= 0) return true;
+      if (totalN >= 150 && totalN <= 210) return true;
+      return Math.abs(totalN - exp) <= Math.max(10, exp * 0.12);
+    }
+
     function buildBreadthByDay(scanRows, signals, breadthHistory) {
       const byDay = {};
       const model = activeScoreModel || "sell_put";
       const days = Array.isArray(breadthHistory?.days) ? breadthHistory.days : [];
+      const expectedTotal = scanUniverseTotal(scanRows);
       for (const entry of days) {
         if (!entry || String(entry.model || "") !== model) continue;
         const d = String(entry.date || "").slice(0, 10);
         if (d.length !== 10) continue;
         if (BREADTH_CHART_EXCLUDE_DATES.has(d)) continue;
+        const total = Number(entry.total);
+        if (Number.isFinite(total) && !breadthTotalMatchesUniverse(total, expectedTotal)) {
+          continue;
+        }
         byDay[d] = {
           strong: Number(entry.strong) || 0,
           watch: Number(entry.watch) || 0,
@@ -2130,15 +2220,12 @@ ${tail}`;
         else if (k === "red") byDay[d].caution += 1;
         else byDay[d].watch += 1;
       }
-      // Today's scan (always reflect current dashboard bands)
-      let todayKey = "";
-      const lu = document.getElementById("lastUpdated")?.textContent?.trim();
-      if (lu && lu !== "-") {
-        const parsed = parseSortTime(lu);
-        if (parsed) todayKey = new Date(parsed).toISOString().slice(0, 10);
+      let scanDay = String(lastScanTradingDay || "").slice(0, 10);
+      if (scanDay.length !== 10) {
+        const ds = document.getElementById("lastUpdated")?.dataset?.scanDay;
+        if (ds && String(ds).length === 10) scanDay = String(ds).slice(0, 10);
       }
-      if (!todayKey) todayKey = new Date().toISOString().slice(0, 10);
-      if (Array.isArray(scanRows) && scanRows.length && !BREADTH_CHART_EXCLUDE_DATES.has(todayKey)) {
+      if (scanDay.length === 10 && Array.isArray(scanRows) && scanRows.length && !BREADTH_CHART_EXCLUDE_DATES.has(scanDay)) {
         const snap = { strong: 0, watch: 0, caution: 0 };
         for (const r of scanRows) {
           const k = classifySignal(r.signal ?? r.Signal).key;
@@ -2146,7 +2233,7 @@ ${tail}`;
           else if (k === "red") snap.caution += 1;
           else snap.watch += 1;
         }
-        byDay[todayKey] = snap;
+        byDay[scanDay] = snap;
       }
       return byDay;
     }
@@ -2158,19 +2245,19 @@ ${tail}`;
       const days = Object.keys(byDay || {}).sort();
       if (!days.length) {
         if (hintEl) {
-          hintEl.textContent = "尚無市寬歷史。請執行掃描以產生 breadth_daily_history.json。";
+          hintEl.textContent = "尚無市寬歷史。請執行 US 掃描以產生 breadth_daily_history_us.json。";
         }
         return;
       }
-      const last = days.slice(-90);
+      const last = days.slice(-BREADTH_DAYS_TO_SHOW);
       const strongPct = last.map((d) => {
         const row = byDay[d];
         const t = row.strong + row.watch + row.caution;
         return t ? (row.strong / t) * 100 : 0;
       });
       if (hintEl) {
-        const src = breadthDailyHistory?.days?.length ? "breadth_daily_history.json" : "本輪掃描／signals 後備";
-        hintEl.textContent = `資料：${src} · ${last.length} 個交易日 · 柱狀＝數量 · 折線＝強勢佔比%`;
+        const src = breadthDailyHistory?.days?.length ? "breadth_daily_history_us.json" : "本輪掃描／signals 後備";
+        hintEl.textContent = `資料：${src} · 最近 ${last.length} 個交易日 · 柱狀＝數量 · 折線＝強勢佔比%`;
       }
       _chartsOverview.push(
         new Chart(lineEl, {
@@ -3247,15 +3334,13 @@ ${tail}`;
         }
         const entryDate = String(s.entry_date || (s.date ? String(s.date).slice(0, 10) : ""));
         let holding = num(s.holding_days);
-        if (!Number.isFinite(holding) && entryDate) {
-          const t0 = parseSortTime(entryDate);
-          const t1 = parseSortTime(new Date().toISOString());
-          if (t0 && t1) holding = Math.max(0, Math.round((t1 - t0) / 86400000));
-        }
+        if (!Number.isFinite(holding) && entryDate) holding = tradingDaysSince(entryDate);
+        const entryVwap = num(s.entry_vwap);
         return {
           ...s,
           entry_date: entryDate,
           entry_price: Number.isFinite(entry) ? entry : s.entry_price,
+          entry_vwap: Number.isFinite(entryVwap) ? entryVwap : s.entry_vwap,
           latest_price: Number.isFinite(latest) ? latest : s.latest_price,
           pnl_pct: Number.isFinite(pnl) ? Math.round(pnl * 100) / 100 : s.pnl_pct,
           holding_days: Number.isFinite(holding) ? holding : s.holding_days,
@@ -3274,6 +3359,312 @@ ${tail}`;
         }
         return true;
       });
+    }
+
+    function marketTodayKey() {
+      try {
+        return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
+      } catch (_) {
+        return new Date().toISOString().slice(0, 10);
+      }
+    }
+
+    function tradingDaysSince(entryDateStr) {
+      const t0 = parseSortTime(entryDateStr);
+      const t1 = parseSortTime(new Date().toISOString());
+      if (!t0 || !t1) return 0;
+      let count = 0;
+      const cur = new Date(t0);
+      const end = new Date(t1);
+      cur.setHours(12, 0, 0, 0);
+      end.setHours(12, 0, 0, 0);
+      while (cur < end) {
+        const dow = cur.getDay();
+        if (dow !== 0 && dow !== 6) count += 1;
+        cur.setDate(cur.getDate() + 1);
+      }
+      return count;
+    }
+
+    function positionSlot(s) {
+      const sym = String(s.ticker ?? "").trim().toUpperCase();
+      const model = String(s.score_model || activeScoreModel || "").toLowerCase();
+      return `${sym}|${model}`;
+    }
+
+    function positionKey(s) {
+      const d = String(s.entry_date || (s.date ? String(s.date).slice(0, 10) : "")).slice(0, 10);
+      const sym = String(s.ticker ?? "").trim().toUpperCase();
+      const act = String(s.action ?? "").toUpperCase();
+      const model = String(s.score_model || activeScoreModel || "").toLowerCase();
+      return `${d}|${sym}|${act}|${model}`;
+    }
+
+    function strategyModeFromSignal(s) {
+      const m = String(s.score_model || activeScoreModel || "").toLowerCase();
+      if (m === "sell_put" || m === "buy_stock" || m === "buy_put") return m;
+      const a = String(s.action || "").toUpperCase();
+      if (a === "SELL_PUT") return "sell_put";
+      if (a === "BUY_CALL") return "buy_stock";
+      if (a === "BUY_PUT") return "buy_put";
+      return "sell_put";
+    }
+
+    function buildScanRowMap(scanRows) {
+      const map = new Map();
+      for (const r of scanRows || []) {
+        const sym = String(r.ticker ?? r.Ticker ?? "").trim().toUpperCase();
+        if (sym) map.set(sym, r);
+      }
+      return map;
+    }
+
+    function estimateAtr(scanRow, entryPrice) {
+      const direct = num(scanRow?.atr ?? scanRow?.ATR);
+      if (Number.isFinite(direct) && direct > 0) return direct;
+      const px = num(scanRow?.close ?? scanRow?.Close) || entryPrice;
+      if (Number.isFinite(px) && px > 0) return px * 0.015;
+      return 1;
+    }
+
+    function buildExitPosition(signal, scanRow) {
+      const strategy = strategyModeFromSignal(signal);
+      const entryPrice = num(signal.entry_price ?? signal.close);
+      const currentPrice = num(signal.latest_price ?? signal.close);
+      const entryDate = String(signal.entry_date || (signal.date ? String(signal.date).slice(0, 10) : "")).slice(0, 10);
+      let holdingDays = num(signal.holding_days);
+      if (!Number.isFinite(holdingDays) && entryDate) holdingDays = tradingDaysSince(entryDate);
+      const currentScore = scanRow ? num(scanRow.tech_score) : num(signal.score);
+      const entryVwap =
+        num(signal.entry_vwap) ??
+        num(scanRow?.entry_vwap) ??
+        num(scanRow?.vwap ?? scanRow?.VWAP) ??
+        entryPrice;
+      const atr = estimateAtr(scanRow, entryPrice);
+      return {
+        strategy,
+        entryPrice,
+        currentPrice,
+        atr,
+        holdingDays: Number.isFinite(holdingDays) ? holdingDays : 0,
+        entryVwap,
+        currentScore: Number.isFinite(currentScore) ? currentScore : null,
+      };
+    }
+
+    function checkExitConditions(position) {
+      const { strategy, entryPrice, currentPrice, atr, holdingDays, entryVwap, currentScore } = position;
+      if (!Number.isFinite(entryPrice) || entryPrice <= 0 || !Number.isFinite(currentPrice)) {
+        return { triggered: false };
+      }
+      const pnlPercent = ((currentPrice - entryPrice) / entryPrice) * 100;
+      const atrSafe = Number.isFinite(atr) && atr > 0 ? atr : entryPrice * 0.015;
+      const vwapBase = Number.isFinite(entryVwap) ? entryVwap : entryPrice;
+
+      switch (strategy) {
+        case "sell_put":
+          if (currentPrice < entryPrice - 1.5 * atrSafe || currentPrice < vwapBase) {
+            return { triggered: true, type: "stop_loss", reason: "❌ 跌破防線止蝕 (Hit ATR / VWAP Base)" };
+          }
+          if (holdingDays >= 10 && currentPrice >= entryPrice) {
+            return { triggered: true, type: "take_profit", reason: "🟢 止賺收租成功 (10D Theta Collected)" };
+          }
+          break;
+
+        case "buy_stock":
+          if (pnlPercent <= -5.0 || (Number.isFinite(currentScore) && currentScore < 45)) {
+            return { triggered: true, type: "stop_loss", reason: "❌ 爆發失速止蝕 (Hit -5% / Score Decay)" };
+          }
+          if (pnlPercent >= 15.0 || currentPrice >= entryPrice + 3.0 * atrSafe) {
+            return { triggered: true, type: "take_profit", reason: "🚀 動能衝頂食糊 (Hit +15% / 3x ATR)" };
+          }
+          break;
+
+        case "buy_put":
+          if (holdingDays >= 5 && currentPrice >= entryPrice * 0.98) {
+            return { triggered: true, type: "stop_loss", reason: "❌ 橫盤 Theta 虛耗強制止蝕 (5D Time Penalty)" };
+          }
+          if (currentPrice > vwapBase || pnlPercent >= 3.0) {
+            return { triggered: true, type: "stop_loss", reason: "❌ 假跌破夾淡倉止蝕 (VWAP / +3% Reversal)" };
+          }
+          if (pnlPercent <= -10.0 || currentPrice <= entryPrice - 2.0 * atrSafe) {
+            return { triggered: true, type: "take_profit", reason: "🔥 殺跌暴賺食糊 (Short Gamma Profit)" };
+          }
+          break;
+      }
+      return { triggered: false };
+    }
+
+    function loadClosedTransactionsLocal() {
+      try {
+        const raw = localStorage.getItem(CLOSED_TX_LS_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    async function loadClosedTransactionsServer() {
+      const data = await fetchJsonSafe(CLOSED_TX_FILE);
+      const rows = data?.closed;
+      return Array.isArray(rows) ? rows : [];
+    }
+
+    function consolidateClosedRows(rows) {
+      const groups = new Map();
+      for (const r of rows || []) {
+        if (!r || typeof r !== "object") continue;
+        const gkey = [
+          String(r.ticker || "").toUpperCase(),
+          String(r.score_model || "").toLowerCase(),
+          String(r.exit_date || "").slice(0, 10),
+        ].join("|");
+        const prev = groups.get(gkey);
+        if (!prev || String(r.entry_date || "") < String(prev.entry_date || "")) {
+          groups.set(gkey, r);
+        }
+      }
+      return [...groups.values()].sort((a, b) => String(b.exit_date || "").localeCompare(String(a.exit_date || "")));
+    }
+
+    async function loadClosedTransactionsMerged() {
+      const serverRows = await loadClosedTransactionsServer();
+      const localRows = loadClosedTransactionsLocal();
+      if (Array.isArray(serverRows) && serverRows.length) {
+        try { localStorage.removeItem(CLOSED_TX_LS_KEY); } catch (_) {}
+      }
+      const source = Array.isArray(serverRows) && serverRows.length ? serverRows : localRows;
+      const merged = [];
+      const seen = new Set();
+      for (const r of source) {
+        if (!r || typeof r !== "object") continue;
+        const k0 = String(r._key || "").trim();
+        const d0 = String(r.exit_date || "").slice(0, 10);
+        const k = `${k0}|${d0}`;
+        if (!k0 || seen.has(k)) continue;
+        seen.add(k);
+        merged.push(r);
+      }
+      return consolidateClosedRows(merged);
+    }
+
+    function saveClosedTransactions(list) {
+      try {
+        const trimmed = (list || []).slice(-500);
+        localStorage.setItem(CLOSED_TX_LS_KEY, JSON.stringify(trimmed));
+        closedTransactions = trimmed;
+      } catch (e) {
+        console.warn("Could not persist closed transactions:", e);
+      }
+    }
+
+    function buildClosedRecord(signal, position, exit) {
+      const pseudo = { ...signal, score_model: position.strategy, action: signal.action };
+      const finalPnl = calcPnlPct(position.entryPrice, position.currentPrice, pseudo);
+      return {
+        _key: positionKey(signal),
+        exit_date: marketTodayKey(),
+        entry_date: String(signal.entry_date || "").slice(0, 10),
+        ticker: String(signal.ticker ?? "").trim().toUpperCase(),
+        score_model: position.strategy,
+        strategy_label: SCORE_MODEL_LABELS[position.strategy] || position.strategy,
+        action: signal.action,
+        entry_price: position.entryPrice,
+        exit_price: position.currentPrice,
+        final_pnl_pct: Number.isFinite(finalPnl) ? Math.round(finalPnl * 100) / 100 : null,
+        holding_days: position.holdingDays,
+        exit_type: exit.type,
+        exit_reason: exit.reason,
+      };
+    }
+
+    function dedupeOpenSignalsBySlot(signals) {
+      const bySlot = new Map();
+      for (const s of signals || []) {
+        const st = String(s?.status || "open").toLowerCase();
+        if (st === "closed" || st === "superseded") continue;
+        const slot = positionSlot(s);
+        const prev = bySlot.get(slot);
+        const ed = String(s.entry_date || "").slice(0, 10);
+        const prevEd = prev ? String(prev.entry_date || "").slice(0, 10) : "";
+        if (!prev || ed < prevEd) bySlot.set(slot, s);
+      }
+      return [...bySlot.values()];
+    }
+
+    function applyPortfolioExitEngine(enrichedSignals, scanRows, initialClosedStore = []) {
+      const scanMap = buildScanRowMap(scanRows);
+      let closedStore = consolidateClosedRows(Array.isArray(initialClosedStore) ? [...initialClosedStore] : []);
+      const closedKeys = new Set(closedStore.map((c) => c._key).filter(Boolean));
+      const active = [];
+      let changed = false;
+
+      for (const s of dedupeOpenSignalsBySlot(enrichedSignals)) {
+        const key = positionKey(s);
+        if (closedKeys.has(key)) continue;
+
+        const position = buildExitPosition(s, scanMap.get(String(s.ticker ?? "").trim().toUpperCase()));
+        const exit = checkExitConditions(position);
+        if (exit.triggered) {
+          const rec = buildClosedRecord(s, position, exit);
+          if (!closedKeys.has(rec._key)) {
+            closedStore.push(rec);
+            closedKeys.add(rec._key);
+            changed = true;
+          }
+        } else {
+          active.push(s);
+        }
+      }
+
+      if (changed) {
+        closedStore = consolidateClosedRows(closedStore);
+        closedStore.sort((a, b) => String(b.exit_date).localeCompare(String(a.exit_date)));
+        saveClosedTransactions(closedStore);
+      } else {
+        closedTransactions = closedStore;
+      }
+      return { active, closed: closedStore };
+    }
+
+    function renderClosedTransactionsTable(closedList) {
+      const tbody = document.getElementById("closedTransactionsTbody");
+      const emptyEl = document.getElementById("closedTransactionsEmpty");
+      const badge = document.getElementById("closedCountBadge");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      const model = activeScoreModel;
+      const list = (closedList || closedTransactions).filter(
+        (c) => String(c.score_model || "") === model,
+      );
+      list.sort((a, b) => String(b.exit_date || "").localeCompare(String(a.exit_date || "")));
+      if (badge) badge.textContent = list.length ? `（${list.length} 筆）` : "";
+      if (!list.length) {
+        if (emptyEl) emptyEl.style.display = "block";
+        return;
+      }
+      if (emptyEl) emptyEl.style.display = "none";
+      for (const c of list) {
+        const tr = document.createElement("tr");
+        const pnl = num(c.final_pnl_pct);
+        if (pnl > 0.05) tr.classList.add("row-pnl-win");
+        else if (pnl < -0.05) tr.classList.add("row-pnl-loss");
+        const typeCls = c.exit_type === "take_profit" ? "exit-type-tp" : "exit-type-stop";
+        const ht = c.ticker ?? "—";
+        tr.innerHTML = `
+          <td>${escapeHtml(String(c.exit_date || "—").slice(0, 10))}</td>
+          <td class="col-ticker">${tickerCellHtml(ht, { ticker: ht })}</td>
+          <td>${escapeHtml(c.strategy_label || c.score_model || "—")}</td>
+          <td class="col-num">${fmtNum(c.entry_price, 2)}</td>
+          <td class="col-num">${fmtNum(c.exit_price, 2)}</td>
+          <td class="col-num">${fmtPnlCell(pnl, { action: c.action, score_model: c.score_model })}</td>
+          <td class="col-num">${Number.isFinite(num(c.holding_days)) ? String(c.holding_days) : "—"}</td>
+          <td class="col-reason"><span class="${typeCls}">${escapeHtml(c.exit_reason || "—")}</span></td>
+        `;
+        tbody.appendChild(tr);
+      }
     }
 
     function fmtPnlCell(pnl, signal) {
@@ -3333,7 +3724,8 @@ ${tail}`;
       updateHistoryRulesHint();
       if (!historySignals.length) {
         if (summary) summary.style.display = "none";
-        setEmptyState("historyEmpty", true);
+        setEmptyState("historyEmpty", true, "尚無持倉中的觸發紀錄（已平倉者見下方歷史表）。");
+        renderClosedTransactionsTable(closedTransactions);
         return;
       }
       const q = historyFilter.trim().toLowerCase();
@@ -3349,6 +3741,7 @@ ${tail}`;
           ? "尚無符合觸發規則的紀錄。若主表有達標股，請執行：python3 scripts/export_triggers_from_scan.py 後 Reload。"
           : "此模式未定義觸發規則。";
         setEmptyState("historyEmpty", true, msg);
+        renderClosedTransactionsTable(closedTransactions);
         return;
       }
       setEmptyState("historyEmpty", false);
@@ -3362,7 +3755,10 @@ ${tail}`;
           activeScoreModel === "buy_put"
             ? "（標的下跌為正，相對進場價）"
             : "（相對進場價）";
-        summary.textContent = `共 ${list.length} 筆觸發 · ${pnlLabel} ${wins} 筆 · 平均 ${avg >= 0 ? "+" : ""}${avg.toFixed(2)}% ${pnlNote}`;
+        const closedN = (closedTransactions || []).filter(
+          (c) => String(c.score_model || "") === activeScoreModel,
+        ).length;
+        summary.textContent = `持倉 ${list.length} 筆 · 已平倉 ${closedN} 筆 · ${pnlLabel} ${wins} 筆 · 平均 ${avg >= 0 ? "+" : ""}${avg.toFixed(2)}% ${pnlNote}`;
       }
       syncSortHeaderUI("historyTable", histSortKey, histSortAsc, "data-hist-key");
       for (const s of list) {
@@ -3392,6 +3788,7 @@ ${tail}`;
         `;
         tbody.appendChild(tr);
       }
+      renderClosedTransactionsTable(closedTransactions);
     }
 
     function sellPutTriggerTrackFromRow(r) {
@@ -3475,6 +3872,7 @@ ${tail}`;
           score_model: model,
           score: Number.isFinite(sc) ? Math.round(sc) : null,
           entry_price: num(r.close ?? r.Close),
+          entry_vwap: num(r.vwap ?? r.VWAP),
           latest_price: num(r.close ?? r.Close),
           pnl_pct: 0,
           holding_days: 0,
@@ -3488,8 +3886,13 @@ ${tail}`;
     }
 
     async function loadHistory() {
-      const data = await fetchJsonSafe("signals_history.json");
-      let base = Array.isArray(data?.signals) ? data.signals : [];
+      const data = await fetchJsonSafe(SIGNALS_HISTORY_FILE);
+      let base = Array.isArray(data?.signals)
+        ? data.signals.filter((s) => {
+            const st = String(s?.status || "open").toLowerCase();
+            return st !== "closed" && st !== "superseded";
+          })
+        : [];
       const live = liveTriggerEntriesFromRows(rows, activeScoreModel);
       const keys = new Set(
         base
@@ -3503,11 +3906,18 @@ ${tail}`;
           keys.add(k);
         }
       }
-      historySignals = enrichHistoryFromScan(base, rows);
+      const enriched = enrichHistoryFromScan(base, rows);
+      closedTransactions = await loadClosedTransactionsMerged();
+      if (Array.isArray(closedTransactions) && closedTransactions.length) {
+        const closedKeys = new Set(closedTransactions.map((c) => String(c?._key || "")).filter(Boolean));
+        historySignals = enriched.filter((s) => !closedKeys.has(positionKey(s)));
+      } else {
+        const exited = applyPortfolioExitEngine(enriched, rows, closedTransactions);
+        historySignals = exited.active;
+        closedTransactions = exited.closed;
+      }
       if (!historySignals.length) {
-        setEmptyState("historyEmpty", true);
         document.getElementById("historyTbody").innerHTML = "";
-        return;
       }
       renderHistoryTable();
     }
@@ -4260,6 +4670,7 @@ ${tail}`;
 
       if (!data) {
         dailyScanJsonOk = false;
+        lastScanMeta = null;
         rows = [];
         document.getElementById("stocksTbody").innerHTML = "";
         const sphFail = document.getElementById("scorePrevHint");
@@ -4295,7 +4706,14 @@ ${tail}`;
         dailyScanJsonOk = true;
         setEmptyState("emptyState", false);
         document.getElementById("schemaVersion").textContent = data.schema_version ?? "-";
-        document.getElementById("lastUpdated").textContent = fmtDateLocal(data.last_updated);
+        const lastUpEl = document.getElementById("lastUpdated");
+        lastUpEl.textContent = fmtDateLocal(data.last_updated);
+        lastScanMeta = data.scan && typeof data.scan === "object" ? data.scan : null;
+        lastScanTradingDay = String(data.scan?.score_today_date || "").slice(0, 10);
+        if (lastScanTradingDay.length !== 10 && data.last_updated) {
+          lastScanTradingDay = String(data.last_updated).slice(0, 10);
+        }
+        lastUpEl.dataset.scanDay = lastScanTradingDay;
         document.getElementById("strategy").textContent = formatStrategyDisplay(data);
         const sph = document.getElementById("scorePrevHint");
         if (sph) {
@@ -4336,7 +4754,7 @@ ${tail}`;
         renderTable();
       }
 
-      breadthDailyHistory = await fetchJsonSafe("breadth_daily_history.json");
+      breadthDailyHistory = await fetchJsonSafe("breadth_daily_history_us.json");
       try {
         await Promise.all([loadHistory(), loadFutureLog(), loadMacro()]);
       } catch (err) {

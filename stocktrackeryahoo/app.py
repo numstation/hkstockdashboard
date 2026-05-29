@@ -1745,20 +1745,33 @@ def _merge_macro_payload(prev: dict, new: dict) -> dict:
     return merged
 
 
+def daily_scan_files_for_market(market: str = "HK") -> dict[str, str]:
+    """Per-model scan JSON filenames — HK and US use separate files (never cross-write)."""
+    if str(market).upper() == "US":
+        return {
+            "sell_put": "daily_scan_us_sell_put.json",
+            "buy_stock": "daily_scan_us_buy_stock.json",
+            "buy_put": "daily_scan_us_buy_put.json",
+        }
+    return {
+        "sell_put": "daily_scan_sell_put.json",
+        "buy_stock": "daily_scan_buy_stock.json",
+        "buy_put": "daily_scan_buy_put.json",
+    }
+
+
 def export_trade_signals_from_scan_files(
     filenames: dict[str, str] | None = None,
     strategy_name: str = "Scan file sync",
+    *,
+    signals_filename: str = "signals_history.json",
 ) -> int:
     """
     Re-apply trigger logging from saved daily_scan_*.json (safety net if in-memory export was skipped).
     Returns total newly logged triggers.
     """
     if filenames is None:
-        filenames = {
-            "sell_put": "daily_scan_sell_put.json",
-            "buy_stock": "daily_scan_buy_stock.json",
-            "buy_put": "daily_scan_buy_put.json",
-        }
+        filenames = daily_scan_files_for_market("HK")
     total = 0
     for model_slug, fname in filenames.items():
         path = _resolve_repo_json_path(fname)
@@ -1778,7 +1791,10 @@ def export_trade_signals_from_scan_files(
                 if col in df.columns:
                     continue
         total += export_trade_signals_history_to_json(
-            df, f"{strategy_name} | ScoreModel={model_slug}", score_model_slug=model_slug
+            df,
+            f"{strategy_name} | ScoreModel={model_slug}",
+            score_model_slug=model_slug,
+            filename=signals_filename,
         )
     return total
 
@@ -1843,6 +1859,7 @@ def export_closed_transactions_to_json(
     *,
     signals_filename: str = "signals_history.json",
     output_filename: str = "closed_transactions.json",
+    scan_filenames: dict[str, str] | None = None,
     retention_days: int = 365,
     max_entries: int = 8000,
     schema_version: str | None = None,
@@ -1866,11 +1883,7 @@ def export_closed_transactions_to_json(
     if not isinstance(closed_rows, list):
         closed_rows = []
 
-    model_files = {
-        "sell_put": "daily_scan_sell_put.json",
-        "buy_stock": "daily_scan_buy_stock.json",
-        "buy_put": "daily_scan_buy_put.json",
-    }
+    model_files = scan_filenames or daily_scan_files_for_market("HK")
     scan_by_model: dict[str, dict[str, dict]] = {}
     for model, fname in model_files.items():
         data = _read_json_file(_resolve_repo_json_path(fname), None)
