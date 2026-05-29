@@ -54,6 +54,7 @@ def _stock_row_to_json(row: dict) -> dict:
         "macd_hist": macd_hist_n,
         "macd_sign": macd_sign,
         "adx": _to_number(row.get("ADX")),
+        "atr": _to_number(row.get("ATR", row.get("atr"))),
         "dmi_gap": _to_number(row.get("DMI_Gap", row.get("PDI_MDI_Gap"))),
         "rvol": _to_number(row.get("RVOL")),
         "rs_20d": _to_number(row.get("RS_20d")),
@@ -65,6 +66,7 @@ def _stock_row_to_json(row: dict) -> dict:
         "RSI": row.get("RSI", "N/A"),
         "MFI": row.get("MFI", "N/A"),
         "ADX": row.get("ADX", "N/A"),
+        "ATR": row.get("ATR", row.get("atr", "N/A")),
         "PDI": row.get("PDI", "N/A"),
         "MDI": row.get("MDI", "N/A"),
         "DMI_Gap": row.get("DMI_Gap", row.get("PDI_MDI_Gap", "N/A")),
@@ -281,6 +283,7 @@ def export_results_to_json(
                     strong=int(sc.get("buy_count") or 0),
                     watch=int(sc.get("wait_count") or 0),
                     caution=int(sc.get("sell_count") or 0),
+                    filename=breadth_history_filename_for_scan(filename),
                     schema_version=schema_ver,
                 )
         return True
@@ -295,6 +298,14 @@ def _resolve_repo_json_path(filename: str) -> str:
         return filename
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     return os.path.join(repo_root, os.path.basename(filename))
+
+
+def breadth_history_filename_for_scan(scan_filename: str) -> str:
+    """US scans write breadth_daily_history_us.json; HK uses breadth_daily_history.json."""
+    base = os.path.basename(str(scan_filename or ""))
+    if "daily_scan_us" in base:
+        return "breadth_daily_history_us.json"
+    return "breadth_daily_history.json"
 
 
 def _read_json_file(path: str, default):
@@ -596,6 +607,127 @@ def _dedupe_keep_latest(items, key_fn):
     for item in items:
         latest[key_fn(item)] = item
     return list(latest.values())
+
+
+def _position_slot(sig: dict) -> str:
+    """One logical book slot per ticker + score model."""
+    sym = str(sig.get("ticker", "")).strip().upper()
+    model = str(sig.get("score_model", "")).strip().lower()
+    return f"{sym}|{model}"
+
+
+def _is_open_signal(sig: dict) -> bool:
+    st = str(sig.get("status", "open")).strip().lower()
+    return st not in ("closed", "superseded")
+
+
+def _has_open_position(signals: list, sym: str, model: str) -> bool:
+    sym_u = str(sym).strip().upper()
+    model_l = str(model).strip().lower()
+    return any(
+        isinstance(s, dict)
+        and _is_open_signal(s)
+        and str(s.get("ticker", "")).strip().upper() == sym_u
+        and str(s.get("score_model", "")).strip().lower() == model_l
+        for s in signals
+    )
+
+
+def _closed_exit_batch_key(sig: dict) -> tuple:
+    """Group duplicate closes from repeated daily triggers on the same exit."""
+    ex = str(sig.get("exit_date") or sig.get("closed_at") or "")[:10]
+    px = _to_number(sig.get("exit_price"))
+    return (
+        ex,
+        round(float(px), 2) if px is not None else None,
+        str(sig.get("exit_reason") or sig.get("exit_type") or ""),
+    )
+
+
+def reconcile_signals_history(signals: list) -> tuple[list, int]:
+    """
+    Collapse consecutive daily re-triggers while a slot is still open.
+    Merge duplicate closed rows that share the same exit batch (keep earliest entry).
+    """
+    if not signals:
+        return [], 0
+    by_slot: dict[str, list] = {}
+    for s in signals:
+        if isinstance(s, dict):
+            by_slot.setdefault(_position_slot(s), []).append(s)
+    out: list = []
+    superseded = 0
+    for group in by_slot.values():
+        group.sort(key=lambda x: str(x.get("entry_date") or x.get("date") or "")[:10])
+        slot_open = False
+        pending_closed: list = []
+
+        def _flush_closed() -> None:
+            nonlocal pending_closed, superseded
+            if not pending_closed:
+                return
+            pending_closed.sort(key=lambda x: str(x.get("entry_date", ""))[:10])
+            out.append(pending_closed[0])
+            superseded += max(0, len(pending_closed) - 1)
+            pending_closed = []
+
+        for s in group:
+            st = str(s.get("status", "open")).strip().lower()
+            if st == "superseded":
+                superseded += 1
+                continue
+            if st == "closed":
+                slot_open = False
+                if pending_closed and _closed_exit_batch_key(pending_closed[-1]) == _closed_exit_batch_key(s):
+                    pending_closed.append(s)
+                else:
+                    _flush_closed()
+                    pending_closed = [s]
+                continue
+            if slot_open:
+                superseded += 1
+                continue
+            slot_open = True
+            out.append(s)
+        _flush_closed()
+    out.sort(key=lambda x: str(x.get("entry_date") or x.get("date") or ""))
+    return out, superseded
+
+
+def consolidate_closed_transactions(closed_rows: list) -> list:
+    """One closed row per ticker/model/exit day (earliest entry wins)."""
+    groups: dict[tuple, list] = {}
+    for r in closed_rows:
+        if not isinstance(r, dict):
+            continue
+        gkey = (
+            str(r.get("ticker", "")).upper(),
+            str(r.get("score_model", "")).lower(),
+            str(r.get("exit_date", ""))[:10],
+        )
+        groups.setdefault(gkey, []).append(r)
+    out: list = []
+    for rows in groups.values():
+        rows.sort(key=lambda x: str(x.get("entry_date", ""))[:10])
+        keeper = dict(rows[0])
+        entry = str(keeper.get("entry_date", ""))[:10]
+        exit_d = str(keeper.get("exit_date", ""))[:10]
+        sym = str(keeper.get("ticker", "")).upper()
+        model = str(keeper.get("score_model", "")).lower()
+        action = str(keeper.get("action", "")).upper()
+        ep = _to_number(keeper.get("entry_price"))
+        xp = _to_number(keeper.get("exit_price"))
+        hd = _holding_days(entry, exit_d)
+        if hd is not None:
+            keeper["holding_days"] = hd
+        if ep is not None and xp is not None and float(ep) != 0:
+            keeper["final_pnl_pct"] = _pnl_pct_underlying(
+                float(ep), float(xp), bearish=(action == "BUY_PUT" or model == "buy_put")
+            )
+        keeper["_key"] = f"{entry}|{sym}|{action}|{model}"
+        out.append(keeper)
+    out.sort(key=lambda x: str(x.get("exit_date", "")))
+    return out
 
 
 def _fetch_macro_pair(ticker: str):
@@ -1271,6 +1403,8 @@ def export_trade_signals_history_to_json(
         payload["signals"] = []
 
     price_map: dict[str, float] = {}
+    atr_map: dict[str, float] = {}
+    vwap_map: dict[str, float] = {}
     if df is not None and not df.empty:
         work = df.copy().fillna("N/A")
         if "Close" not in work.columns and "Price" in work.columns:
@@ -1278,8 +1412,14 @@ def export_trade_signals_history_to_json(
         for row in work.to_dict(orient="records"):
             sym = str(row.get("Ticker", row.get("ticker", ""))).strip().upper()
             px = _to_number(row.get("Close", row.get("Price")))
+            atr = _to_number(row.get("ATR", row.get("atr")))
+            vwap = _to_number(row.get("VWAP", row.get("vwap")))
             if sym and sym != "N/A" and px is not None:
                 price_map[sym] = float(px)
+            if sym and sym != "N/A" and atr is not None:
+                atr_map[sym] = float(atr)
+            if sym and sym != "N/A" and vwap is not None:
+                vwap_map[sym] = float(vwap)
 
     for sig in payload["signals"]:
         if not isinstance(sig, dict):
@@ -1295,6 +1435,10 @@ def export_trade_signals_history_to_json(
                 sig["pnl_pct"] = _pnl_pct_underlying(
                     float(entry_px), float(latest), bearish=_signal_is_bearish_underlying(sig)
                 )
+        if sym and sym in atr_map:
+            sig["atr"] = round(float(atr_map[sym]), 4)
+        if sym and sym in vwap_map and _to_number(sig.get("entry_vwap")) is None:
+            sig["entry_vwap"] = round(float(vwap_map[sym]), 4)
         sig["last_marked"] = today
         ed = sig.get("entry_date") or _entry_date_from_iso(sig.get("date", ""))
         hd = _holding_days(ed, today)
@@ -1314,6 +1458,8 @@ def export_trade_signals_history_to_json(
             sym = str(row.get("Ticker", row.get("ticker", "N/A"))).strip().upper()
             entry_px = _to_number(row.get("Close", row.get("Price")))
             if not sym or sym == "N/A" or entry_px is None:
+                continue
+            if _has_open_position(payload["signals"], sym, model_slug):
                 continue
             macd_st = macd_status_from_row(dict(row)) if macd_status_from_row else ""
             ts = row.get("tech_score")
@@ -1338,6 +1484,8 @@ def export_trade_signals_history_to_json(
                 "signal": row.get("Signal", "N/A"),
                 "score": score_i,
                 "entry_price": round(float(entry_px), 4),
+                "entry_vwap": round(float(_to_number(row.get("VWAP", row.get("vwap"))) or entry_px), 4),
+                "atr": round(float(_to_number(row.get("ATR", row.get("atr"))) or 0.0), 4),
                 "latest_price": round(float(entry_px), 4),
                 "pnl_pct": 0.0,
                 "holding_days": 0,
@@ -1355,6 +1503,9 @@ def export_trade_signals_history_to_json(
             new_count += 1
 
     payload["signals"] = [x for x in payload["signals"] if _is_within_days(x.get("date"), retention_days)]
+    payload["signals"], _n_sup = reconcile_signals_history(payload["signals"])
+    if _n_sup:
+        print(f"Reconciled signals: superseded {_n_sup} duplicate daily re-triggers")
     payload["signals"] = _dedupe_keep_latest(
         payload["signals"],
         lambda x: (
@@ -1630,6 +1781,214 @@ def export_trade_signals_from_scan_files(
             df, f"{strategy_name} | ScoreModel={model_slug}", score_model_slug=model_slug
         )
     return total
+
+
+def _trading_days_since(entry_date: str, as_of_date: str) -> int:
+    """Weekday-only holding days used by frontend exit engine."""
+    try:
+        d0 = datetime.strptime(str(entry_date)[:10], "%Y-%m-%d").date()
+        d1 = datetime.strptime(str(as_of_date)[:10], "%Y-%m-%d").date()
+    except Exception:
+        return 0
+    if d1 <= d0:
+        return 0
+    cur = d0
+    cnt = 0
+    while cur < d1:
+        if cur.weekday() < 5:
+            cnt += 1
+        cur = cur.fromordinal(cur.toordinal() + 1)
+    return cnt
+
+
+def _exit_decision_for_position(position: dict) -> dict:
+    """
+    Mirror frontend unified stop-loss / take-profit rules.
+    Returns {triggered: bool, type?: str, reason?: str}.
+    """
+    strategy = str(position.get("strategy") or "").strip().lower()
+    entry = _to_number(position.get("entry_price"))
+    current = _to_number(position.get("current_price"))
+    atr = _to_number(position.get("atr"))
+    hold = _to_number(position.get("holding_days")) or 0
+    entry_vwap = _to_number(position.get("entry_vwap"))
+    current_score = _to_number(position.get("current_score"))
+    if entry is None or entry <= 0 or current is None:
+        return {"triggered": False}
+    pnl_percent = ((float(current) - float(entry)) / float(entry)) * 100.0
+    atr_safe = float(atr) if atr is not None and atr > 0 else float(entry) * 0.015
+    vwap_base = float(entry_vwap) if entry_vwap is not None else float(entry)
+
+    if strategy == "sell_put":
+        if current < entry - (1.5 * atr_safe) or current < vwap_base:
+            return {"triggered": True, "type": "stop_loss", "reason": "❌ 跌破防線止蝕 (Hit ATR / VWAP Base)"}
+        if hold >= 10 and current >= entry:
+            return {"triggered": True, "type": "take_profit", "reason": "🟢 止賺收租成功 (10D Theta Collected)"}
+    elif strategy == "buy_stock":
+        if pnl_percent <= -5.0 or (current_score is not None and current_score < 45):
+            return {"triggered": True, "type": "stop_loss", "reason": "❌ 爆發失速止蝕 (Hit -5% / Score Decay)"}
+        if pnl_percent >= 15.0 or current >= entry + (3.0 * atr_safe):
+            return {"triggered": True, "type": "take_profit", "reason": "🚀 動能衝頂食糊 (Hit +15% / 3x ATR)"}
+    elif strategy == "buy_put":
+        if hold >= 5 and current >= entry * 0.98:
+            return {"triggered": True, "type": "stop_loss", "reason": "❌ 橫盤 Theta 虛耗強制止蝕 (5D Time Penalty)"}
+        if current > vwap_base or pnl_percent >= 3.0:
+            return {"triggered": True, "type": "stop_loss", "reason": "❌ 假跌破夾淡倉止蝕 (VWAP / +3% Reversal)"}
+        if pnl_percent <= -10.0 or current <= entry - (2.0 * atr_safe):
+            return {"triggered": True, "type": "take_profit", "reason": "🔥 殺跌暴賺食糊 (Short Gamma Profit)"}
+    return {"triggered": False}
+
+
+def export_closed_transactions_to_json(
+    *,
+    signals_filename: str = "signals_history.json",
+    output_filename: str = "closed_transactions.json",
+    retention_days: int = 365,
+    max_entries: int = 8000,
+    schema_version: str | None = None,
+) -> int:
+    """Archive closed trades using unified exit rules and current scan fields."""
+    now_str = _now_iso()
+    today = _entry_date_from_iso(now_str)
+    schema_ver = apply_schema_floor(schema_version or schema_version_for_export(bump=False))
+    signals_path = _resolve_repo_json_path(signals_filename)
+    out_path = _resolve_repo_json_path(output_filename)
+    sig_payload = _read_json_file(signals_path, {"signals": []})
+    out_payload = _read_json_file(out_path, {"schema_version": schema_ver, "last_updated": now_str, "closed": []})
+    if not isinstance(sig_payload, dict):
+        sig_payload = {"signals": []}
+    if not isinstance(out_payload, dict):
+        out_payload = {"schema_version": schema_ver, "last_updated": now_str, "closed": []}
+    signals = sig_payload.get("signals")
+    if not isinstance(signals, list):
+        signals = []
+    closed_rows = out_payload.get("closed")
+    if not isinstance(closed_rows, list):
+        closed_rows = []
+
+    model_files = {
+        "sell_put": "daily_scan_sell_put.json",
+        "buy_stock": "daily_scan_buy_stock.json",
+        "buy_put": "daily_scan_buy_put.json",
+    }
+    scan_by_model: dict[str, dict[str, dict]] = {}
+    for model, fname in model_files.items():
+        data = _read_json_file(_resolve_repo_json_path(fname), None)
+        stocks = data.get("stocks") if isinstance(data, dict) else None
+        per_ticker: dict[str, dict] = {}
+        if isinstance(stocks, list):
+            for row in stocks:
+                if not isinstance(row, dict):
+                    continue
+                sym = str(row.get("ticker", row.get("Ticker", ""))).strip().upper()
+                if sym:
+                    per_ticker[sym] = row
+        scan_by_model[model] = per_ticker
+
+    key_set = {str(c.get("_key")) for c in closed_rows if isinstance(c, dict) and c.get("_key")}
+    new_closed = 0
+
+    open_by_slot: dict[str, list] = {}
+    for sig in signals:
+        if isinstance(sig, dict) and _is_open_signal(sig):
+            open_by_slot.setdefault(_position_slot(sig), []).append(sig)
+
+    for _slot, opens in open_by_slot.items():
+        opens.sort(key=lambda s: str(s.get("entry_date") or s.get("date") or "")[:10])
+        sig = opens[0]
+        model = str(sig.get("score_model") or "").strip().lower()
+        if model not in ("sell_put", "buy_stock", "buy_put"):
+            continue
+        sym = str(sig.get("ticker", "")).strip().upper()
+        if not sym:
+            continue
+        entry_date = str(sig.get("entry_date") or _entry_date_from_iso(sig.get("date", now_str)))[:10]
+        row = scan_by_model.get(model, {}).get(sym, {})
+        entry_price = _to_number(sig.get("entry_price", sig.get("close")))
+        current_price = _to_number((row or {}).get("close", (row or {}).get("Close")))
+        if current_price is None:
+            current_price = _to_number(sig.get("latest_price"))
+        if entry_price is None or current_price is None:
+            continue
+        holding_days = _to_number(sig.get("holding_days"))
+        if holding_days is None:
+            holding_days = _trading_days_since(entry_date, today)
+        if holding_days <= 0:
+            continue
+        atr = _to_number(sig.get("atr"))
+        if atr is None:
+            atr = _to_number((row or {}).get("atr", (row or {}).get("ATR")))
+        entry_vwap = _to_number(sig.get("entry_vwap"))
+        if entry_vwap is None:
+            entry_vwap = _to_number((row or {}).get("vwap", (row or {}).get("VWAP")))
+        if entry_vwap is None:
+            entry_vwap = entry_price
+        current_score = _to_number((row or {}).get("tech_score", sig.get("score")))
+        pos = {
+            "strategy": model,
+            "entry_price": entry_price,
+            "current_price": current_price,
+            "atr": atr,
+            "holding_days": holding_days,
+            "entry_vwap": entry_vwap,
+            "current_score": current_score,
+        }
+        decision = _exit_decision_for_position(pos)
+        if not decision.get("triggered"):
+            continue
+        key = f"{entry_date}|{sym}|{str(sig.get('action','')).upper()}|{model}"
+        if key not in key_set:
+            pnl = _pnl_pct_underlying(float(entry_price), float(current_price), bearish=_signal_is_bearish_underlying(sig))
+            closed_rows.append(
+                {
+                    "_key": key,
+                    "exit_date": today,
+                    "entry_date": entry_date,
+                    "ticker": sym,
+                    "score_model": model,
+                    "strategy_label": strategy_display_name(model, model),
+                    "action": sig.get("action"),
+                    "entry_price": round(float(entry_price), 4),
+                    "exit_price": round(float(current_price), 4),
+                    "final_pnl_pct": pnl,
+                    "holding_days": int(holding_days),
+                    "exit_type": decision.get("type"),
+                    "exit_reason": decision.get("reason"),
+                }
+            )
+            key_set.add(key)
+            new_closed += 1
+        for o in opens:
+            o["status"] = "closed"
+            o["closed_at"] = now_str
+            o["exit_reason"] = decision.get("reason")
+            o["exit_price"] = round(float(current_price), 4)
+            o["exit_type"] = decision.get("type")
+
+    signals, _n_sup = reconcile_signals_history(signals)
+    if _n_sup:
+        print(f"Reconciled signals after close: superseded {_n_sup} duplicate entries")
+
+    signals = [x for x in signals if _is_within_days(x.get("date"), retention_days)]
+    closed_rows = [x for x in closed_rows if _is_within_days(x.get("exit_date"), retention_days)]
+    closed_rows = consolidate_closed_transactions(closed_rows)
+    if max_entries and len(closed_rows) > max_entries:
+        closed_rows = closed_rows[-max_entries:]
+    sig_payload["signals"] = signals
+    sig_payload["last_updated"] = now_str
+    sig_payload["schema_version"] = schema_ver
+    out_payload["closed"] = closed_rows
+    out_payload["last_updated"] = now_str
+    out_payload["schema_version"] = schema_ver
+    try:
+        with open(signals_path, "w", encoding="utf-8") as f:
+            json.dump(sig_payload, f, ensure_ascii=False, indent=4)
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(out_payload, f, ensure_ascii=False, indent=4)
+        return new_closed
+    except Exception as e:
+        print(f"Error exporting closed transactions: {e}")
+        return 0
 
 
 def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version: str | None = None):
