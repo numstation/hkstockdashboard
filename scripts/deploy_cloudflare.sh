@@ -131,12 +131,45 @@ _ensure_us_data_files() {
     if [[ -f "${data_dir}/${f}" ]] && _is_valid_json "${data_dir}/${f}"; then
       continue
     fi
+    if [[ -f "${ROOT}/${f}" ]] && _is_valid_json "${ROOT}/${f}"; then
+      cp "${ROOT}/${f}" "${data_dir}/${f}"
+      filled=$((filled + 1))
+      echo "    restored US from repo root: ${f}"
+      continue
+    fi
+    if [[ -f "${ROOT}/frontend-us/data/${f}" ]] && _is_valid_json "${ROOT}/frontend-us/data/${f}"; then
+      cp "${ROOT}/frontend-us/data/${f}" "${data_dir}/${f}"
+      filled=$((filled + 1))
+      echo "    restored US from frontend-us/data: ${f}"
+      continue
+    fi
     if _fetch_live_json "/frontend-us/data/${f}" "${data_dir}/${f}"; then
       filled=$((filled + 1))
       echo "    restored US from live: ${f}"
     fi
   done
-  echo "    US live backfill: ${filled} file(s)"
+  echo "    US backfill total: ${filled} file(s)"
+}
+
+_verify_us_scan_in_bundle() {
+  local primary="${PUBLIC}/frontend-us/data/daily_scan_us_sell_put.json"
+  if [[ ! -f "$primary" ]] || ! _is_valid_json "$primary"; then
+    echo "::error:: US scan missing from deploy bundle (${primary})."
+    echo "         Commit daily_scan_us*.json to git or run: python3 run_scan_export_json.py US --skip-macro"
+    exit 1
+  fi
+  local n
+  n=$(python3 - <<PY
+import json
+d = json.load(open("${primary}", encoding="utf-8"))
+print(len(d.get("stocks") or []))
+PY
+)
+  if [[ "${n:-0}" -lt 50 ]]; then
+    echo "::error:: US scan bundle has only ${n} stocks — aborting deploy (would break US page)."
+    exit 1
+  fi
+  echo "==> US scan bundle OK (${n} stocks in daily_scan_us_sell_put.json)"
 }
 
 _prepare_us_data() {
@@ -177,6 +210,8 @@ cp "$ROOT/frontend/index.html" "$PUBLIC/frontend/index.html"
 cp "$ROOT/frontend-us/index.html" "$PUBLIC/frontend-us/index.html"
 cp -R "$ROOT/frontend/data" "$PUBLIC/frontend/data"
 cp -R "$ROOT/frontend-us/data" "$PUBLIC/frontend-us/data"
+
+_verify_us_scan_in_bundle
 
 cat > "$PUBLIC/index.html" <<'EOF'
 <!doctype html>

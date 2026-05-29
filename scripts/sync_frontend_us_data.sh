@@ -10,6 +10,8 @@ for f in daily_scan_us.json daily_scan_us_sell_put.json daily_scan_us_buy_stock.
   breadth_daily_history_us.json signals_history_us.json closed_transactions_us.json; do
   if [[ -f "$ROOT/$f" ]]; then
     cp "$ROOT/$f" "$ROOT/frontend-us/data/$f"
+  elif [[ -f "$ROOT/frontend-us/data/$f" ]]; then
+    cp "$ROOT/frontend-us/data/$f" "$ROOT/$f"
   fi
 done
 echo "Synced US JSON → frontend-us/data/ ($(date -Iseconds))"
