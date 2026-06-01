@@ -493,7 +493,7 @@ elif mode == "Scanner":
         unsafe_allow_html=True,
     )
     st.sidebar.header("Ticker source")
-    source_options = ["Tech", "HSI", "HKCEI", "HK stock list", "US Top 200", "Custom (type below)"]
+    source_options = ["Tech", "HSI", "HKCEI", "HK stock list", "US Top 300", "Custom (type below)"]
     source = st.sidebar.radio("Choose list", source_options, index=0)
 
     tickers = []
@@ -509,9 +509,9 @@ elif mode == "Scanner":
     elif source == "HK stock list":
         tickers = HK_TICKERS.copy()
         st.sidebar.info(f"Using {len(tickers)} HK tickers ({HK_UNIVERSE_TAG}).")
-    elif source == "US Top 200":
+    elif source == "US Top 300":
         tickers = US_TICKERS.copy()
-        st.sidebar.info(f"Using {len(tickers)} US tickers (Top 200 universe).")
+        st.sidebar.info(f"Using {len(tickers)} US tickers (Top 300 universe).")
     else:
         custom = st.sidebar.text_area(
             "Enter tickers (one per line or comma-separated)",

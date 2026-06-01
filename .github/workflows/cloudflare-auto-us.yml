@@ -2,7 +2,7 @@
 # HK workflow: cloudflare-auto.yml (≈ HKT 09:00–16:30).
 # This workflow: ≈ HKT 22:00–06:15 (covers US 09:30–16:00 Eastern in UTC).
 # Cadence: ~35 min between scheduled starts (not 30) — US scan takes ~15–20 min for
-# 200 tickers × 3 models; 30 min slots caused queue/backlog and 1h+ gaps on GitHub.
+# 300 tickers × 3 models; 30 min slots caused queue/backlog and 1h+ gaps on GitHub.
 
 name: Cloudflare auto update (US)
 
@@ -25,9 +25,9 @@ concurrency:
 jobs:
   scan-us-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
-      SCAN_VALIDATE_MIN_OK: "30"
+      SCAN_VALIDATE_MIN_OK: "200"
       SCAN_VALIDATE_FILES: "daily_scan_us.json"
     steps:
       - name: Checkout

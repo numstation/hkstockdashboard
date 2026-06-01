@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# GitHub Actions: US universe scan only (us_top200) → daily_scan_us*.json
+# GitHub Actions: US universe scan only (us_top300.txt) → daily_scan_us*.json
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

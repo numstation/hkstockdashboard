@@ -1023,7 +1023,7 @@
     <div class="header">
       <div>
         <h1 class="title">US 技術掃描</h1>
-        <div class="sub">美股 Top 200 · RVOL / ADX / MACD 與綜合評分 · JSON 驅動<a class="market-nav-link" href="/frontend/">← HK 港股版</a></div>
+        <div class="sub">美股 Top 300 · RVOL / ADX / MACD 與綜合評分 · JSON 驅動<a class="market-nav-link" href="/frontend/">← HK 港股版</a></div>
       </div>
       <div class="mode-switch">
         <button id="modeSellPutBtn" class="mode-btn active" type="button">Sell Put 穩健收租</button>
@@ -1271,7 +1271,7 @@
     const SCAN_FILE_PREFIX = "daily_scan_us";
     const SIGNALS_HISTORY_FILE = "signals_history_us.json";
     const CLOSED_TX_FILE = "closed_transactions_us.json";
-    const US_UNIVERSE_TOTAL = 200;
+    const US_UNIVERSE_TOTAL = 300;
 
     let rows = [];
     let sortKey = "tech_score";
@@ -2190,14 +2190,14 @@ ${tail}`;
       return US_UNIVERSE_TOTAL;
     }
 
-    /** US Yahoo scans often land at 196–200 rows (data_ok gaps) — do not drop valid breadth days. */
+    /** US Yahoo scans often land slightly below universe size (data_ok gaps) — keep valid breadth days. */
     function breadthTotalMatchesUniverse(total, expectedTotal) {
       const totalN = Number(total);
       const exp = Number(expectedTotal);
       if (!Number.isFinite(totalN) || totalN <= 0) return false;
       if (!Number.isFinite(exp) || exp <= 0) return true;
-      if (totalN >= 150 && totalN <= 210) return true;
-      return Math.abs(totalN - exp) <= Math.max(10, exp * 0.12);
+      if (totalN >= 250 && totalN <= 310) return true;
+      return Math.abs(totalN - exp) <= Math.max(15, exp * 0.12);
     }
 
     function buildBreadthByDay(scanRows, signals, breadthHistory) {
@@ -2589,14 +2589,15 @@ ${tail}`;
       return metrics.find((m) => String(m.name || "").toUpperCase().includes(u)) || null;
     }
 
-    function breadthAboveSma200Majority(data, advanced) {
+    function dashboardBreadthBlock(data) {
       const bm = data?.breadth_markets;
-      const hk = bm?.hk;
-      const us = bm?.us;
-      const pcts = [num(hk?.above_ma200_pct), num(us?.above_ma200_pct)].filter((x) => Number.isFinite(x));
-      if (pcts.length) {
-        const avg = pcts.reduce((a, b) => a + b, 0) / pcts.length;
-        return { ok: avg >= 50, avg, source: "breadth_markets" };
+      return DASHBOARD_MARKET === "us" ? bm?.us : bm?.hk;
+    }
+
+    function breadthAboveSma200Majority(data, advanced) {
+      const pct = num(dashboardBreadthBlock(data)?.above_ma200_pct);
+      if (Number.isFinite(pct)) {
+        return { ok: pct >= 50, avg: pct, source: "breadth_markets" };
       }
       if (advanced && typeof advanced === "object") {
         const rows = Object.values(advanced).filter((r) => r && typeof r === "object");
@@ -2610,13 +2611,10 @@ ${tail}`;
     }
 
     function breadthSma50Gauge(data, advanced) {
-      const bm = data?.breadth_markets;
-      const hk = bm?.hk;
-      const us = bm?.us;
-      const pcts = [num(hk?.above_ma50_pct), num(us?.above_ma50_pct)].filter((x) => Number.isFinite(x));
-      if (pcts.length) {
-        const avg = pcts.reduce((a, b) => a + b, 0) / pcts.length;
-        return { pct: avg, ok: avg >= 50, source: "breadth_markets" };
+      const pct = num(dashboardBreadthBlock(data)?.above_ma50_pct);
+      if (Number.isFinite(pct)) {
+        const clamped = Math.max(0, Math.min(100, pct));
+        return { pct: clamped, ok: clamped >= 50, source: "breadth_markets" };
       }
       const br = breadthAboveSma200Majority(data, advanced);
       return { pct: br.avg, ok: br.ok, source: br.source };
@@ -2686,14 +2684,11 @@ ${tail}`;
       return tail.reduce((a, b) => a + b, 0) / window;
     }
 
-    /** Global market >SMA50% from breadth_markets (HK/US sample avg). */
-    function globalBreadthSma50Pct(data) {
-      const bm = data?.breadth_markets;
-      const pcts = [num(bm?.hk?.above_ma50_pct), num(bm?.us?.above_ma50_pct)].filter((x) =>
-        Number.isFinite(x),
-      );
-      if (!pcts.length) return null;
-      return Math.max(0, Math.min(100, pcts.reduce((a, b) => a + b, 0) / pcts.length));
+    /** Market-specific >SMA50% from breadth_markets (HK page → hk; US page → us). */
+    function dashboardBreadthSma50Pct(data) {
+      const pct = num(dashboardBreadthBlock(data)?.above_ma50_pct);
+      if (!Number.isFinite(pct)) return null;
+      return Math.max(0, Math.min(100, pct));
     }
 
     function vixRiskPts(vixVal) {
@@ -2798,7 +2793,7 @@ ${tail}`;
     function calculateGlobalRiskScore(data, metrics, advanced) {
       const vixVal = num(findMetricByName(metrics, "VIX")?.value);
       const cap = capitalRiskFromMa20(data, metrics, advanced);
-      const brPct = globalBreadthSma50Pct(data);
+      const brPct = dashboardBreadthSma50Pct(data);
       const sbAvg5 = southbound5dAvg(data);
       let total = 0;
       let hasAny = false;
@@ -3032,17 +3027,15 @@ ${tail}`;
         .filter(Boolean)
         .join(" · ");
 
-      const brPct = Number.isFinite(comp.breadth_sma50_pct)
-        ? comp.breadth_sma50_pct
-        : globalBreadthSma50Pct(data);
-      const brPts = Number.isFinite(comp.breadth_pts) ? comp.breadth_pts : breadthRiskPts(brPct);
+      const brPct = dashboardBreadthSma50Pct(data);
+      const brPts = breadthRiskPts(brPct);
       const brBadge = pillarRiskBadge(brPts, 20, {
         safe: "🟢 結構強勢",
         mid: "🟡 結構整固",
         danger: "🔴 結構惡化",
       });
       const brHint =
-        "算法：港股+美股樣本中，股價高於50日均線佔比之平均；>80%強勢、40–80%整固、<40%惡化";
+        "算法：美股樣本中，股價高於50日均線佔比；>80%強勢、40–80%整固、<40%惡化";
       _macroTableHi.breadth = false;
       _macroTableHi.flowIn = false;
       _macroTableHi.flowOut = false;
@@ -4267,8 +4260,8 @@ ${tail}`;
       }
 
       const bm = data && typeof data.breadth_markets === "object" ? data.breadth_markets : null;
-      const hkB = bm?.hk;
-      const usB = bm?.us;
+      const marketB = dashboardBreadthBlock(data);
+      const marketTag = DASHBOARD_MARKET === "us" ? "US" : "HK";
 
       const advRows = Object.values(advanced || {}).filter((x) => x && typeof x === "object");
       const breadthBase = advRows
@@ -4297,10 +4290,9 @@ ${tail}`;
       };
 
       const breadthTickersTitle = () => {
-        const hkS = Array.isArray(hkB?.tickers_ok) ? hkB.tickers_ok.join(" ") : "";
-        const usS = Array.isArray(usB?.tickers_ok) ? usB.tickers_ok.join(" ") : "";
-        if (!hkS && !usS) return "";
-        let t = `HK: ${hkS} | US: ${usS}`;
+        const s = Array.isArray(marketB?.tickers_ok) ? marketB.tickers_ok.join(" ") : "";
+        if (!s) return "";
+        let t = `${marketTag}: ${s}`;
         if (t.length > 1200) t = `${t.slice(0, 1200)} …`;
         return t;
       };
@@ -4308,13 +4300,11 @@ ${tail}`;
       if (data?.breadth_stale) {
         breadthNotes.push("（市寬為上次成功抓取，本次 Yahoo 抓取失敗）");
       }
-      if (bm && (hkB || usB)) {
+      if (bm && marketB) {
         const wz = Array.isArray(bm.warnings_zh) ? bm.warnings_zh.filter(Boolean) : [];
         breadthNotes.push(...wz);
-        const s50s = [num(hkB?.above_ma50_pct), num(usB?.above_ma50_pct)].filter((x) => Number.isFinite(x));
-        const s200s = [num(hkB?.above_ma200_pct), num(usB?.above_ma200_pct)].filter((x) => Number.isFinite(x));
-        min50 = s50s.length ? Math.min(...s50s) : null;
-        min200 = s200s.length ? Math.min(...s200s) : null;
+        min50 = num(marketB?.above_ma50_pct);
+        min200 = num(marketB?.above_ma200_pct);
         if (Number.isFinite(min50) && min50 < 40) breadthLevel = Math.max(breadthLevel, 2);
         else if (Number.isFinite(min200) && min200 < 36) breadthLevel = Math.max(breadthLevel, 2);
         else if (Number.isFinite(min50) && min50 < 55) breadthLevel = Math.max(breadthLevel, 1);
@@ -4347,12 +4337,12 @@ ${tail}`;
         }
       }
 
-      const breadthFigures = bm && (hkB || usB)
+      const breadthFigures = bm && marketB
         ? [
             Number.isFinite(min50) && Number.isFinite(min200)
-              ? `全樣本最低：>50MA ${min50.toFixed(0)}% · >200MA ${min200.toFixed(0)}%`
+              ? `>50MA ${min50.toFixed(0)}% · >200MA ${min200.toFixed(0)}%`
               : "",
-            [fmtBmCompact(hkB, "HK"), fmtBmCompact(usB, "US")].filter(Boolean).join(" | "),
+            fmtBmCompact(marketB, marketTag),
           ].filter(Boolean).join(" · ")
         : [
             `主要指數高於 200 日線（舊口徑）：${Number.isFinite(legacyBreadthPct) ? legacyBreadthPct.toFixed(0) + "%" : "—"}`,
@@ -4363,9 +4353,9 @@ ${tail}`;
       const breadthFiguresTitle = escapeAttr(breadthUniversePrefix + breadthTickersTitle());
 
       const breadthDetailFallback = () => {
-        if (bm && (hkB || usB)) {
+        if (bm && marketB) {
           const src = bm?.universe_source ? `來源：${String(bm.universe_source)}。` : "";
-          return `${src}重點睇「全樣本最低」>50MA／>200MA；hover Figures 可見入樣代號。`;
+          return `${src}重點睇 ${marketTag} >50MA／>200MA 佔比；hover Figures 可見入樣代號。`;
         }
         if (legacyBreadthPct == null) return "市寬資料不足；請重新導出 macro_snapshot（含 breadth_markets）。";
         return `舊口徑：主要指數高於 200 日線約 ${legacyBreadthPct.toFixed(0)}%`;

@@ -25,6 +25,7 @@ try:
     import pandas as pd
     from ta.momentum import RSIIndicator, StochasticOscillator
     from ta.trend import ADXIndicator, SMAIndicator
+    from ta.volatility import AverageTrueRange
     from ta.volume import MFIIndicator
 except ImportError as e:
     print(f"[ERROR] Missing module: {e}")
@@ -129,6 +130,14 @@ US_TICKERS = [
 ]
 
 
+def _norm_us_ticker(sym: str) -> str:
+    """Yahoo Finance class shares use hyphen (BRK.B → BRK-B)."""
+    s = sym.strip().upper()
+    if len(s) >= 3 and s[-2] == "." and s[-1].isalpha():
+        return f"{s[:-2]}-{s[-1]}"
+    return s
+
+
 def _load_tickers_from_repo_file(filename: str, *, hk_norm: bool = False) -> list[str]:
     """Load one ticker per line from repo root file; supports # comments."""
     path = Path(__file__).resolve().parent / filename
@@ -139,7 +148,10 @@ def _load_tickers_from_repo_file(filename: str, *, hk_norm: bool = False) -> lis
         s = line.split("#", 1)[0].strip().upper()
         if not s:
             continue
-        out.append(_norm_code(s) if hk_norm else s)
+        if hk_norm:
+            out.append(_norm_code(s))
+        else:
+            out.append(_norm_us_ticker(s))
     return list(dict.fromkeys(out))
 
 
@@ -276,15 +288,22 @@ HK_UNIVERSE_TAG = "Tech+HSI+HKCEI"
 HK_FROM_STOCKLIST_CSV = _load_hk_tickers_from_csv("hkstocklist.csv")
 HK_STOCK_NAME_MAP = _load_hk_name_map_from_csv("hkstocklist.csv")
 HK_TOP200_TICKERS = _load_tickers_from_repo_file("hk_top200.txt", hk_norm=True)
+US_TOP300_TICKERS = _load_tickers_from_repo_file("us_top300.txt", hk_norm=False)
 US_TOP200_TICKERS = _load_tickers_from_repo_file("us_top200.txt", hk_norm=False)
+US_UNIVERSE_TICKERS = US_TOP300_TICKERS or US_TOP200_TICKERS
+US_UNIVERSE_TAG = (
+    "us_top300.txt"
+    if US_TOP300_TICKERS
+    else ("us_top200.txt" if US_TOP200_TICKERS else "preset list")
+)
 if HK_FROM_STOCKLIST_CSV:
     HK_TICKERS = HK_FROM_STOCKLIST_CSV
     HK_UNIVERSE_TAG = "hkstocklist.csv"
 elif HK_TOP200_TICKERS:
     HK_TICKERS = HK_TOP200_TICKERS
     HK_UNIVERSE_TAG = "hk_top200.txt"
-if US_TOP200_TICKERS:
-    US_TICKERS = US_TOP200_TICKERS
+if US_UNIVERSE_TICKERS:
+    US_TICKERS = US_UNIVERSE_TICKERS
 
 
 def get_tickers(market: str) -> list:
@@ -306,8 +325,7 @@ def get_tickers(market: str) -> list:
         print(f" Loaded {len(tickers)} HK tickers (greedy: HK list + hk_universe_extra.txt).")
         return tickers
     if market == "US":
-        tag = "Top-200 file" if US_TOP200_TICKERS else "preset list"
-        print(f" Loaded {len(US_TICKERS)} US tickers ({tag}).")
+        print(f" Loaded {len(US_TICKERS)} US tickers ({US_UNIVERSE_TAG}).")
         return US_TICKERS.copy()
     return []
 
@@ -415,7 +433,7 @@ def _fetch_ohlcv(ticker: str, period: str = "6mo") -> pd.DataFrame | None:
 def get_indicator_df(ticker: str, *, period: str = "6mo") -> pd.DataFrame | None:
     """
     Fetch OHLCV and compute indicators needed for scanner strategies.
-    Returns a dataframe with columns: Close, PDI, MDI, ADX, VWAP, RSI, MFI, RVOL,
+    Returns a dataframe with columns: Close, PDI, MDI, ADX, ATR, VWAP, RSI, MFI, RVOL,
     SMA20, OBV, OBV_5MA, RS_20d_Outperform, Stoch_K (where available).
     """
     df = _fetch_ohlcv(ticker, period=period)
@@ -431,6 +449,7 @@ def get_indicator_df(ticker: str, *, period: str = "6mo") -> pd.DataFrame | None
     df["ADX"] = adx_ind.adx()
     df["PDI"] = adx_ind.adx_pos()
     df["MDI"] = adx_ind.adx_neg()
+    df["ATR"] = AverageTrueRange(high=h, low=l, close=c, window=14).average_true_range()
     vol_sma = v.rolling(window=20, min_periods=1).mean().replace(0, float("nan"))
     df["RVOL"] = v / vol_sma
 
@@ -1431,6 +1450,7 @@ def technical_universe_row(ticker: str, *, period: str = "6mo", score_model: str
             "scan_mode": "universe",
             "RVOL": f"{rvol_f:.2f}" if rvol_f is not None else "—",
             "ADX": f"{adx:.1f}",
+            "ATR": f"{float(curr['ATR']):.4f}" if pd.notna(curr.get("ATR")) else "—",
             "ADX_Slope": f"{slope:.2f}",
             "PDI": f"{pdi:.1f}",
             "MDI": f"{mdi:.1f}",

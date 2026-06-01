@@ -212,7 +212,7 @@ def main() -> int:
         return 0
 
     hk_total = _scan_universe_total(ROOT / "daily_scan.json", 133)
-    us_total = _scan_universe_total(ROOT / "daily_scan_us.json", 200)
+    us_total = _scan_universe_total(ROOT / "daily_scan_us.json", 300)
 
     changed = 0
     if _merge_breadth_file(
