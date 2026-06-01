@@ -192,7 +192,9 @@ def export_results_to_json(
         if not inferred_slug:
             inferred_slug = "sell_put"
 
-        today_date = now_str.split("T")[0] if "T" in now_str else now_str[:10]
+        calendar_date = now_str.split("T")[0] if "T" in now_str else now_str[:10]
+        trade_dates = _consensus_score_trade_dates(raw_rows)
+        today_date = trade_dates.get("today") or calendar_date
         score_hist, score_hist_meta = _enrich_rows_with_daily_score_history(
             raw_rows, inferred_slug, today_date
         )
@@ -256,11 +258,15 @@ def export_results_to_json(
         }
         if prev_asof:
             scan_block["score_prev_asof"] = prev_asof
-        if score_hist_meta.get("d2_date"):
-            scan_block["score_d2_date"] = score_hist_meta["d2_date"]
-        if score_hist_meta.get("d1_date"):
-            scan_block["score_d1_date"] = score_hist_meta["d1_date"]
+        d2 = trade_dates.get("d2") or score_hist_meta.get("d2_date")
+        d1 = trade_dates.get("d1") or score_hist_meta.get("d1_date")
+        if d2:
+            scan_block["score_d2_date"] = d2
+        if d1:
+            scan_block["score_d1_date"] = d1
         scan_block["score_today_date"] = today_date
+        if calendar_date != today_date:
+            scan_block["score_scan_calendar_date"] = calendar_date
         scan_block["score_arc_mode"] = "trading_days"
         export_data = {
             "schema_version": schema_ver,
@@ -472,6 +478,34 @@ def _classify_score_arc(s0: int | None, s1: int | None, s2: int | None) -> tuple
     if (s1 < s0 and s2 > s1) or (s1 > s0 and s2 < s1):
         return "震盪", "volatile"
     return "分化", "mixed"
+
+
+def _consensus_score_trade_dates(raw_rows: list[dict]) -> dict[str, str | None]:
+    """Yahoo last-bar dates for score 0/1/2 (not wall-clock scan time)."""
+    from collections import Counter
+
+    today_c: Counter[str] = Counter()
+    d1_c: Counter[str] = Counter()
+    d2_c: Counter[str] = Counter()
+    for r in raw_rows:
+        if r.get("data_ok") is False:
+            continue
+        for field, ctr in (
+            ("score_today_trade_date", today_c),
+            ("score_d1_trade_date", d1_c),
+            ("score_d2_trade_date", d2_c),
+        ):
+            v = r.get(field)
+            if not v:
+                continue
+            d = str(v)[:10]
+            if len(d) == 10:
+                ctr[d] += 1
+
+    def _top(c: Counter[str]) -> str | None:
+        return c.most_common(1)[0][0] if c else None
+
+    return {"today": _top(today_c), "d1": _top(d1_c), "d2": _top(d2_c)}
 
 
 def _enrich_rows_with_daily_score_history(

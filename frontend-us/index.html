@@ -2190,28 +2190,23 @@ ${tail}`;
       return US_UNIVERSE_TOTAL;
     }
 
-    /** US Yahoo scans often land slightly below universe size (data_ok gaps) — keep valid breadth days. */
-    function breadthTotalMatchesUniverse(total, expectedTotal) {
+    /** Keep historical breadth days (196/200/300 universes); chart uses percentages. */
+    function breadthTotalMatchesUniverse(total) {
       const totalN = Number(total);
-      const exp = Number(expectedTotal);
-      if (!Number.isFinite(totalN) || totalN <= 0) return false;
-      if (!Number.isFinite(exp) || exp <= 0) return true;
-      if (totalN >= 250 && totalN <= 310) return true;
-      return Math.abs(totalN - exp) <= Math.max(15, exp * 0.12);
+      return Number.isFinite(totalN) && totalN >= 150;
     }
 
     function buildBreadthByDay(scanRows, signals, breadthHistory) {
       const byDay = {};
       const model = activeScoreModel || "sell_put";
       const days = Array.isArray(breadthHistory?.days) ? breadthHistory.days : [];
-      const expectedTotal = scanUniverseTotal(scanRows);
       for (const entry of days) {
         if (!entry || String(entry.model || "") !== model) continue;
         const d = String(entry.date || "").slice(0, 10);
         if (d.length !== 10) continue;
         if (BREADTH_CHART_EXCLUDE_DATES.has(d)) continue;
         const total = Number(entry.total);
-        if (Number.isFinite(total) && !breadthTotalMatchesUniverse(total, expectedTotal)) {
+        if (Number.isFinite(total) && !breadthTotalMatchesUniverse(total)) {
           continue;
         }
         byDay[d] = {
@@ -4728,9 +4723,11 @@ ${tail}`;
             if (d2d) parts.push("Score 2=" + d2d);
             if (d1d) parts.push("Score 1=" + d1d);
             if (td) parts.push("Score 0=" + td);
+            const cal = data.scan?.score_scan_calendar_date;
             sph.textContent =
-              "評分欄（近 3 交易日）：" +
+              "評分欄（近 3 個美股交易日）：" +
               parts.join(" · ") +
+              (cal && cal !== td ? `（掃描日 ${cal}；Score 0 以 Yahoo 最新日線為準）` : "") +
               "。完美加速＝連續三日遞升（例 70→85→100）；神經刀＝大幅震盪（例 90→50→100）。";
           } else {
             sph.style.display = "block";

@@ -1,6 +1,6 @@
 {
     "schema_version": "19.0",
-    "last_updated": "2026-06-01T16:31:43+08:00",
+    "last_updated": "2026-06-01T16:56:29+08:00",
     "signals": [
         {
             "date": "2026-05-29T17:35:26+08:00",
@@ -236,6 +236,27 @@
             "status": "open",
             "last_marked": "2026-06-01",
             "vwap_ext": "N"
+        },
+        {
+            "date": "2026-06-01T16:56:28+08:00",
+            "entry_date": "2026-06-01",
+            "ticker": "IBM",
+            "action": "BUY_CALL",
+            "score_model": "buy_stock",
+            "strategy": "極限爆發",
+            "signal": "🔥 STRONG (Buy)",
+            "score": 80,
+            "entry_price": 297.8,
+            "entry_vwap": 246.19,
+            "atr": 10.7415,
+            "latest_price": 297.8,
+            "pnl_pct": 0.0,
+            "holding_days": 0,
+            "macd_status": "多頭柱體擴張",
+            "rvol": 3.08,
+            "status": "open",
+            "last_marked": "2026-06-01",
+            "vwap_ext": "Y"
         },
         {
             "date": "2026-06-01T16:31:42+08:00",

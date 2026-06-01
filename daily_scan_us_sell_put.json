@@ -1,6 +1,6 @@
 {
     "schema_version": "19.0",
-    "last_updated": "2026-06-01T16:28:39+08:00",
+    "last_updated": "2026-06-01T16:53:21+08:00",
     "scan": {
         "strategy": "穩健收租",
         "mode": "universe",
@@ -9,10 +9,11 @@
         "sell_count": 229,
         "wait_count": 65,
         "score_model": "sell_put",
-        "score_prev_asof": "2026-05-29T14:05:14+08:00",
+        "score_prev_asof": "2026-06-01T16:28:39+08:00",
         "score_d2_date": "2026-05-27",
         "score_d1_date": "2026-05-28",
-        "score_today_date": "2026-06-01",
+        "score_today_date": "2026-05-29",
+        "score_scan_calendar_date": "2026-06-01",
         "score_arc_mode": "trading_days"
     },
     "stocks": [
