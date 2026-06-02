@@ -511,6 +511,60 @@
       padding: 0 12px 10px;
       font-size: 15px;
     }
+    .market-catalysts-section {
+      margin: 16px 12px 0;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .market-catalysts-section > summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 4px 0 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+    .market-catalysts-section > summary::-webkit-details-marker { display: none; }
+    .market-catalysts-section > summary::before {
+      content: "▸ ";
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .market-catalysts-section[open] > summary::before { content: "▾ "; }
+    .market-catalysts-meta {
+      margin: 0 0 10px;
+      padding: 0 2px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .market-catalysts-list {
+      margin: 0;
+      padding: 0 2px 8px;
+      list-style: none;
+    }
+    .market-catalysts-list li {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(120, 113, 108, 0.12);
+      color: var(--text);
+    }
+    .market-catalysts-list li:last-child { border-bottom: none; }
+    .market-catalysts-list .mc-ts { color: var(--muted); }
+    .market-catalysts-list .mc-ticker { font-weight: 700; }
+    .market-catalysts-list a.mc-link {
+      color: inherit;
+      text-decoration: none;
+    }
+    .market-catalysts-list a.mc-link:hover { text-decoration: underline; }
+    .market-catalysts-empty {
+      margin: 0;
+      padding: 0 2px 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
     #macroTab .macro-table-sub {
       margin: 0;
       padding: 4px 12px 8px;
@@ -1206,6 +1260,13 @@
           </div>
           <div id="macroChartGrid" class="macro-chart-grid"></div>
         </div>
+
+        <details id="marketCatalystsPanel" class="market-catalysts-section">
+          <summary>📰 24H 宏觀與龍頭催化劑 (Market Catalysts)</summary>
+          <p id="marketCatalystsMeta" class="market-catalysts-meta"></p>
+          <ul id="marketCatalystsList" class="market-catalysts-list"></ul>
+          <p id="marketCatalystsEmpty" class="market-catalysts-empty" style="display:none;">暫無 24 小時內催化劑。</p>
+        </details>
 
         <div class="macro-block macro-data-block">
           <h3 class="section-title">即時數據表</h3>
@@ -4445,6 +4506,53 @@ ${tail}`;
       return prev && Number.isFinite(prev.s) ? Number(prev.s) : null;
     }
 
+    function marketCatalystToneEmoji(tone) {
+      if (tone === "green") return "🟢";
+      if (tone === "red") return "🔴";
+      return "⚪";
+    }
+
+    function renderMarketCatalysts(data) {
+      const listEl = document.getElementById("marketCatalystsList");
+      const metaEl = document.getElementById("marketCatalystsMeta");
+      const emptyEl = document.getElementById("marketCatalystsEmpty");
+      if (!listEl) return;
+      listEl.innerHTML = "";
+      if (!data || !Array.isArray(data.items) || !data.items.length) {
+        if (metaEl) metaEl.textContent = "";
+        if (emptyEl) emptyEl.style.display = "block";
+        return;
+      }
+      if (emptyEl) emptyEl.style.display = "none";
+      if (metaEl) {
+        metaEl.textContent = data.last_updated
+          ? "更新：" + fmtDateLocal(data.last_updated) + " · 核心 " + (data.universe_size || 133) + " 隻 · 已過濾券商評級雜訊"
+          : "";
+      }
+      for (const item of data.items) {
+        if (!item || typeof item !== "object") continue;
+        const li = document.createElement("li");
+        const ts = escapeHtml(String(item.ts_hkt || "--:--"));
+        const emoji = marketCatalystToneEmoji(item.tone);
+        const prefix =
+          item.kind === "company" && item.ticker
+            ? `<span class="mc-ticker">${escapeHtml(String(item.ticker))}</span>：`
+            : "宏觀：";
+        const text = escapeHtml(String(item.text || ""));
+        const link = item.link ? String(item.link) : "";
+        const body = link
+          ? `<a class="mc-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${text}</a>`
+          : text;
+        li.innerHTML = `<span class="mc-ts">[${ts} HKT]</span> ${prefix}${body} ${emoji}`;
+        listEl.appendChild(li);
+      }
+    }
+
+    async function loadMarketCatalysts() {
+      const data = await fetchJsonSafe("market_catalysts_hk.json");
+      renderMarketCatalysts(data);
+    }
+
     async function loadMacro() {
       showMacroSkeleton();
       const data = await fetchJsonSafe("macro_snapshot.json");
@@ -4674,7 +4782,7 @@ ${tail}`;
 
       breadthDailyHistory = await fetchJsonSafe("breadth_daily_history.json");
       try {
-        await Promise.all([loadHistory(), loadFutureLog(), loadMacro()]);
+        await Promise.all([loadHistory(), loadFutureLog(), loadMacro(), loadMarketCatalysts()]);
       } catch (err) {
         console.error("Dashboard secondary load failed:", err);
       }

@@ -22,6 +22,13 @@ else
   echo "::warning:: macro_snapshot export failed — deploy keeps previous macro_snapshot.json if present"
 fi
 
+echo "==> Market catalysts (HK macro + filtered Yahoo RSS)"
+if python3 "$ROOT/scripts/export_market_catalysts_hk.py" --sleep 0.12; then
+  echo "market_catalysts_hk.json updated"
+else
+  echo "::warning:: market catalysts export failed — deploy keeps previous file if present"
+fi
+
 echo "==> Self-heal missing weekday breadth (last 10 sessions)"
 python3 "$ROOT/scripts/ensure_recent_breadth.py" --market HK --days 10 --sleep 0.08 || echo "::warning:: ensure_recent_breadth HK failed"
 
