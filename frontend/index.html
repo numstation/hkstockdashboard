@@ -1140,14 +1140,13 @@
         <div class="chart-cell"><div class="ttl">尋寶象限圖：趨勢強度 vs 爆發量 (ADX vs RVOL)</div><canvas id="chScatter" aria-label="ADX vs RVOL quadrant"></canvas></div>
       </div>
       <p class="muted" style="margin:12px 0 0;font-size:11px;line-height:1.5;">
-        VIX／DXY／市寬等由「大佬三原色」讀取 <code>macro_snapshot.json</code>；133 隻新聞／公告見「新聞公告」分頁。</p>
+        VIX／DXY／市寬等由「大市風向」讀取 <code>macro_snapshot.json</code>；133 隻新聞／公告見「新聞公告」分頁。</p>
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" data-tab="activeTab">🎯 技術儀表</button>
-      <button class="tab-btn" data-tab="historyTab">💯 Full Market History</button>
-      <button class="tab-btn" data-tab="logTab">📝 Future Log</button>
-      <button class="tab-btn" data-tab="macroTab">大佬三原色</button>
+      <button class="tab-btn active" data-tab="activeTab">股票龍虎榜</button>
+      <button class="tab-btn" data-tab="historyTab">入市推介</button>
+      <button class="tab-btn" data-tab="macroTab">大市風向</button>
       <button class="tab-btn" data-tab="newsTab">新聞公告</button>
     </div>
 
@@ -1201,7 +1200,7 @@
 
     <section id="historyTab" class="tab-panel">
       <div class="table-wrap history-scroll">
-        <h3 class="section-title" style="padding: 12px 12px 0;">觸發式實盤覆盤（進場日 vs 現價）</h3>
+        <h3 class="section-title" style="padding: 12px 12px 0;">入市推介</h3>
         <p id="historyRulesHint" class="muted" style="padding: 0 12px 10px; margin: 0; font-size: 12px; line-height: 1.55;"></p>
         <div id="historySummary" class="muted" style="padding: 0 12px 10px; font-size: 12px; display: none;"></div>
         <div class="toolbar toolbar-responsive">
@@ -1261,7 +1260,7 @@
       </div>
     </section>
 
-    <section id="logTab" class="tab-panel">
+    <section id="logTab" class="tab-panel" hidden aria-hidden="true">
       <div class="table-wrap">
         <h3 class="section-title" style="padding: 12px 12px 0;">Execution / Future Log</h3>
         <div class="toolbar">
@@ -1287,7 +1286,7 @@
     <section id="macroTab" class="tab-panel">
       <div class="table-wrap macro-tab-shell" id="macroTabShell">
         <div class="macro-panel-head">
-          <h3 class="section-title" style="margin:0;">大佬三原色</h3>
+          <h3 class="section-title" style="margin:0;">大市風向</h3>
           <span id="macroSub" class="macro-sub-compact"></span>
         </div>
         <div id="macroGlobalBanner" class="macro-global-banner macro-skeleton" style="display:none;" role="status" aria-live="polite"></div>
@@ -4468,7 +4467,7 @@ ${tail}`;
       const matEr = `規則：BTC 急跌、黃金相對 SPX 轉強、油價急升 → 早兆／🛑。即時：${early.text}。`;
 
       host.innerHTML = `
-        <div class="boss-macro-title">大佬三原色</div>
+        <div class="boss-macro-title">大市風向</div>
         <div class="boss-macro-grid">
           <div class="boss-macro-item ${liq.cls}">
             <div class="t">① 資金溫度計 · VIX + DXY 底座</div>
@@ -4943,7 +4942,7 @@ ${tail}`;
 
       breadthDailyHistory = await fetchJsonSafe("breadth_daily_history.json");
       try {
-        await Promise.all([loadHistory(), loadFutureLog(), loadMacro(), loadMarketCatalysts()]);
+        await Promise.all([loadHistory(), loadMacro(), loadMarketCatalysts()]);
       } catch (err) {
         console.error("Dashboard secondary load failed:", err);
       }
