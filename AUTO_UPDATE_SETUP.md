@@ -67,7 +67,7 @@ Three scripts run on **every CI refresh and deploy**:
 | `ensure_recent_breadth.py` | Yahoo backfill for **missing weekdays** in last 10 sessions (fixes 25–28 May when git never had them) |
 | `guard_deploy_history.py` | **Aborts deploy** if bundled JSON would have **fewer** breadth dates than live |
 
-HK and US workflows both deploy with **`DEPLOY_MARKET=both`** so one market’s deploy cannot wipe the other.
+HK and US workflows deploy with **`DEPLOY_MARKET=hk`** / **`DEPLOY_MARKET=us`** so one market’s deploy cannot wipe the other.
 
 ---
 
@@ -197,13 +197,11 @@ If step 4 fails with `Missing CLOUDFLARE_API_TOKEN`, repeat step 2.
 | When | What happens |
 |------|----------------|
 | **Mon–Fri** every **30 min** (HK ~09:00–16:30) | **HK** scan → `daily_scan.json` → deploy (`cloudflare-auto.yml`) |
-| **Mon–Fri** every **~35 min** (HK ~22:00–06:10) | **US** scan → `daily_scan_us.json` → deploy (`cloudflare-auto-us.yml`) |
+| **Mon–Fri** every **30 min** (HKT **21:40–04:40**) | **US** scan → `daily_scan_us.json` → deploy (`cloudflare-auto-us.yml`) |
 | **You push** code | Dashboard workflow may also run (HK scan + deploy if token set) |
 | **Manual** | Actions → **Cloudflare auto update** or **Cloudflare auto update (US)** → Run workflow |
 
-US and HK use **different GitHub cron windows** because US cash session is evening–early-morning in Hong Kong (not the same as HKEX 09:00–16:30). US runs are spaced **~35 minutes** apart (not 30) so a ~15–20 minute Yahoo scan can finish before the next run starts — otherwise runs queue up and `last_updated` can jump by 1 hour or more.
-
-Both workflows deploy the **same Cloudflare Worker**. `scripts/deploy_cloudflare.sh` uses **`DEPLOY_MARKET`** so each run only refreshes its own scan JSON and **pulls the other market from the live site** — HK deploy must not wipe US data, and US deploy must not overwrite HK with stale git files.
+US and HK use **different GitHub cron windows** because US cash session is evening–early-morning in Hong Kong (not the same as HKEX 09:00–16:30). US runs start **21:40 HKT** (10 minutes after US open ≈ 21:30 HKT in EDT) and repeat **every 30 minutes** through **04:40 HKT** (after US cash close). HK and US deploys use separate `DEPLOY_MARKET` scopes so neither overwrites the other’s JSON.
 
 You do **not** need to run Terminal commands when this works.
 
