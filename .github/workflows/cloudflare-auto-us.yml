@@ -63,5 +63,5 @@ jobs:
             echo "::error::Missing GitHub secret CLOUDFLARE_API_TOKEN"
             exit 1
           fi
-          DEPLOY_MARKET=both bash scripts/deploy_cloudflare.sh
+          DEPLOY_MARKET=us bash scripts/deploy_cloudflare.sh
           echo "Live US: https://hkstockdashboard.chrislau.workers.dev/frontend-us/"

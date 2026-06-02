@@ -11,6 +11,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from datetime import datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -70,6 +71,37 @@ def _check_breadth(label: str, live_path: str, local_path: Path) -> list[str]:
     return []
 
 
+def _parse_last_updated(payload: dict | None) -> datetime | None:
+    if not isinstance(payload, dict):
+        return None
+    raw = payload.get("last_updated")
+    if raw is None:
+        return None
+    s = str(raw).strip().replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(s)
+    except ValueError:
+        return None
+
+
+def _check_us_scan_regression() -> list[str]:
+    live = _fetch("/frontend-us/data/daily_scan_us.json")
+    local = _read(ROOT / "frontend-us" / "data" / "daily_scan_us.json")
+    if not isinstance(live, dict) or not isinstance(local, dict):
+        return []
+    live_ts = _parse_last_updated(live)
+    local_ts = _parse_last_updated(local)
+    if not live_ts or not local_ts:
+        return []
+    if local_ts + timedelta(minutes=2) < live_ts:
+        return [
+            "US daily_scan_us.json: would downgrade "
+            f"(live {live.get('last_updated')} → bundle {local.get('last_updated')})"
+        ]
+    print(f"[guard] US scan: OK — bundle {local.get('last_updated')} (live {live.get('last_updated')})")
+    return []
+
+
 def main() -> int:
     if os.environ.get("ALLOW_HISTORY_REGRESSION", "").strip() in ("1", "true", "yes"):
         print("[guard] ALLOW_HISTORY_REGRESSION set — skipped")
@@ -90,6 +122,7 @@ def main() -> int:
             ROOT / "frontend-us" / "data" / "breadth_daily_history_us.json",
         )
     )
+    errors.extend(_check_us_scan_regression())
 
     if errors:
         for e in errors:

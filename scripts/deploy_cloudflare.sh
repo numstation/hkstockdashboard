@@ -113,12 +113,17 @@ _prepare_hk_data() {
   local data_dir="$ROOT/frontend/data"
   mkdir -p "$data_dir"
 
-  echo "==> HK JSON: ensure recent breadth → merge live+repo → sync"
-  python3 "$ROOT/scripts/ensure_recent_breadth.py" --market HK --days 10 --sleep 0.05 \
-    || echo "::warning:: ensure_recent_breadth HK failed"
-  python3 "$ROOT/scripts/merge_live_dashboard_json.py" \
-    || echo "::warning:: merge_live_dashboard_json failed — continuing with repo files"
-  bash "$ROOT/scripts/sync_frontend_data.sh"
+  if [[ "$DEPLOY_MARKET" == "hk" || "$DEPLOY_MARKET" == "both" ]]; then
+    echo "==> HK JSON: ensure recent breadth → merge live+repo → sync"
+    python3 "$ROOT/scripts/ensure_recent_breadth.py" --market HK --days 10 --sleep 0.05 \
+      || echo "::warning:: ensure_recent_breadth HK failed"
+    python3 "$ROOT/scripts/merge_live_dashboard_json.py" \
+      || echo "::warning:: merge_live_dashboard_json failed — continuing with repo files"
+    bash "$ROOT/scripts/sync_frontend_data.sh"
+  else
+    echo "==> HK JSON: pull from live (US-only deploy must not downgrade HK scans)"
+    _pull_live_market_data "hk" "$data_dir" "1"
+  fi
 }
 
 _ensure_us_data_files() {
@@ -172,30 +177,63 @@ PY
   echo "==> US scan bundle OK (${n} stocks in daily_scan_us_sell_put.json)"
 }
 
+_merge_us_scan_file() {
+  local name="$1"
+  local data_dir="$2"
+  local live_tmp="${data_dir}/${name}.live.tmp"
+  local repo_a="${ROOT}/${name}"
+  local repo_b="${ROOT}/frontend-us/data/${name}"
+  local dest="${data_dir}/${name}"
+
+  rm -f "$live_tmp" || true
+  if _fetch_live_json "/frontend-us/data/${name}" "$live_tmp"; then
+    if [[ -f "$repo_a" ]] && _is_valid_json "$repo_a"; then
+      python3 "$ROOT/scripts/pick_newer_json.py" "$dest" "$live_tmp" "$repo_a" || cp "$live_tmp" "$dest"
+    elif [[ -f "$repo_b" ]] && _is_valid_json "$repo_b"; then
+      python3 "$ROOT/scripts/pick_newer_json.py" "$dest" "$live_tmp" "$repo_b" || cp "$live_tmp" "$dest"
+    else
+      mv "$live_tmp" "$dest"
+    fi
+    rm -f "$live_tmp" || true
+  elif [[ -f "$repo_a" ]] && _is_valid_json "$repo_a"; then
+    cp "$repo_a" "$dest"
+  elif [[ -f "$repo_b" ]] && _is_valid_json "$repo_b"; then
+    cp "$repo_b" "$dest"
+  fi
+}
+
 _prepare_us_data() {
   local data_dir="$ROOT/frontend-us/data"
   mkdir -p "$data_dir"
 
-  if [[ "$DEPLOY_MARKET" == "us" || "$DEPLOY_MARKET" == "both" ]]; then
-    echo "==> US JSON: ensure recent breadth → merge live+repo → sync"
+  if [[ "$DEPLOY_MARKET" == "us" ]]; then
+    echo "==> US JSON: fresh scan → merge live+repo → sync"
     python3 "$ROOT/scripts/ensure_recent_breadth.py" --market US --days 10 --sleep 0.05 \
       || echo "::warning:: ensure_recent_breadth US failed"
     python3 "$ROOT/scripts/merge_live_dashboard_json.py" \
       || echo "::warning:: merge_live_dashboard_json failed before US sync"
     bash "$ROOT/scripts/sync_frontend_us_data.sh"
+  elif [[ "$DEPLOY_MARKET" == "both" ]]; then
+    echo "==> US JSON: manual/both — workspace + merge + sync"
+    python3 "$ROOT/scripts/ensure_recent_breadth.py" --market US --days 10 --sleep 0.05 \
+      || echo "::warning:: ensure_recent_breadth US failed"
+    python3 "$ROOT/scripts/merge_live_dashboard_json.py" \
+      || echo "::warning:: merge_live_dashboard_json failed before US sync"
+    bash "$ROOT/scripts/sync_frontend_us_data.sh"
+    _ensure_us_data_files "$data_dir"
   else
-    echo "==> US JSON: sync repo → fill gaps from live (HK-only deploy must not wipe US scans)"
-    bash "$ROOT/scripts/sync_frontend_us_data.sh" 2>/dev/null || true
-    for f in daily_scan_us.json daily_scan_us_sell_put.json daily_scan_us_buy_stock.json \
-      daily_scan_us_buy_put.json breadth_daily_history_us.json signals_history_us.json \
-      closed_transactions_us.json; do
-      if [[ -f "$ROOT/$f" ]]; then
-        cp "$ROOT/$f" "$data_dir/$f"
-      fi
+    echo "==> US JSON: preserve live site (HK deploy — never copy stale git over newer US scans)"
+    if [[ -f "$ROOT/us_top300.txt" || -f "$ROOT/us_top200.txt" ]]; then
+      python3 "$ROOT/scripts/export_us_stock_names.py" || true
+    fi
+    for f in daily_scan_us.json daily_scan_us_sell_put.json daily_scan_us_buy_stock.json daily_scan_us_buy_put.json; do
+      _merge_us_scan_file "$f" "$data_dir"
     done
+    _pull_live_market_data "us" "$data_dir" "0"
+    _ensure_us_data_files "$data_dir"
   fi
 
-  echo "==> US JSON: backfill missing/invalid files from live (keeps US page when HK CI deploys)"
+  echo "==> US JSON: backfill any missing files"
   _ensure_us_data_files "$data_dir"
 }
 

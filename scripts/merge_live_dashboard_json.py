@@ -71,6 +71,8 @@ def _breadth_score(entry: dict, expected_total: int = 133) -> tuple:
     total_ok = 0
     if expected_total > 0 and abs(total - expected_total) <= max(5, expected_total * 0.25):
         total_ok = 2
+    elif expected_total >= 250 and 250 <= total <= 310:
+        total_ok = 2
     elif expected_total >= 150 and 150 <= total <= 210:
         total_ok = 2
     elif 100 <= total <= 160:
