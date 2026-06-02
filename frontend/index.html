@@ -4512,6 +4512,18 @@ ${tail}`;
       return "⚪";
     }
 
+    function marketCatalystPrefix(item) {
+      const tk = item?.ticker ? String(item.ticker) : "";
+      const kind = String(item?.kind || "");
+      if (kind === "macro") return "宏觀：";
+      if (kind === "earnings" && tk) return `<span class="mc-ticker">${escapeHtml(tk)}</span> 業績期：`;
+      if (kind === "hkex" && tk) return `<span class="mc-ticker">${escapeHtml(tk)}</span> 公告：`;
+      if ((kind === "news" || kind === "company") && tk) {
+        return `<span class="mc-ticker">${escapeHtml(tk)}</span>：`;
+      }
+      return "宏觀：";
+    }
+
     function renderMarketCatalysts(data) {
       const listEl = document.getElementById("marketCatalystsList");
       const metaEl = document.getElementById("marketCatalystsMeta");
@@ -4525,8 +4537,9 @@ ${tail}`;
       }
       if (emptyEl) emptyEl.style.display = "none";
       if (metaEl) {
+        const src = Array.isArray(data?.sources) ? data.sources.join(" · ") : "macro · hkex · earnings · yahoo";
         metaEl.textContent = data.last_updated
-          ? "更新：" + fmtDateLocal(data.last_updated) + " · 核心 " + (data.universe_size || 133) + " 隻 · 已過濾券商評級雜訊"
+          ? "更新：" + fmtDateLocal(data.last_updated) + " · 核心 " + (data.universe_size || 133) + " 隻 · " + src
           : "";
       }
       for (const item of data.items) {
@@ -4534,10 +4547,7 @@ ${tail}`;
         const li = document.createElement("li");
         const ts = escapeHtml(String(item.ts_hkt || "--:--"));
         const emoji = marketCatalystToneEmoji(item.tone);
-        const prefix =
-          item.kind === "company" && item.ticker
-            ? `<span class="mc-ticker">${escapeHtml(String(item.ticker))}</span>：`
-            : "宏觀：";
+        const prefix = marketCatalystPrefix(item);
         const text = escapeHtml(String(item.text || ""));
         const link = item.link ? String(item.link) : "";
         const body = link

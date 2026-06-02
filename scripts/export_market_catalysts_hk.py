@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Export filtered HK market catalysts (macro + 133-universe Yahoo RSS) for the dashboard."""
+"""Export filtered HK market catalysts for the dashboard (v2: macro + HKEX + earnings + Yahoo)."""
 from __future__ import annotations
 
 import argparse
 import csv
+import html
 import json
 import re
 import sys
@@ -11,12 +12,16 @@ import time
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 HKT = timezone(timedelta(hours=8))
+HKEX_STOCK_LIST_URL = "https://www1.hkexnews.hk/ncms/script/eds/activestock_sehk_c.json"
+HKEX_SEARCH_URL = "https://www1.hkexnews.hk/search/titleSearchServlet.do"
+HKEX_BASE = "https://www1.hkexnews.hk"
 
 # Broker / roundup noise — keep company & macro catalyst headlines only.
 _TITLE_BLOCK_RE = re.compile(
@@ -24,14 +29,27 @@ _TITLE_BLOCK_RE = re.compile(
     r"上調目標|下調目標|維持「|維持評|《港股》|《半日|《今早重點|半日速報|"
     r"恒指半日|恆指半日|收市報|美股三大|隔晚\(.*\)美股|十大|沽空比例|"
     r"港股ADR|預計恆指|A股|滬深300|標售|海景|維港.*房|單位獲|"
-    r"港股通.*淨流入",
+    r"港股通.*淨流入|代言|Comic Con|球星",
     re.I,
 )
 _ROUNDUP_TITLE_RE = re.compile(r"^《|恒指|恆指|科指|國指", re.I)
 _CJK_RE = re.compile(r"[\u3400-\u9fff]")
 
-_POSITIVE_RE = re.compile(r"回購|增長|推出|創新高|勝預期|流入|上升|急升|升逾", re.I)
-_NEGATIVE_RE = re.compile(r"虧損|警告|流出|下跌|急跌|降.*售|停牌", re.I)
+_HKEX_KEEP_RE = re.compile(
+    r"回購|購回|業績|盈利|年報|中期|公告|停牌|復牌|配股|澄清|須予|重大|合約|"
+    r"授出|董事|辞任|任免|股息|分派|盈利警告|減產|并购|收購|股份變動",
+    re.I,
+)
+_HKEX_DROP_RE = re.compile(
+    r"^(翌日披露報表|月報表|證券變動月報表|於其他市場發佈的公告)$",
+    re.I,
+)
+_HKEX_LOW_VALUE_RE = re.compile(r"公司債券|科技創新.*債券|票面利率公告", re.I)
+
+_POSITIVE_RE = re.compile(r"回購|增長|推出|創新高|勝預期|流入|上升|急升|升逾|購回", re.I)
+_NEGATIVE_RE = re.compile(r"虧損|警告|流出|下跌|急跌|降.*售|停牌|盈利警告", re.I)
+
+_KIND_PRIORITY = {"macro": 0, "earnings": 1, "hkex": 2, "news": 3, "company": 3}
 
 
 def _load_universe(csv_path: Path) -> list[str]:
@@ -57,6 +75,28 @@ def _load_universe(csv_path: Path) -> list[str]:
     return sorted(set(tickers))
 
 
+def _ticker_hkex_code(ticker: str) -> str:
+    digits = ticker.replace(".HK", "").strip()
+    if digits.isdigit():
+        return digits.zfill(5)
+    return digits
+
+
+def _hkex_code_to_ticker(code: str, allowed: set[str]) -> str | None:
+    raw = re.sub(r"<[^>]+>", " ", code or "")
+    for token in re.findall(r"\d{4,5}", raw):
+        n = int(token, 10)
+        candidates = (
+            f"{n:04d}.HK",
+            f"{n}.HK",
+            f"{token}.HK",
+        )
+        for c in candidates:
+            if c in allowed:
+                return c
+    return None
+
+
 def _parse_pub_hkt(pub_raw: str | None) -> tuple[str, str, datetime] | None:
     if not pub_raw:
         return None
@@ -70,9 +110,21 @@ def _parse_pub_hkt(pub_raw: str | None) -> tuple[str, str, datetime] | None:
         return None
 
 
+def _parse_hkex_dt(raw: str) -> tuple[str, str, datetime] | None:
+    s = str(raw or "").strip()
+    if not s:
+        return None
+    try:
+        dt = datetime.strptime(s, "%d/%m/%Y %H:%M").replace(tzinfo=HKT)
+        return dt.strftime("%H:%M"), dt.strftime("%Y-%m-%d"), dt
+    except ValueError:
+        return None
+
+
 def _clean_title(title: str) -> str:
-    s = re.sub(r"\s+", " ", title.strip())
+    s = html.unescape(re.sub(r"\s+", " ", title.strip()))
     s = re.sub(r"^《[^》]*》", "", s).strip()
+    s = re.sub(r"^翌日披露報表\s*[-–—]\s*", "", s).strip()
     if len(s) > 96:
         s = s[:93].rstrip() + "…"
     return s
@@ -102,6 +154,21 @@ def _title_ok(title: str, ticker: str = "") -> bool:
     return True
 
 
+def _hkex_title_ok(title: str) -> bool:
+    t = _clean_title(title)
+    if len(t) < 4:
+        return False
+    if _HKEX_DROP_RE.match(t):
+        return False
+    if _HKEX_LOW_VALUE_RE.search(t):
+        return False
+    if _HKEX_KEEP_RE.search(t):
+        return True
+    if "翌日披露" in t and re.search(r"回購|購回|股份變動", t):
+        return True
+    return False
+
+
 def _tone_for_text(text: str, kind: str, net_yi: float | None = None) -> str:
     if kind == "macro" and isinstance(net_yi, (int, float)):
         if net_yi >= 20:
@@ -115,17 +182,99 @@ def _tone_for_text(text: str, kind: str, net_yi: float | None = None) -> str:
     return "neutral"
 
 
+def _http_get(url: str, timeout: float = 12.0) -> bytes:
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "Mozilla/5.0 (compatible; hk-dashboard-catalysts/2.0)"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return resp.read()
+
+
+def _load_hkex_stock_map() -> dict[str, int]:
+    try:
+        data = json.loads(_http_get(HKEX_STOCK_LIST_URL, timeout=20).decode("utf-8"))
+    except Exception as exc:
+        print(f"  HKEX stock list skip: {exc}", file=sys.stderr)
+        return {}
+    out: dict[str, int] = {}
+    if isinstance(data, list):
+        for row in data:
+            if not isinstance(row, dict):
+                continue
+            code = str(row.get("c") or "").strip()
+            sid = row.get("i")
+            if code and isinstance(sid, int):
+                out[code] = sid
+    return out
+
+
+def _fetch_hkex_for_ticker(
+    ticker: str,
+    stock_id: int,
+    from_yyyymmdd: str,
+    to_yyyymmdd: str,
+) -> list[dict]:
+    params = {
+        "sortDir": "0",
+        "sortByOptions": "DateTime",
+        "category": "0",
+        "market": "SEHK",
+        "stockId": str(stock_id),
+        "documentType": "-1",
+        "fromDate": from_yyyymmdd,
+        "toDate": to_yyyymmdd,
+        "title": "",
+        "searchType": "0",
+        "t1code": "0",
+        "t2Gcode": "-2",
+        "t2code": "0",
+        "rowRange": "5",
+        "lang": "zh",
+    }
+    url = HKEX_SEARCH_URL + "?" + urllib.parse.urlencode(params)
+    payload = json.loads(_http_get(url, timeout=15).decode("utf-8"))
+    raw = payload.get("result")
+    rows = json.loads(raw) if isinstance(raw, str) and raw else []
+    if not isinstance(rows, list):
+        return []
+
+    out: list[dict] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        title = str(row.get("TITLE") or "").strip()
+        if not _hkex_title_ok(title):
+            continue
+        parsed = _parse_hkex_dt(str(row.get("DATE_TIME") or ""))
+        if not parsed:
+            continue
+        ts_hkt, day, dt = parsed
+        link = str(row.get("FILE_LINK") or "").strip()
+        text = _clean_title(title)
+        out.append(
+            {
+                "ts_hkt": ts_hkt,
+                "date": day,
+                "kind": "hkex",
+                "source": "hkex",
+                "ticker": ticker,
+                "text": text,
+                "tone": _tone_for_text(text, "hkex"),
+                "link": HKEX_BASE + link if link.startswith("/") else link,
+                "_sort": dt.timestamp(),
+                "_priority": _KIND_PRIORITY["hkex"],
+            }
+        )
+    return out
+
+
 def _fetch_yahoo_rss(ticker: str, timeout: float = 8.0) -> list[dict]:
     url = (
         "https://feeds.finance.yahoo.com/rss/2.0/headline?"
         f"s={urllib.parse.quote(ticker)}&region=HK&lang=zh-Hant-HK"
     )
-    req = urllib.request.Request(
-        url,
-        headers={"User-Agent": "Mozilla/5.0 (compatible; hk-dashboard-catalysts/1.0)"},
-    )
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        xml_data = resp.read()
+    xml_data = _http_get(url, timeout=timeout)
     root = ET.fromstring(xml_data)
     items = root.findall("./channel/item") or root.findall(".//item")
     out: list[dict] = []
@@ -144,12 +293,14 @@ def _fetch_yahoo_rss(ticker: str, timeout: float = 8.0) -> list[dict]:
             {
                 "ts_hkt": ts_hkt,
                 "date": day,
-                "kind": "company",
+                "kind": "news",
+                "source": "yahoo",
                 "ticker": ticker,
                 "text": _clean_title(title),
-                "tone": _tone_for_text(title, "company"),
+                "tone": _tone_for_text(title, "news"),
                 "link": link_el.text.strip() if link_el is not None and link_el.text else "",
                 "_sort": dt.timestamp(),
+                "_priority": _KIND_PRIORITY["news"],
             }
         )
     return out
@@ -171,11 +322,12 @@ def _macro_items(macro: dict, now_hkt: datetime) -> list[dict]:
                 "ts_hkt": ts,
                 "date": sb_date,
                 "kind": "macro",
+                "source": "macro_snapshot",
                 "ticker": None,
                 "text": f"北水淨{'流入' if net_yi >= 0 else '流出'} {sign}{net_yi:.2f}億 → {flow}。",
                 "tone": _tone_for_text("", "macro", net_yi=float(net_yi)),
-                "link": "",
                 "_sort": now_hkt.timestamp(),
+                "_priority": _KIND_PRIORITY["macro"],
             }
         )
 
@@ -193,11 +345,12 @@ def _macro_items(macro: dict, now_hkt: datetime) -> list[dict]:
                 "ts_hkt": ts,
                 "date": day,
                 "kind": "macro",
+                "source": "macro_snapshot",
                 "ticker": None,
                 "text": text,
                 "tone": "green" if pct >= 55 else ("red" if pct <= 35 else "neutral"),
-                "link": "",
                 "_sort": now_hkt.timestamp() - 1,
+                "_priority": _KIND_PRIORITY["macro"],
             }
         )
 
@@ -217,15 +370,178 @@ def _macro_items(macro: dict, now_hkt: datetime) -> list[dict]:
                 "ts_hkt": ts,
                 "date": day,
                 "kind": "macro",
+                "source": "macro_snapshot",
                 "ticker": None,
                 "text": f"VIX {vix_val:.2f} → {mood}。",
                 "tone": "green" if vix_val < 18 else ("red" if vix_val >= 25 else "neutral"),
-                "link": "",
                 "_sort": now_hkt.timestamp() - 2,
+                "_priority": _KIND_PRIORITY["macro"],
             }
         )
 
     return items
+
+
+def _load_earnings_cache(cache_path: Path) -> dict[str, str]:
+    if not cache_path.is_file():
+        return {}
+    try:
+        data = json.loads(cache_path.read_text(encoding="utf-8"))
+        by = data.get("by_ticker")
+        return {str(k): str(v) for k, v in by.items()} if isinstance(by, dict) else {}
+    except Exception:
+        return {}
+
+
+def _save_earnings_cache(cache_path: Path, by_ticker: dict[str, str], now_hkt: datetime) -> None:
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "1.0",
+                "last_updated": now_hkt.isoformat(timespec="seconds"),
+                "by_ticker": by_ticker,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def _fetch_next_earnings(ticker: str) -> str | None:
+    try:
+        import pandas as pd
+        import yfinance as yf
+    except ImportError:
+        return None
+
+    try:
+        t = yf.Ticker(ticker)
+        ed = getattr(t, "earnings_dates", None)
+        if ed is not None and not ed.empty:
+            now = pd.Timestamp.now(tz="UTC")
+            idx = ed.index
+            if idx.tz is None:
+                idx = idx.tz_localize("UTC")
+            else:
+                idx = idx.tz_convert("UTC")
+            future = ed[idx > now]
+            if not future.empty:
+                return future.index[0].strftime("%Y-%m-%d")
+        cal = getattr(t, "calendar", None)
+        if isinstance(cal, dict):
+            raw = cal.get("Earnings Date") or cal.get("Earnings Date High")
+            if isinstance(raw, list) and raw:
+                raw = raw[0]
+            if hasattr(raw, "strftime"):
+                return raw.strftime("%Y-%m-%d")
+            if raw:
+                return str(raw)[:10]
+    except Exception:
+        return None
+    return None
+
+
+def _earnings_items(
+    tickers: list[str],
+    *,
+    cache_path: Path,
+    now_hkt: datetime,
+    horizon_days: int = 14,
+    refresh: bool = False,
+    sleep_sec: float = 0.08,
+) -> list[dict]:
+    cache_age_ok = False
+    if cache_path.is_file() and not refresh:
+        try:
+            cached = json.loads(cache_path.read_text(encoding="utf-8"))
+            lu = cached.get("last_updated")
+            if lu:
+                dt = datetime.fromisoformat(str(lu))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=HKT)
+                cache_age_ok = (now_hkt - dt.astimezone(HKT)) < timedelta(hours=24)
+        except Exception:
+            cache_age_ok = False
+
+    if cache_age_ok:
+        by_ticker = _load_earnings_cache(cache_path)
+    else:
+        by_ticker = {}
+        for i, ticker in enumerate(tickers):
+            nxt = _fetch_next_earnings(ticker)
+            if nxt:
+                by_ticker[ticker] = nxt
+            if sleep_sec > 0 and i + 1 < len(tickers):
+                time.sleep(sleep_sec)
+        _save_earnings_cache(cache_path, by_ticker, now_hkt)
+
+    horizon = now_hkt.date() + timedelta(days=horizon_days)
+    items: list[dict] = []
+    for ticker, iso in sorted(by_ticker.items()):
+        try:
+            d = datetime.strptime(iso[:10], "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        if d < now_hkt.date() or d > horizon:
+            continue
+        days = (d - now_hkt.date()).days
+        when = "今日" if days == 0 else (f"{days} 日後" if days <= 7 else iso[:10])
+        items.append(
+            {
+                "ts_hkt": "09:00",
+                "date": now_hkt.strftime("%Y-%m-%d"),
+                "kind": "earnings",
+                "source": "yfinance",
+                "ticker": ticker,
+                "text": f"業績期：{when}（{iso[:10]}）。",
+                "tone": "neutral",
+                "_sort": datetime.combine(d, datetime.min.time(), tzinfo=HKT).timestamp(),
+                "_priority": _KIND_PRIORITY["earnings"],
+            }
+        )
+    items.sort(key=lambda x: x["_sort"])
+    return items[:8]
+
+
+def _merge_items(items: list[dict], *, max_items: int) -> list[dict]:
+    items.sort(key=lambda x: (x.get("_priority", 9), -x.get("_sort", 0)))
+
+    seen_titles: set[str] = set()
+    seen_ticker_kind: set[tuple[str, str]] = set()
+    out: list[dict] = []
+
+    for row in items:
+        kind = str(row.get("kind") or "")
+        ticker = str(row.get("ticker") or "")
+        if kind in ("news", "company", "hkex") and ticker:
+            key = (ticker, kind)
+            if key in seen_ticker_kind:
+                continue
+            # Prefer HKEX over Yahoo for same ticker.
+            if kind in ("news", "company"):
+                if (ticker, "hkex") in seen_ticker_kind:
+                    continue
+            seen_ticker_kind.add((ticker, kind))
+
+        title_key = re.sub(r"\s+", "", str(row.get("text") or "").lower())
+        if title_key and title_key in seen_titles:
+            continue
+        if title_key:
+            seen_titles.add(title_key)
+
+        out.append(row)
+        if len(out) >= max_items:
+            break
+
+    for row in out:
+        row.pop("_sort", None)
+        row.pop("_priority", None)
+        if row.get("link") == "":
+            row.pop("link", None)
+    return out
 
 
 def export_catalysts(
@@ -233,14 +549,20 @@ def export_catalysts(
     universe_csv: Path,
     macro_path: Path,
     out_path: Path,
+    earnings_cache_path: Path,
     sleep_sec: float = 0.12,
-    max_items: int = 20,
+    max_items: int = 24,
     skip_rss: bool = False,
+    skip_hkex: bool = False,
+    skip_earnings: bool = False,
+    refresh_earnings: bool = False,
     hours: int = 24,
+    hkex_workers: int = 8,
 ) -> dict:
     now_hkt = datetime.now(HKT)
     cutoff = now_hkt - timedelta(hours=hours)
     tickers = _load_universe(universe_csv)
+    allowed = set(tickers)
 
     macro: dict = {}
     if macro_path.is_file():
@@ -248,46 +570,60 @@ def export_catalysts(
 
     items = _macro_items(macro, now_hkt)
 
-    seen_titles: set[str] = set()
+    if not skip_earnings:
+        items.extend(
+            _earnings_items(
+                tickers,
+                cache_path=earnings_cache_path,
+                now_hkt=now_hkt,
+                refresh=refresh_earnings,
+                sleep_sec=max(0.05, sleep_sec * 0.5),
+            )
+        )
+
+    if not skip_hkex:
+        stock_map = _load_hkex_stock_map()
+        from_d = (now_hkt - timedelta(days=2)).strftime("%Y%m%d")
+        to_d = now_hkt.strftime("%Y%m%d")
+        jobs = []
+        for ticker in tickers:
+            sid = stock_map.get(_ticker_hkex_code(ticker))
+            if sid:
+                jobs.append((ticker, sid))
+
+        if jobs:
+            with ThreadPoolExecutor(max_workers=max(1, hkex_workers)) as pool:
+                futs = {
+                    pool.submit(_fetch_hkex_for_ticker, tk, sid, from_d, to_d): tk
+                    for tk, sid in jobs
+                }
+                for fut in as_completed(futs):
+                    ticker = futs[fut]
+                    try:
+                        for row in fut.result():
+                            if row["_sort"] >= cutoff.timestamp():
+                                items.append(row)
+                    except Exception as exc:
+                        print(f"  HKEX skip {ticker}: {exc}", file=sys.stderr)
+
     if not skip_rss:
         for i, ticker in enumerate(tickers):
             try:
                 for row in _fetch_yahoo_rss(ticker):
-                    if row["_sort"] < cutoff.timestamp():
-                        continue
-                    key = re.sub(r"\s+", "", row["text"].lower())
-                    if key in seen_titles:
-                        continue
-                    seen_titles.add(key)
-                    items.append(row)
+                    if row["_sort"] >= cutoff.timestamp():
+                        items.append(row)
             except Exception as exc:
                 print(f"  RSS skip {ticker}: {exc}", file=sys.stderr)
             if sleep_sec > 0 and i + 1 < len(tickers):
                 time.sleep(sleep_sec)
 
-    items.sort(key=lambda x: x.get("_sort", 0), reverse=True)
-
-    # One company headline per ticker; macro lines always kept.
-    seen_tickers: set[str] = set()
-    deduped: list[dict] = []
-    for row in items:
-        if row.get("kind") == "company":
-            tk = str(row.get("ticker") or "")
-            if tk in seen_tickers:
-                continue
-            seen_tickers.add(tk)
-        deduped.append(row)
-
-    trimmed = deduped[:max_items]
-    for row in trimmed:
-        row.pop("_sort", None)
-        if row.get("link") == "":
-            row.pop("link", None)
+    trimmed = _merge_items(items, max_items=max_items)
 
     payload = {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "last_updated": now_hkt.isoformat(timespec="seconds"),
         "universe_size": len(tickers),
+        "sources": ["macro_snapshot", "hkex", "yfinance", "yahoo"],
         "items": trimmed,
     }
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -300,24 +636,42 @@ def main() -> int:
     ap.add_argument("--universe", type=Path, default=ROOT / "hk_breadth_universe.csv")
     ap.add_argument("--macro", type=Path, default=ROOT / "macro_snapshot.json")
     ap.add_argument("--out", type=Path, default=ROOT / "market_catalysts_hk.json")
+    ap.add_argument(
+        "--earnings-cache",
+        type=Path,
+        default=ROOT / "market_catalysts_earnings_hk.json",
+    )
     ap.add_argument("--sleep", type=float, default=0.12, help="Pause between Yahoo RSS calls")
-    ap.add_argument("--max-items", type=int, default=20)
+    ap.add_argument("--max-items", type=int, default=24)
     ap.add_argument("--hours", type=int, default=24, help="Keep headlines from last N hours")
-    ap.add_argument("--skip-rss", action="store_true", help="Macro lines only (fast local test)")
+    ap.add_argument("--hkex-workers", type=int, default=8)
+    ap.add_argument("--skip-rss", action="store_true", help="Skip Yahoo RSS")
+    ap.add_argument("--skip-hkex", action="store_true", help="Skip HKEX announcements")
+    ap.add_argument("--skip-earnings", action="store_true", help="Skip earnings calendar")
+    ap.add_argument("--refresh-earnings", action="store_true", help="Force refresh earnings cache")
     args = ap.parse_args()
 
     payload = export_catalysts(
         universe_csv=args.universe,
         macro_path=args.macro,
         out_path=args.out,
+        earnings_cache_path=args.earnings_cache,
         sleep_sec=args.sleep,
         max_items=args.max_items,
         skip_rss=args.skip_rss,
+        skip_hkex=args.skip_hkex,
+        skip_earnings=args.skip_earnings,
+        refresh_earnings=args.refresh_earnings,
         hours=args.hours,
+        hkex_workers=args.hkex_workers,
     )
+    kinds: dict[str, int] = {}
+    for row in payload.get("items") or []:
+        k = str(row.get("kind") or "?")
+        kinds[k] = kinds.get(k, 0) + 1
     print(
         f"Wrote {len(payload.get('items') or [])} catalysts "
-        f"(universe {payload.get('universe_size')}) → {args.out}"
+        f"(universe {payload.get('universe_size')}, kinds {kinds}) → {args.out}"
     )
     return 0
 
