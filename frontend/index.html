@@ -565,6 +565,63 @@
       font-size: 12px;
       color: var(--muted);
     }
+    .market-catalysts-body {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-bottom: 6px;
+    }
+    .mc-block {
+      padding: 10px 10px 8px;
+      border: 1px solid rgba(120, 113, 108, 0.16);
+      border-radius: 10px;
+      background: rgba(248, 250, 252, 0.55);
+    }
+    .mc-block-head {
+      margin: 0 0 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(120, 113, 108, 0.12);
+    }
+    .mc-block-title {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+    .mc-block-sub {
+      margin: 3px 0 0;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .mc-subsection {
+      border: 1px dashed rgba(120, 113, 108, 0.22);
+      border-radius: 10px;
+      padding: 8px 10px 6px;
+      background: rgba(255, 255, 255, 0.35);
+    }
+    .mc-subsection > summary {
+      cursor: pointer;
+      list-style: none;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      padding: 2px 0 6px;
+    }
+    .mc-subsection > summary::-webkit-details-marker { display: none; }
+    .mc-subsection > summary::before {
+      content: "▸ ";
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .mc-subsection[open] > summary::before { content: "▾ "; }
+    .mc-block-empty {
+      margin: 0;
+      font-size: 11px;
+      color: var(--muted);
+      font-style: italic;
+    }
     #macroTab .macro-table-sub {
       margin: 0;
       padding: 4px 12px 8px;
@@ -1264,7 +1321,7 @@
         <details id="marketCatalystsPanel" class="market-catalysts-section">
           <summary>📰 24H 宏觀與龍頭催化劑 (Market Catalysts)</summary>
           <p id="marketCatalystsMeta" class="market-catalysts-meta"></p>
-          <ul id="marketCatalystsList" class="market-catalysts-list"></ul>
+          <div id="marketCatalystsBody" class="market-catalysts-body"></div>
           <p id="marketCatalystsEmpty" class="market-catalysts-empty" style="display:none;">暫無 24 小時內催化劑。</p>
         </details>
 
@@ -4512,49 +4569,156 @@ ${tail}`;
       return "⚪";
     }
 
-    function marketCatalystPrefix(item) {
+    function marketCatalystPrefix(item, sectionKey) {
       const tk = item?.ticker ? String(item.ticker) : "";
-      const kind = String(item?.kind || "");
-      if (kind === "macro") return "宏觀：";
-      if (kind === "earnings" && tk) return `<span class="mc-ticker">${escapeHtml(tk)}</span> 業績期：`;
-      if (kind === "hkex" && tk) return `<span class="mc-ticker">${escapeHtml(tk)}</span> 公告：`;
-      if ((kind === "news" || kind === "company") && tk) {
-        return `<span class="mc-ticker">${escapeHtml(tk)}</span>：`;
+      const kind = String(item?.kind || sectionKey || "");
+      if (kind === "macro" || sectionKey === "macro") return "";
+      if (kind === "earnings" || sectionKey === "earnings") {
+        return tk ? `<span class="mc-ticker">${escapeHtml(tk)}</span> · ` : "";
       }
-      return "宏觀：";
+      if (kind === "hkex" || sectionKey === "hkex") {
+        return tk ? `<span class="mc-ticker">${escapeHtml(tk)}</span> 公告：` : "公告：";
+      }
+      if (kind === "news" || kind === "company" || sectionKey === "news") {
+        return tk ? `<span class="mc-ticker">${escapeHtml(tk)}</span>：` : "";
+      }
+      return tk ? `<span class="mc-ticker">${escapeHtml(tk)}</span>：` : "宏觀：";
+    }
+
+    function marketCatalystSectionsFromData(data) {
+      if (data?.sections && typeof data.sections === "object") {
+        return {
+          macro: Array.isArray(data.sections.macro) ? data.sections.macro : [],
+          earnings: Array.isArray(data.sections.earnings) ? data.sections.earnings : [],
+          hkex: Array.isArray(data.sections.hkex) ? data.sections.hkex : [],
+          news: Array.isArray(data.sections.news) ? data.sections.news : [],
+        };
+      }
+      const items = Array.isArray(data?.items) ? data.items : [];
+      const bucket = { macro: [], earnings: [], hkex: [], news: [] };
+      for (const item of items) {
+        const k = String(item?.kind || "");
+        if (k === "macro") bucket.macro.push(item);
+        else if (k === "earnings") bucket.earnings.push(item);
+        else if (k === "hkex") bucket.hkex.push(item);
+        else bucket.news.push(item);
+      }
+      return bucket;
+    }
+
+    const MARKET_CATALYST_SECTIONS = [
+      {
+        key: "macro",
+        title: "① 宏觀快訊",
+        sub: "北水 · 市寬 · VIX（即時快照，非時間軸）",
+        showTime: false,
+      },
+      {
+        key: "earnings",
+        title: "② 業績期",
+        sub: "14 日內公布（由近至遠）",
+        showTime: false,
+      },
+      {
+        key: "hkex",
+        title: "③ 聯交所公告",
+        sub: "24H 官方披露（區內新→舊）",
+        showTime: true,
+      },
+      {
+        key: "news",
+        title: "④ 龍頭新聞",
+        sub: "Yahoo 快訊（區內新→舊，預設收埋）",
+        showTime: true,
+        collapsed: true,
+      },
+    ];
+
+    function renderMarketCatalystLine(item, sectionKey, showTime) {
+      const ts = escapeHtml(String(item.ts_hkt || "--:--"));
+      const emoji = marketCatalystToneEmoji(item.tone);
+      const prefix = marketCatalystPrefix(item, sectionKey);
+      const text = escapeHtml(String(item.text || ""));
+      const link = item.link ? String(item.link) : "";
+      const body = link
+        ? `<a class="mc-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${text}</a>`
+        : text;
+      const timePart = showTime ? `<span class="mc-ts">[${ts} HKT]</span> ` : "";
+      return `${timePart}${prefix}${body} ${emoji}`;
     }
 
     function renderMarketCatalysts(data) {
-      const listEl = document.getElementById("marketCatalystsList");
+      const bodyEl = document.getElementById("marketCatalystsBody");
       const metaEl = document.getElementById("marketCatalystsMeta");
       const emptyEl = document.getElementById("marketCatalystsEmpty");
-      if (!listEl) return;
-      listEl.innerHTML = "";
-      if (!data || !Array.isArray(data.items) || !data.items.length) {
+      if (!bodyEl) return;
+      bodyEl.innerHTML = "";
+
+      const sections = marketCatalystSectionsFromData(data);
+      const total = MARKET_CATALYST_SECTIONS.reduce(
+        (n, s) => n + (sections[s.key]?.length || 0),
+        0,
+      );
+
+      if (!data || total === 0) {
         if (metaEl) metaEl.textContent = "";
         if (emptyEl) emptyEl.style.display = "block";
         return;
       }
       if (emptyEl) emptyEl.style.display = "none";
       if (metaEl) {
-        const src = Array.isArray(data?.sources) ? data.sources.join(" · ") : "macro · hkex · earnings · yahoo";
         metaEl.textContent = data.last_updated
-          ? "更新：" + fmtDateLocal(data.last_updated) + " · 核心 " + (data.universe_size || 133) + " 隻 · " + src
+          ? "更新：" + fmtDateLocal(data.last_updated) + " · 核心 " + (data.universe_size || 133) + " 隻 · 分區顯示（非混合時間軸）"
           : "";
       }
-      for (const item of data.items) {
-        if (!item || typeof item !== "object") continue;
-        const li = document.createElement("li");
-        const ts = escapeHtml(String(item.ts_hkt || "--:--"));
-        const emoji = marketCatalystToneEmoji(item.tone);
-        const prefix = marketCatalystPrefix(item);
-        const text = escapeHtml(String(item.text || ""));
-        const link = item.link ? String(item.link) : "";
-        const body = link
-          ? `<a class="mc-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${text}</a>`
-          : text;
-        li.innerHTML = `<span class="mc-ts">[${ts} HKT]</span> ${prefix}${body} ${emoji}`;
-        listEl.appendChild(li);
+
+      for (const spec of MARKET_CATALYST_SECTIONS) {
+        const rows = sections[spec.key] || [];
+        if (!rows.length && spec.collapsed) continue;
+
+        const wrap = document.createElement(spec.collapsed ? "details" : "div");
+        wrap.className = spec.collapsed ? "mc-subsection" : "mc-block";
+        if (spec.collapsed) wrap.open = false;
+
+        const head = document.createElement(spec.collapsed ? "summary" : "div");
+        head.className = spec.collapsed ? "" : "mc-block-head";
+        if (spec.collapsed) {
+          head.innerHTML = `${escapeHtml(spec.title)} <span class="muted" style="font-weight:500;">(${rows.length})</span>`;
+        } else {
+          head.innerHTML = `
+            <div class="mc-block-title">${escapeHtml(spec.title)}</div>
+            <div class="mc-block-sub">${escapeHtml(spec.sub)}</div>
+          `;
+        }
+        wrap.appendChild(head);
+
+        if (!spec.collapsed) {
+          /* title + sub already in mc-block-head */
+        } else if (rows.length) {
+          const sub = document.createElement("p");
+          sub.className = "mc-block-sub";
+          sub.style.margin = "0 0 8px";
+          sub.textContent = spec.sub;
+          wrap.appendChild(sub);
+        }
+
+        if (!rows.length) {
+          const p = document.createElement("p");
+          p.className = "mc-block-empty";
+          p.textContent = "暫無項目。";
+          wrap.appendChild(p);
+        } else {
+          const list = document.createElement("ul");
+          list.className = "market-catalysts-list";
+          for (const item of rows) {
+            if (!item || typeof item !== "object") continue;
+            const li = document.createElement("li");
+            li.innerHTML = renderMarketCatalystLine(item, spec.key, !!spec.showTime);
+            list.appendChild(li);
+          }
+          wrap.appendChild(list);
+        }
+        bodyEl.appendChild(wrap);
       }
     }
 

@@ -496,7 +496,7 @@ def _earnings_items(
                 "kind": "earnings",
                 "source": "yfinance",
                 "ticker": ticker,
-                "text": f"業績期：{when}（{iso[:10]}）。",
+                "text": f"{when}（{iso[:10]}）。",
                 "tone": "neutral",
                 "_sort": datetime.combine(d, datetime.min.time(), tzinfo=HKT).timestamp(),
                 "_priority": _KIND_PRIORITY["earnings"],
@@ -506,42 +506,63 @@ def _earnings_items(
     return items[:8]
 
 
-def _merge_items(items: list[dict], *, max_items: int) -> list[dict]:
-    items.sort(key=lambda x: (x.get("_priority", 9), -x.get("_sort", 0)))
+def _clean_row(row: dict) -> dict:
+    out = dict(row)
+    out.pop("_sort", None)
+    out.pop("_priority", None)
+    if out.get("link") == "":
+        out.pop("link", None)
+    return out
 
+
+def _finalize_timed_section(
+    rows: list[dict],
+    *,
+    max_items: int,
+    sort_desc: bool = True,
+    one_per_ticker: bool = False,
+) -> list[dict]:
+    rows.sort(key=lambda x: x.get("_sort", 0), reverse=sort_desc)
     seen_titles: set[str] = set()
-    seen_ticker_kind: set[tuple[str, str]] = set()
+    seen_tickers: set[str] = set()
     out: list[dict] = []
-
-    for row in items:
-        kind = str(row.get("kind") or "")
+    for row in rows:
         ticker = str(row.get("ticker") or "")
-        if kind in ("news", "company", "hkex") and ticker:
-            key = (ticker, kind)
-            if key in seen_ticker_kind:
+        if one_per_ticker and ticker:
+            if ticker in seen_tickers:
                 continue
-            # Prefer HKEX over Yahoo for same ticker.
-            if kind in ("news", "company"):
-                if (ticker, "hkex") in seen_ticker_kind:
-                    continue
-            seen_ticker_kind.add((ticker, kind))
-
+            seen_tickers.add(ticker)
         title_key = re.sub(r"\s+", "", str(row.get("text") or "").lower())
         if title_key and title_key in seen_titles:
             continue
         if title_key:
             seen_titles.add(title_key)
-
-        out.append(row)
+        out.append(_clean_row(row))
         if len(out) >= max_items:
             break
-
-    for row in out:
-        row.pop("_sort", None)
-        row.pop("_priority", None)
-        if row.get("link") == "":
-            row.pop("link", None)
     return out
+
+
+def _build_sections(
+    *,
+    macro: list[dict],
+    earnings: list[dict],
+    hkex: list[dict],
+    news: list[dict],
+    limits: dict[str, int],
+) -> dict[str, list[dict]]:
+    return {
+        "macro": [_clean_row(r) for r in macro[: limits.get("macro", 10)]],
+        "earnings": _finalize_timed_section(
+            earnings, max_items=limits.get("earnings", 8), sort_desc=False
+        ),
+        "hkex": _finalize_timed_section(
+            hkex, max_items=limits.get("hkex", 12), sort_desc=True, one_per_ticker=True
+        ),
+        "news": _finalize_timed_section(
+            news, max_items=limits.get("news", 6), sort_desc=True, one_per_ticker=True
+        ),
+    }
 
 
 def export_catalysts(
@@ -568,17 +589,18 @@ def export_catalysts(
     if macro_path.is_file():
         macro = json.loads(macro_path.read_text(encoding="utf-8"))
 
-    items = _macro_items(macro, now_hkt)
+    macro_rows = _macro_items(macro, now_hkt)
+    earnings_rows: list[dict] = []
+    hkex_rows: list[dict] = []
+    news_rows: list[dict] = []
 
     if not skip_earnings:
-        items.extend(
-            _earnings_items(
-                tickers,
-                cache_path=earnings_cache_path,
-                now_hkt=now_hkt,
-                refresh=refresh_earnings,
-                sleep_sec=max(0.05, sleep_sec * 0.5),
-            )
+        earnings_rows = _earnings_items(
+            tickers,
+            cache_path=earnings_cache_path,
+            now_hkt=now_hkt,
+            refresh=refresh_earnings,
+            sleep_sec=max(0.05, sleep_sec * 0.5),
         )
 
     if not skip_hkex:
@@ -602,29 +624,46 @@ def export_catalysts(
                     try:
                         for row in fut.result():
                             if row["_sort"] >= cutoff.timestamp():
-                                items.append(row)
+                                hkex_rows.append(row)
                     except Exception as exc:
                         print(f"  HKEX skip {ticker}: {exc}", file=sys.stderr)
 
     if not skip_rss:
+        hkex_tickers = {str(r.get("ticker") or "") for r in hkex_rows}
         for i, ticker in enumerate(tickers):
             try:
                 for row in _fetch_yahoo_rss(ticker):
                     if row["_sort"] >= cutoff.timestamp():
-                        items.append(row)
+                        if ticker in hkex_tickers:
+                            continue
+                        news_rows.append(row)
             except Exception as exc:
                 print(f"  RSS skip {ticker}: {exc}", file=sys.stderr)
             if sleep_sec > 0 and i + 1 < len(tickers):
                 time.sleep(sleep_sec)
 
-    trimmed = _merge_items(items, max_items=max_items)
+    per_section = {
+        "macro": 10,
+        "earnings": 8,
+        "hkex": 12,
+        "news": max(4, min(8, max_items - 22)),
+    }
+    sections = _build_sections(
+        macro=macro_rows,
+        earnings=earnings_rows,
+        hkex=hkex_rows,
+        news=news_rows,
+        limits=per_section,
+    )
+    flat = sections["macro"] + sections["earnings"] + sections["hkex"] + sections["news"]
 
     payload = {
-        "schema_version": "2.0",
+        "schema_version": "2.1",
         "last_updated": now_hkt.isoformat(timespec="seconds"),
         "universe_size": len(tickers),
         "sources": ["macro_snapshot", "hkex", "yfinance", "yahoo"],
-        "items": trimmed,
+        "sections": sections,
+        "items": flat,
     }
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -665,13 +704,11 @@ def main() -> int:
         hours=args.hours,
         hkex_workers=args.hkex_workers,
     )
-    kinds: dict[str, int] = {}
-    for row in payload.get("items") or []:
-        k = str(row.get("kind") or "?")
-        kinds[k] = kinds.get(k, 0) + 1
+    sec = payload.get("sections") if isinstance(payload.get("sections"), dict) else {}
+    counts = {k: len(v) for k, v in sec.items() if isinstance(v, list)}
     print(
         f"Wrote {len(payload.get('items') or [])} catalysts "
-        f"(universe {payload.get('universe_size')}, kinds {kinds}) → {args.out}"
+        f"(universe {payload.get('universe_size')}, sections {counts}) → {args.out}"
     )
     return 0
 
