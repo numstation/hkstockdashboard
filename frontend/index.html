@@ -511,32 +511,20 @@
       padding: 0 12px 10px;
       font-size: 15px;
     }
-    .market-catalysts-section {
-      margin: 16px 12px 0;
-      padding-top: 14px;
-      border-top: 1px solid var(--line);
+    #newsTab .news-tab-shell {
+      padding: 4px 0 16px;
     }
-    .market-catalysts-section > summary {
-      cursor: pointer;
-      list-style: none;
-      padding: 4px 0 10px;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: 0.01em;
-    }
-    .market-catalysts-section > summary::-webkit-details-marker { display: none; }
-    .market-catalysts-section > summary::before {
-      content: "▸ ";
-      color: var(--muted);
+    #newsTab .news-tab-lead {
+      margin: 0 12px 14px;
       font-size: 12px;
-    }
-    .market-catalysts-section[open] > summary::before { content: "▾ "; }
-    .market-catalysts-meta {
-      margin: 0 0 10px;
-      padding: 0 2px;
-      font-size: 11px;
+      line-height: 1.55;
       color: var(--muted);
+    }
+    #newsTab .market-catalysts-meta {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
     }
     .market-catalysts-list {
       margin: 0;
@@ -569,7 +557,7 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
-      padding-bottom: 6px;
+      padding: 0 12px 8px;
     }
     .mc-block {
       padding: 10px 10px 8px;
@@ -1152,7 +1140,7 @@
         <div class="chart-cell"><div class="ttl">尋寶象限圖：趨勢強度 vs 爆發量 (ADX vs RVOL)</div><canvas id="chScatter" aria-label="ADX vs RVOL quadrant"></canvas></div>
       </div>
       <p class="muted" style="margin:12px 0 0;font-size:11px;line-height:1.5;">
-        VIX／DXY／市寬等由「大佬三原色」Macro 分頁讀取 <code>macro_snapshot.json</code>；走勢圖在該頁摺疊區內。</p>
+        VIX／DXY／市寬等由「大佬三原色」讀取 <code>macro_snapshot.json</code>；133 隻新聞／公告見「新聞公告」分頁。</p>
     </div>
 
     <div class="tabs">
@@ -1160,6 +1148,7 @@
       <button class="tab-btn" data-tab="historyTab">💯 Full Market History</button>
       <button class="tab-btn" data-tab="logTab">📝 Future Log</button>
       <button class="tab-btn" data-tab="macroTab">大佬三原色</button>
+      <button class="tab-btn" data-tab="newsTab">新聞公告</button>
     </div>
 
     <section id="activeTab" class="tab-panel active">
@@ -1318,13 +1307,6 @@
           <div id="macroChartGrid" class="macro-chart-grid"></div>
         </div>
 
-        <details id="marketCatalystsPanel" class="market-catalysts-section">
-          <summary>📰 24H 宏觀與龍頭催化劑 (Market Catalysts)</summary>
-          <p id="marketCatalystsMeta" class="market-catalysts-meta"></p>
-          <div id="marketCatalystsBody" class="market-catalysts-body"></div>
-          <p id="marketCatalystsEmpty" class="market-catalysts-empty" style="display:none;">暫無 24 小時內催化劑。</p>
-        </details>
-
         <div class="macro-block macro-data-block">
           <h3 class="section-title">即時數據表</h3>
           <p class="macro-table-sub">Quick metrics（VIX · DXY · 指數 · 北水）</p>
@@ -1363,8 +1345,22 @@
       </div>
     </section>
 
+    <section id="newsTab" class="tab-panel">
+      <div class="table-wrap news-tab-shell" id="newsTabShell">
+        <div class="macro-panel-head">
+          <h3 class="section-title" style="margin:0;">📰 24H 宏觀與龍頭催化劑</h3>
+          <span id="marketCatalystsMeta" class="market-catalysts-meta"></span>
+        </div>
+        <p class="news-tab-lead">
+          核心 133 隻 · 宏觀快訊、業績期、聯交所公告、龍頭新聞分區顯示（已過濾券商評級雜訊）。
+        </p>
+        <div id="marketCatalystsBody" class="market-catalysts-body"></div>
+        <p id="marketCatalystsEmpty" class="market-catalysts-empty" style="display:none;padding:0 12px;">暫無 24 小時內催化劑。</p>
+      </div>
+    </section>
+
     <div class="footer">
-      圖表 Chart.js · Macro（macro_snapshot）· TradingView 外連。
+      圖表 Chart.js · Macro（macro_snapshot）· 新聞公告（market_catalysts_hk）· TradingView 外連。
     </div>
   </div>
 
@@ -4628,9 +4624,9 @@ ${tail}`;
       {
         key: "news",
         title: "④ 龍頭新聞",
-        sub: "Yahoo 快訊（區內新→舊，預設收埋）",
+        sub: "Yahoo 快訊（區內新→舊）",
         showTime: true,
-        collapsed: true,
+        collapsed: false,
       },
     ];
 
