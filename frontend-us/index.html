@@ -1994,6 +1994,16 @@ ${tail}`;
       return t || "—";
     }
 
+    function tickerMatchesDashboardMarket(sym) {
+      const t = String(sym || "").trim().toUpperCase();
+      if (!t) return false;
+      if (DASHBOARD_MARKET === "hk") return /\.HK$/i.test(t);
+      if (DASHBOARD_MARKET === "us") {
+        return !/\.HK$/i.test(t) && /^[A-Z][A-Z0-9.\-]{0,9}$/.test(t);
+      }
+      return true;
+    }
+
     function hkTickerLookupKeys(sym) {
       const t = String(sym || "").trim().toUpperCase();
       if (!t.endsWith(".HK")) return [t];
@@ -3351,6 +3361,7 @@ ${tail}`;
       const wantAction = historyActionForActiveModel();
       const triggersOnly = document.getElementById("historyTriggersOnly")?.checked !== false;
       return list.filter((s) => {
+        if (!tickerMatchesDashboardMarket(s.ticker)) return false;
         if (triggersOnly) {
           if (!s.action) return false;
           if (wantAction && String(s.action).toUpperCase() !== wantAction) return false;
@@ -3539,6 +3550,7 @@ ${tail}`;
       const seen = new Set();
       for (const r of source) {
         if (!r || typeof r !== "object") continue;
+        if (!tickerMatchesDashboardMarket(r.ticker)) continue;
         const k0 = String(r._key || "").trim();
         const d0 = String(r.exit_date || "").slice(0, 10);
         const k = `${k0}|${d0}`;
@@ -3889,7 +3901,7 @@ ${tail}`;
       let base = Array.isArray(data?.signals)
         ? data.signals.filter((s) => {
             const st = String(s?.status || "open").toLowerCase();
-            return st !== "closed" && st !== "superseded";
+            return st !== "closed" && st !== "superseded" && tickerMatchesDashboardMarket(s?.ticker);
           })
         : [];
       const live = liveTriggerEntriesFromRows(rows, activeScoreModel);

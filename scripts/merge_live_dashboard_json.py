@@ -115,16 +115,38 @@ def _signal_key(item: dict) -> str:
     )
 
 
-def merge_signals(repo: dict | None, live: dict | None) -> dict | None:
+def _is_hk_ticker(sym: str) -> bool:
+    return str(sym or "").strip().upper().endswith(".HK")
+
+
+def _is_us_ticker(sym: str) -> bool:
+    import re
+
+    s = str(sym or "").strip().upper()
+    if not s or _is_hk_ticker(s):
+        return False
+    return bool(re.match(r"^[A-Z][A-Z0-9.\-]{0,9}$", s))
+
+
+def merge_signals(repo: dict | None, live: dict | None, *, market: str | None = None) -> dict | None:
     if not isinstance(live, dict) and not isinstance(repo, dict):
         return repo
     out = dict(repo or live or {})
     merged: dict[str, dict] = {}
+
+    def _keep(item: dict) -> bool:
+        sym = str(item.get("ticker") or "")
+        if market == "hk":
+            return _is_hk_ticker(sym)
+        if market == "us":
+            return _is_us_ticker(sym)
+        return True
+
     for src in (repo, live):
         if not isinstance(src, dict):
             continue
         for item in src.get("signals") or []:
-            if isinstance(item, dict):
+            if isinstance(item, dict) and _keep(item):
                 merged[_signal_key(item)] = item
     if not merged:
         return repo
@@ -232,15 +254,15 @@ def main() -> int:
     ):
         changed += 1
 
-    for filename, url_path, merge_fn in [
-        ("signals_history.json", "/frontend/data/signals_history.json", merge_signals),
-        ("signals_history_us.json", "/frontend-us/data/signals_history_us.json", merge_signals),
-        ("score_daily_history.json", "/frontend/data/score_daily_history.json", merge_score_history),
+    for filename, url_path, merge_fn, market in [
+        ("signals_history.json", "/frontend/data/signals_history.json", merge_signals, "hk"),
+        ("signals_history_us.json", "/frontend-us/data/signals_history_us.json", merge_signals, "us"),
+        ("score_daily_history.json", "/frontend/data/score_daily_history.json", merge_score_history, None),
     ]:
         path = ROOT / filename
         repo = _read(path)
         live = _fetch(url_path)
-        merged = merge_fn(repo, live)
+        merged = merge_fn(repo, live, market=market) if market else merge_fn(repo, live)
         if not isinstance(merged, dict):
             continue
         before = len((repo or {}).get("signals") or [])

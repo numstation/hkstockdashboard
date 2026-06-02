@@ -6,6 +6,7 @@ Flask web interface for the mean-reversion trading strategy
 from flask import Flask, render_template, request, jsonify
 import json
 import pandas as pd
+import re
 import ta
 import yfinance as yf
 import sys
@@ -570,6 +571,41 @@ def _enrich_rows_with_daily_score_history(
     meta["d1_date"] = global_d1
     history["schema_version"] = "1.0"
     return history, meta
+
+
+def _is_hk_ticker(sym: str) -> bool:
+    return str(sym or "").strip().upper().endswith(".HK")
+
+
+def _is_us_ticker(sym: str) -> bool:
+    s = str(sym or "").strip().upper()
+    if not s or _is_hk_ticker(s):
+        return False
+    return bool(re.match(r"^[A-Z][A-Z0-9.\-]{0,9}$", s))
+
+
+def _signals_history_market(filename: str) -> str | None:
+    name = str(filename or "").lower()
+    if name == "signals_history.json":
+        return "hk"
+    if "signals_history_us" in name:
+        return "us"
+    return None
+
+
+def _ticker_matches_signals_file(sym: str, filename: str) -> bool:
+    market = _signals_history_market(filename)
+    if market == "hk":
+        return _is_hk_ticker(sym)
+    if market == "us":
+        return _is_us_ticker(sym)
+    return True
+
+
+def _filter_signals_for_file(signals: list, filename: str) -> list:
+    if not isinstance(signals, list):
+        return []
+    return [s for s in signals if isinstance(s, dict) and _ticker_matches_signals_file(s.get("ticker"), filename)]
 
 
 def _now_iso() -> str:
@@ -1493,6 +1529,8 @@ def export_trade_signals_history_to_json(
             entry_px = _to_number(row.get("Close", row.get("Price")))
             if not sym or sym == "N/A" or entry_px is None:
                 continue
+            if not _ticker_matches_signals_file(sym, filename):
+                continue
             if _has_open_position(payload["signals"], sym, model_slug):
                 continue
             macd_st = macd_status_from_row(dict(row)) if macd_status_from_row else ""
@@ -1537,6 +1575,7 @@ def export_trade_signals_history_to_json(
             new_count += 1
 
     payload["signals"] = [x for x in payload["signals"] if _is_within_days(x.get("date"), retention_days)]
+    payload["signals"] = _filter_signals_for_file(payload["signals"], filename)
     payload["signals"], _n_sup = reconcile_signals_history(payload["signals"])
     if _n_sup:
         print(f"Reconciled signals: superseded {_n_sup} duplicate daily re-triggers")
@@ -1913,6 +1952,7 @@ def export_closed_transactions_to_json(
     signals = sig_payload.get("signals")
     if not isinstance(signals, list):
         signals = []
+    signals = _filter_signals_for_file(signals, signals_filename)
     closed_rows = out_payload.get("closed")
     if not isinstance(closed_rows, list):
         closed_rows = []
