@@ -1348,11 +1348,11 @@
     <section id="newsTab" class="tab-panel">
       <div class="table-wrap news-tab-shell" id="newsTabShell">
         <div class="macro-panel-head">
-          <h3 class="section-title" style="margin:0;">📰 24H 宏觀與龍頭催化劑</h3>
+          <h3 class="section-title" style="margin:0;">📰 24H 龍頭新聞與公告</h3>
           <span id="marketCatalystsMeta" class="market-catalysts-meta"></span>
         </div>
         <p class="news-tab-lead">
-          核心 133 隻 · 宏觀快訊、業績期、聯交所公告、龍頭新聞分區顯示（已過濾券商評級雜訊）。
+          核心 133 隻 · 龍頭新聞、聯交所公告、業績期分區顯示（已過濾券商評級雜訊）。
         </p>
         <div id="marketCatalystsBody" class="market-catalysts-body"></div>
         <p id="marketCatalystsEmpty" class="market-catalysts-empty" style="display:none;padding:0 12px;">暫無 24 小時內催化劑。</p>
@@ -4584,49 +4584,40 @@ ${tail}`;
     function marketCatalystSectionsFromData(data) {
       if (data?.sections && typeof data.sections === "object") {
         return {
-          macro: Array.isArray(data.sections.macro) ? data.sections.macro : [],
-          earnings: Array.isArray(data.sections.earnings) ? data.sections.earnings : [],
-          hkex: Array.isArray(data.sections.hkex) ? data.sections.hkex : [],
           news: Array.isArray(data.sections.news) ? data.sections.news : [],
+          hkex: Array.isArray(data.sections.hkex) ? data.sections.hkex : [],
+          earnings: Array.isArray(data.sections.earnings) ? data.sections.earnings : [],
         };
       }
       const items = Array.isArray(data?.items) ? data.items : [];
-      const bucket = { macro: [], earnings: [], hkex: [], news: [] };
+      const bucket = { news: [], hkex: [], earnings: [] };
       for (const item of items) {
         const k = String(item?.kind || "");
-        if (k === "macro") bucket.macro.push(item);
-        else if (k === "earnings") bucket.earnings.push(item);
+        if (k === "earnings") bucket.earnings.push(item);
         else if (k === "hkex") bucket.hkex.push(item);
-        else bucket.news.push(item);
+        else if (k !== "macro") bucket.news.push(item);
       }
       return bucket;
     }
 
     const MARKET_CATALYST_SECTIONS = [
       {
-        key: "macro",
-        title: "① 宏觀快訊",
-        sub: "北水 · 市寬 · VIX（即時快照，非時間軸）",
-        showTime: false,
-      },
-      {
-        key: "earnings",
-        title: "② 業績期",
-        sub: "14 日內公布（由近至遠）",
-        showTime: false,
+        key: "news",
+        title: "① 龍頭新聞",
+        sub: "Yahoo 快訊（區內新→舊）",
+        showTime: true,
       },
       {
         key: "hkex",
-        title: "③ 聯交所公告",
+        title: "② 聯交所公告",
         sub: "24H 官方披露（區內新→舊）",
         showTime: true,
       },
       {
-        key: "news",
-        title: "④ 龍頭新聞",
-        sub: "Yahoo 快訊（區內新→舊）",
-        showTime: true,
-        collapsed: false,
+        key: "earnings",
+        title: "③ 業績期",
+        sub: "14 日內公布（由近至遠）",
+        showTime: false,
       },
     ];
 

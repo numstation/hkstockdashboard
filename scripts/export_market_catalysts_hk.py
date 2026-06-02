@@ -545,22 +545,20 @@ def _finalize_timed_section(
 
 def _build_sections(
     *,
-    macro: list[dict],
     earnings: list[dict],
     hkex: list[dict],
     news: list[dict],
     limits: dict[str, int],
 ) -> dict[str, list[dict]]:
     return {
-        "macro": [_clean_row(r) for r in macro[: limits.get("macro", 10)]],
-        "earnings": _finalize_timed_section(
-            earnings, max_items=limits.get("earnings", 8), sort_desc=False
+        "news": _finalize_timed_section(
+            news, max_items=limits.get("news", 8), sort_desc=True, one_per_ticker=True
         ),
         "hkex": _finalize_timed_section(
             hkex, max_items=limits.get("hkex", 12), sort_desc=True, one_per_ticker=True
         ),
-        "news": _finalize_timed_section(
-            news, max_items=limits.get("news", 6), sort_desc=True, one_per_ticker=True
+        "earnings": _finalize_timed_section(
+            earnings, max_items=limits.get("earnings", 8), sort_desc=False
         ),
     }
 
@@ -583,13 +581,7 @@ def export_catalysts(
     now_hkt = datetime.now(HKT)
     cutoff = now_hkt - timedelta(hours=hours)
     tickers = _load_universe(universe_csv)
-    allowed = set(tickers)
 
-    macro: dict = {}
-    if macro_path.is_file():
-        macro = json.loads(macro_path.read_text(encoding="utf-8"))
-
-    macro_rows = _macro_items(macro, now_hkt)
     earnings_rows: list[dict] = []
     hkex_rows: list[dict] = []
     news_rows: list[dict] = []
@@ -643,25 +635,23 @@ def export_catalysts(
                 time.sleep(sleep_sec)
 
     per_section = {
-        "macro": 10,
-        "earnings": 8,
+        "news": max(6, min(10, max_items - 14)),
         "hkex": 12,
-        "news": max(4, min(8, max_items - 22)),
+        "earnings": 8,
     }
     sections = _build_sections(
-        macro=macro_rows,
         earnings=earnings_rows,
         hkex=hkex_rows,
         news=news_rows,
         limits=per_section,
     )
-    flat = sections["macro"] + sections["earnings"] + sections["hkex"] + sections["news"]
+    flat = sections["news"] + sections["hkex"] + sections["earnings"]
 
     payload = {
-        "schema_version": "2.1",
+        "schema_version": "2.2",
         "last_updated": now_hkt.isoformat(timespec="seconds"),
         "universe_size": len(tickers),
-        "sources": ["macro_snapshot", "hkex", "yfinance", "yahoo"],
+        "sources": ["hkex", "yfinance", "yahoo"],
         "sections": sections,
         "items": flat,
     }
