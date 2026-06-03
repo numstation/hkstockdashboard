@@ -29,10 +29,14 @@ _TITLE_BLOCK_RE = re.compile(
     r"上調目標|下調目標|維持「|維持評|《港股》|《半日|《今早重點|半日速報|"
     r"恒指半日|恆指半日|收市報|美股三大|隔晚\(.*\)美股|十大|沽空比例|"
     r"港股ADR|預計恆指|A股|滬深300|標售|海景|維港.*房|單位獲|"
-    r"港股通.*淨流入|代言|Comic Con|球星",
+    r"港股通.*淨流|港股早段|盤中速報|深證成指|上證指數|港股回調|失守牛熊|"
+    r"代言|Comic Con|球星",
     re.I,
 )
-_ROUNDUP_TITLE_RE = re.compile(r"^《|恒指|恆指|科指|國指", re.I)
+_ROUNDUP_TITLE_RE = re.compile(
+    r"^《|恒指|恆指|科指|國指|港股早段|各跌\d|回吐\d|逆市升|跌幅擴|升幅擴",
+    re.I,
+)
 _CJK_RE = re.compile(r"[\u3400-\u9fff]")
 
 _HKEX_KEEP_RE = re.compile(
@@ -50,6 +54,8 @@ _POSITIVE_RE = re.compile(r"回購|增長|推出|創新高|勝預期|流入|上�
 _NEGATIVE_RE = re.compile(r"虧損|警告|流出|下跌|急跌|降.*售|停牌|盈利警告", re.I)
 
 _KIND_PRIORITY = {"macro": 0, "earnings": 1, "hkex": 2, "news": 3, "company": 3}
+# Yahoo RSS: top slots are often ADR/大行 noise — scan deeper for company headlines.
+RSS_DEPTH_DEFAULT = 6
 
 
 def _load_universe(csv_path: Path) -> list[str]:
@@ -269,7 +275,7 @@ def _fetch_hkex_for_ticker(
     return out
 
 
-def _fetch_yahoo_rss(ticker: str, timeout: float = 8.0) -> list[dict]:
+def _fetch_yahoo_rss(ticker: str, *, depth: int = RSS_DEPTH_DEFAULT, timeout: float = 8.0) -> list[dict]:
     url = (
         "https://feeds.finance.yahoo.com/rss/2.0/headline?"
         f"s={urllib.parse.quote(ticker)}&region=HK&lang=zh-Hant-HK"
@@ -278,7 +284,7 @@ def _fetch_yahoo_rss(ticker: str, timeout: float = 8.0) -> list[dict]:
     root = ET.fromstring(xml_data)
     items = root.findall("./channel/item") or root.findall(".//item")
     out: list[dict] = []
-    for item in items[:2]:
+    for item in items[: max(1, depth)]:
         title_el = item.find("title")
         link_el = item.find("link")
         pub_el = item.find("pubDate")
@@ -577,6 +583,8 @@ def export_catalysts(
     refresh_earnings: bool = False,
     hours: int = 24,
     hkex_workers: int = 8,
+    rss_depth: int = RSS_DEPTH_DEFAULT,
+    rss_workers: int = 6,
 ) -> dict:
     now_hkt = datetime.now(HKT)
     cutoff = now_hkt - timedelta(hours=hours)
@@ -622,20 +630,25 @@ def export_catalysts(
 
     if not skip_rss:
         hkex_tickers = {str(r.get("ticker") or "") for r in hkex_rows}
-        for i, ticker in enumerate(tickers):
-            try:
-                for row in _fetch_yahoo_rss(ticker):
-                    if row["_sort"] >= cutoff.timestamp():
-                        if ticker in hkex_tickers:
-                            continue
-                        news_rows.append(row)
-            except Exception as exc:
-                print(f"  RSS skip {ticker}: {exc}", file=sys.stderr)
-            if sleep_sec > 0 and i + 1 < len(tickers):
-                time.sleep(sleep_sec)
+
+        def _rss_for_ticker(ticker: str) -> list[dict]:
+            rows: list[dict] = []
+            for row in _fetch_yahoo_rss(ticker, depth=rss_depth):
+                if row["_sort"] >= cutoff.timestamp() and ticker not in hkex_tickers:
+                    rows.append(row)
+            return rows
+
+        with ThreadPoolExecutor(max_workers=max(1, rss_workers)) as pool:
+            futs = {pool.submit(_rss_for_ticker, ticker): ticker for ticker in tickers}
+            for fut in as_completed(futs):
+                ticker = futs[fut]
+                try:
+                    news_rows.extend(fut.result())
+                except Exception as exc:
+                    print(f"  RSS skip {ticker}: {exc}", file=sys.stderr)
 
     per_section = {
-        "news": max(6, min(10, max_items - 14)),
+        "news": max(12, min(18, max_items - 6)),
         "hkex": 12,
         "earnings": 8,
     }
@@ -648,7 +661,7 @@ def export_catalysts(
     flat = sections["news"] + sections["hkex"] + sections["earnings"]
 
     payload = {
-        "schema_version": "2.2",
+        "schema_version": "2.3",
         "last_updated": now_hkt.isoformat(timespec="seconds"),
         "universe_size": len(tickers),
         "sources": ["hkex", "yfinance", "yahoo"],
@@ -674,6 +687,8 @@ def main() -> int:
     ap.add_argument("--max-items", type=int, default=24)
     ap.add_argument("--hours", type=int, default=24, help="Keep headlines from last N hours")
     ap.add_argument("--hkex-workers", type=int, default=8)
+    ap.add_argument("--rss-depth", type=int, default=RSS_DEPTH_DEFAULT, help="RSS items to scan per ticker")
+    ap.add_argument("--rss-workers", type=int, default=6, help="Parallel Yahoo RSS fetch workers")
     ap.add_argument("--skip-rss", action="store_true", help="Skip Yahoo RSS")
     ap.add_argument("--skip-hkex", action="store_true", help="Skip HKEX announcements")
     ap.add_argument("--skip-earnings", action="store_true", help="Skip earnings calendar")
@@ -693,6 +708,8 @@ def main() -> int:
         refresh_earnings=args.refresh_earnings,
         hours=args.hours,
         hkex_workers=args.hkex_workers,
+        rss_depth=args.rss_depth,
+        rss_workers=args.rss_workers,
     )
     sec = payload.get("sections") if isinstance(payload.get("sections"), dict) else {}
     counts = {k: len(v) for k, v in sec.items() if isinstance(v, list)}
