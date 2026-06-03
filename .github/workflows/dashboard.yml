@@ -12,7 +12,8 @@ on:
   push:
     branches: [main, master]
   schedule:
-    - cron: "0,30 1-8 * * 1-5"
+    # UTC Mon–Fri every 30m, 01:00–09:30 ≈ HK 09:00–17:30 (extra hour buffers GitHub cron delays)
+    - cron: "0,30 1-9 * * 1-5"
   workflow_dispatch:
     inputs:
       refresh_macro:
