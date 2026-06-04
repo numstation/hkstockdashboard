@@ -92,7 +92,17 @@ _pull_live_market_data() {
   echo "==> Pull ${market} JSON from live (${BASE_URL})"
   local ok=0
   for f in "${files[@]}"; do
-    if _fetch_live_json "${url_prefix}/${f}" "${data_dir}/${f}"; then
+    local dest="${data_dir}/${f}"
+    local live_tmp="${dest}.live.tmp"
+    rm -f "$live_tmp" || true
+    if _fetch_live_json "${url_prefix}/${f}" "$live_tmp"; then
+      if [[ -f "$dest" ]] && _is_valid_json "$dest"; then
+        python3 "$ROOT/scripts/pick_newer_json.py" "$dest" "$live_tmp" "$dest" \
+          || cp "$live_tmp" "$dest"
+      else
+        mv "$live_tmp" "$dest"
+      fi
+      rm -f "$live_tmp" || true
       ok=$((ok + 1))
     fi
   done
