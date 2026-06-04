@@ -219,7 +219,7 @@ You do **not** need to run Terminal commands when this works.
 | No runs on schedule | Repo default branch must be `main` or `master`; cron is UTC |
 | US page stale after ~4:30pm HKT | Normal until evening US cron; HK deploy no longer clears US JSON |
 | HK page goes stale after US deploy | Fixed: US workflow sets `DEPLOY_MARKET=us` and pulls HK JSON from live |
-| **Scan only** → `GITHUB_PAT not configured` | Add repo secret **`GITHUB_PAT`**, then run **Cloudflare auto update** (or wait for next deploy) |
+| **Scan only** → `GITHUB_PAT not configured` | Add repo secret **`DASHBOARD_GITHUB_PAT`**, then run **Cloudflare auto update** |
 | **Scan only** → API 未部署 | Push/deploy failed — check Actions log for wrangler error |
 | **Scan only** → cooldown / already running | Wait 10 min or until the in-progress Actions run finishes |
 
@@ -240,10 +240,10 @@ The dashboard can trigger a **new scan + deploy** from the browser (not just rel
    - Permissions: **Actions → Read and write**, **Metadata → Read**
    - Copy the token (starts with `github_pat_…`)
 
-2. **Add GitHub repo secret** (recommended — CI syncs this to the Worker on every deploy):
+2. **Add GitHub repo secret** (CI syncs this to the Worker on every deploy):
    - Repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
-   - Name: **`GITHUB_PAT`**
-   - Value: paste the PAT from step 1
+   - Name: **`DASHBOARD_GITHUB_PAT`** (GitHub forbids names starting with `GITHUB_`)
+   - Value: paste the full `github_pat_…` string from step 1
 
 3. **Run deploy once** (Actions → **Cloudflare auto update** → Run workflow).  
    The deploy script runs `wrangler secret put GITHUB_PAT` using the same `CLOUDFLARE_API_TOKEN` as normal deploys — no local `wrangler` login needed.

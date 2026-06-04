@@ -51,7 +51,7 @@ jobs:
         env:
           DEPLOY_MARKET: us
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
+          GITHUB_PAT: ${{ secrets.DASHBOARD_GITHUB_PAT }}
           REFRESH_PUBLIC_KEY: ${{ secrets.REFRESH_PUBLIC_KEY }}
           REFRESH_SECRET: ${{ secrets.REFRESH_PUBLIC_KEY }}
         run: |

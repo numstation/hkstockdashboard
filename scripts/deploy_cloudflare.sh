@@ -289,7 +289,7 @@ if [[ -n "${GITHUB_PAT:-}" ]]; then
   echo "==> Sync Worker secret GITHUB_PAT (from env)"
   printf '%s' "$GITHUB_PAT" | ( cd "$CF" && $WRANGLER secret put GITHUB_PAT --config wrangler.toml )
 else
-  echo "::warning:: GITHUB_PAT not set — Scan only button will fail until repo secret GITHUB_PAT is added"
+  echo "::warning:: DASHBOARD_GITHUB_PAT not set — Scan only button will fail until repo secret DASHBOARD_GITHUB_PAT is added"
 fi
 
 if [[ -n "${REFRESH_SECRET:-}" ]]; then
@@ -300,5 +300,5 @@ fi
 echo "Done (${DEPLOY_MARKET}). Open:"
 echo "  HK: https://hkstockdashboard.chrislau.workers.dev/frontend/"
 echo "  US: https://hkstockdashboard.chrislau.workers.dev/frontend-us/"
-echo "On-demand Scan only: add GitHub repo secret GITHUB_PAT (see AUTO_UPDATE_SETUP.md)."
+echo "On-demand Scan only: add GitHub repo secret DASHBOARD_GITHUB_PAT (see AUTO_UPDATE_SETUP.md)."
 echo "Hard-refresh browser: Safari Develop→Empty Caches then reload; Chrome hold Shift+click Reload"

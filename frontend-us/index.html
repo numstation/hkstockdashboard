@@ -4745,7 +4745,7 @@ ${tail}`;
           if (!msg && res.status === 404) {
             msg = "掃描 API 未部署（請確認 Cloudflare Worker 已成功 deploy）";
           } else if (!msg && res.status === 502) {
-            msg = "Worker 未設定 GITHUB_PAT（見 AUTO_UPDATE_SETUP.md）";
+            msg = "Worker 未設定掃描 token（GitHub secret DASHBOARD_GITHUB_PAT + 重新 deploy）";
           } else if (!msg) {
             msg = res.statusText ? `${res.status} ${res.statusText}` : "觸發失敗";
           }
