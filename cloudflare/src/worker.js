@@ -77,8 +77,9 @@ function githubAuthError(status, text) {
   }
   if (status === 404) {
     return (
-      "GitHub token cannot access this private repo — use a classic PAT with repo + workflow scopes, " +
-      "save as DASHBOARD_GITHUB_PAT, then re-run Cloudflare auto update"
+      "GitHub 404 — token cannot see private repo numstation/hkstockdashboard. " +
+      "Create NEW classic token (ghp_…) at github.com/settings/tokens/new with BOTH repo + workflow checked. " +
+      "If you see numstation → click Authorize SSO. Update secret DASHBOARD_GITHUB_PAT, then Run Cloudflare auto update."
     );
   }
   return `GitHub API ${status}: ${text.slice(0, 180)}`;
@@ -183,11 +184,14 @@ function runBlocksNewTrigger(run, cooldown) {
 }
 
 async function dispatchWorkflow(env, market) {
-  const wf = workflowId(market);
-  const res = await githubFetch(env, `/actions/workflows/${wf}/dispatches`, {
+  const eventType = market === "us" ? "scan_us" : "scan_hk";
+  const res = await githubFetch(env, `/dispatches`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ref: "main" }),
+    body: JSON.stringify({
+      event_type: eventType,
+      client_payload: { market },
+    }),
   });
   if (res.status === 204) return { ok: true };
   const text = await res.text();

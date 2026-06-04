@@ -1,0 +1,70 @@
+# Triggered from dashboard "Scan only" via repository_dispatch (needs classic PAT repo scope).
+name: On-demand scan
+
+on:
+  repository_dispatch:
+    types: [scan_hk, scan_us]
+  workflow_dispatch:
+    inputs:
+      market:
+        description: hk or us
+        required: false
+        default: hk
+        type: choice
+        options:
+          - hk
+          - us
+
+concurrency:
+  group: cloudflare-dashboard-deploy
+  cancel-in-progress: false
+
+jobs:
+  scan-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SCAN_VALIDATE_MIN_OK: "40"
+      DEPLOY_MARKET: ${{ github.event.client_payload.market || github.event.inputs.market || 'hk' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-scan.txt
+
+      - name: Setup Node (Wrangler)
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r requirements-scan.txt
+
+      - name: Scan HK universe → JSON
+        if: env.DEPLOY_MARKET == 'hk'
+        run: bash scripts/ci_refresh.sh
+
+      - name: Scan US universe → JSON
+        if: env.DEPLOY_MARKET == 'us'
+        run: bash scripts/ci_refresh_us.sh
+
+      - name: Validate scan quality
+        run: python3 scripts/validate_scan_json.py
+
+      - name: Deploy to Cloudflare Workers
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          GITHUB_PAT: ${{ secrets.DASHBOARD_GITHUB_PAT }}
+          REFRESH_PUBLIC_KEY: ${{ secrets.REFRESH_PUBLIC_KEY }}
+          REFRESH_SECRET: ${{ secrets.REFRESH_PUBLIC_KEY }}
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
+            echo "::error::Missing CLOUDFLARE_API_TOKEN"
+            exit 1
+          fi
+          DEPLOY_MARKET=${DEPLOY_MARKET} bash scripts/deploy_cloudflare.sh
