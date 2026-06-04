@@ -236,24 +236,25 @@ The dashboard can trigger a **new scan + deploy** from the browser (not just rel
 
 ### One-time setup
 
-1. **Create a GitHub fine-grained PAT** (repo `numstation/hkstockdashboard`):
-   - Permissions: **Actions → Read and write**, **Contents → Read**, **Metadata → Read**
-   - Copy the token (starts with `github_pat_…`)
+This repo is **private**. Fine-grained tokens often return **404 Not Found** until the org approves them. **Use a classic PAT** (simplest):
 
-2. **Add GitHub repo secret** (CI syncs this to the Worker on every deploy):
-   - Repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
-   - Name: **`DASHBOARD_GITHUB_PAT`** (GitHub forbids names starting with `GITHUB_`)
-   - Value: paste the full `github_pat_…` string from step 1
+1. **Create a classic Personal Access Token**
+   - https://github.com/settings/tokens → **Generate new token (classic)**
+   - Note: `dashboard-scan`
+   - Scopes: tick **`repo`** and **`workflow`**
+   - Generate → copy the token (starts with `ghp_…`)
 
-3. **Run deploy once** (Actions → **Cloudflare auto update** → Run workflow).  
-   The deploy script runs `wrangler secret put GITHUB_PAT` using the same `CLOUDFLARE_API_TOKEN` as normal deploys — no local `wrangler` login needed.
+2. **Add GitHub repo secret**
+   - https://github.com/numstation/hkstockdashboard/settings/secrets/actions
+   - **New repository secret**
+   - Name: **`DASHBOARD_GITHUB_PAT`**
+   - Value: paste the full `ghp_…` string
 
-4. **Optional** — `REFRESH_PUBLIC_KEY` (same random string on Worker as `REFRESH_SECRET`; blocks casual API abuse):
-   - GitHub secret **`REFRESH_PUBLIC_KEY`**
-   - CI copies it to Worker `REFRESH_SECRET` and injects into dashboard HTML
+3. **Run deploy** — Actions → **Cloudflare auto update** → **Run workflow** (~5 min)
 
-**Alternative (manual):** Cloudflare dashboard → **Workers** → **hkstockdashboard** → **Settings** → **Variables and Secrets** → add encrypted **`GITHUB_PAT`**.  
-Local `npx wrangler secret put` only works if you are logged into the **same Cloudflare account** that hosts the live Worker.
+4. Hard-refresh dashboard → **Scan only**
+
+**Fine-grained alternative** (only if classic is not allowed): Actions R/W + Contents Read on `hkstockdashboard`, and **numstation org must approve** the token under Organization → Settings → Personal access tokens.
 
 ### Behaviour
 

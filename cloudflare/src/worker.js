@@ -1,17 +1,12 @@
 /**
  * Static dashboard + on-demand scan trigger via GitHub Actions workflow_dispatch.
  *
- * Secrets (wrangler secret put):
- *   GITHUB_PAT — fine-grained token with Actions: Read and write on this repo
- * Optional:
- *   REFRESH_SECRET — if set, client must send matching X-Refresh-Key header
- *
- * Vars (wrangler.toml [vars]):
- *   GITHUB_REPO, REFRESH_COOLDOWN_MIN
+ * Worker secret GITHUB_PAT (synced from GitHub repo secret DASHBOARD_GITHUB_PAT):
+ *   Classic PAT recommended for private repo — scopes: repo + workflow
+ *   Fine-grained also works if org approved + Actions (R/W) + Contents (Read)
  */
 
 const WORKFLOWS = {
-  // Numeric IDs are stable; filename alone can 404 with fine-grained PATs.
   hk: "280047321",
   us: "283958997",
 };
@@ -21,6 +16,7 @@ const WORKFLOW_LABELS = {
 };
 
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8" };
+const GITHUB_API = "2022-11-28";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
@@ -68,6 +64,26 @@ function authOk(request, env) {
   return key === secret;
 }
 
+function tokenMissing(env) {
+  return !String(env.GITHUB_PAT || "").trim();
+}
+
+function githubAuthError(status, text) {
+  if (status === 401) {
+    return "GitHub token rejected — update DASHBOARD_GITHUB_PAT (classic PAT: repo + workflow scopes)";
+  }
+  if (status === 403) {
+    return "GitHub token forbidden — for private repo use classic PAT (repo + workflow) or get org to approve fine-grained token";
+  }
+  if (status === 404) {
+    return (
+      "GitHub token cannot access this private repo — use a classic PAT with repo + workflow scopes, " +
+      "save as DASHBOARD_GITHUB_PAT, then re-run Cloudflare auto update"
+    );
+  }
+  return `GitHub API ${status}: ${text.slice(0, 180)}`;
+}
+
 async function githubFetch(env, path, init = {}) {
   const token = String(env.GITHUB_PAT || "").trim();
   if (!token) {
@@ -75,39 +91,52 @@ async function githubFetch(env, path, init = {}) {
   }
   const repo = String(env.GITHUB_REPO || "numstation/hkstockdashboard").trim();
   const url = `https://api.github.com/repos/${repo}${path}`;
-  const res = await fetch(url, {
+  return fetch(url, {
     ...init,
     headers: {
       Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": GITHUB_API,
       "User-Agent": "hkstockdashboard-refresh/1.0",
       Authorization: `Bearer ${token}`,
       ...(init.headers || {}),
     },
   });
-  return res;
+}
+
+async function cacheCooldownHit(env, market, cooldown) {
+  const cache = caches.default;
+  const key = new Request(`https://scan-cooldown.local/${market}`, { method: "GET" });
+  const hit = await cache.match(key);
+  if (!hit) return null;
+  const ts = parseInt(await hit.text(), 10);
+  if (!Number.isFinite(ts)) return null;
+  const age = Date.now() - ts;
+  if (age < cooldown) {
+    return Math.ceil((cooldown - age) / 60000);
+  }
+  return null;
+}
+
+async function markCooldown(env, market) {
+  const cache = caches.default;
+  const key = new Request(`https://scan-cooldown.local/${market}`, { method: "GET" });
+  await cache.put(
+    key,
+    new Response(String(Date.now()), {
+      headers: { "Cache-Control": `max-age=${Math.ceil(cooldownMs(env) / 1000)}` },
+    }),
+  );
 }
 
 async function latestWorkflowRun(env, market) {
   const wf = workflowId(market);
-  const res = await githubFetch(
-    env,
-    `/actions/workflows/${wf}/runs?per_page=1`,
-  );
+  const res = await githubFetch(env, `/actions/workflows/${wf}/runs?per_page=1`);
   if (!res.ok) {
-    const text = await res.text();
-    if (res.status === 401) {
-      throw new Error("GitHub token rejected — regenerate DASHBOARD_GITHUB_PAT");
-    }
-    if (res.status === 404) {
-      throw new Error(
-        "GitHub token cannot access Actions on this repo — add Contents: Read + Actions: Read and write on DASHBOARD_GITHUB_PAT",
-      );
-    }
-    throw new Error(`GitHub runs API ${res.status}: ${text.slice(0, 200)}`);
+    return { run: null, apiError: githubAuthError(res.status, await res.text()) };
   }
   const data = await res.json();
   const run = Array.isArray(data.workflow_runs) ? data.workflow_runs[0] : null;
-  return run || null;
+  return { run, apiError: null };
 }
 
 function runSummary(run) {
@@ -162,7 +191,7 @@ async function dispatchWorkflow(env, market) {
   });
   if (res.status === 204) return { ok: true };
   const text = await res.text();
-  throw new Error(`GitHub dispatch ${res.status}: ${text.slice(0, 300)}`);
+  throw new Error(githubAuthError(res.status, text));
 }
 
 async function handleApi(request, env, url) {
@@ -170,17 +199,25 @@ async function handleApi(request, env, url) {
     return new Response(null, { status: 204, headers: cors(request) });
   }
 
+  if (tokenMissing(env)) {
+    return withCors(
+      json({ ok: false, error: "GITHUB_PAT not configured on Worker" }, 502),
+      request,
+    );
+  }
+
   const market = parseMarket(url);
 
   if (url.pathname === "/api/refresh/status" && request.method === "GET") {
     try {
-      const run = await latestWorkflowRun(env, market);
+      const { run, apiError } = await latestWorkflowRun(env, market);
       return withCors(
         json({
-          ok: true,
+          ok: !apiError,
           market,
           workflow: workflowLabel(market),
           run: runSummary(run),
+          warning: apiError,
         }),
         request,
       );
@@ -209,31 +246,50 @@ async function handleApi(request, env, url) {
         /* empty body ok */
       }
 
-      const run = await latestWorkflowRun(env, bodyMarket);
-      const gate = runBlocksNewTrigger(run, cooldownMs(env));
-      if (gate.blocked) {
+      const cooldown = cooldownMs(env);
+      const cacheWait = await cacheCooldownHit(env, bodyMarket, cooldown);
+      if (cacheWait != null) {
         return withCors(
-          json(
-            {
-              ok: false,
-              error: gate.error,
-              message: gate.message,
-              run: gate.run,
-              retry_after_min: gate.retry_after_min,
-            },
-            gate.code || 429,
-          ),
+          json({
+            ok: false,
+            error: "cooldown",
+            message: `請 ${cacheWait} 分鐘後再觸發（避免 Yahoo 限流）。`,
+            retry_after_min: cacheWait,
+          }),
+          429,
           request,
         );
       }
 
+      const { run, apiError } = await latestWorkflowRun(env, bodyMarket);
+      if (!apiError && run) {
+        const gate = runBlocksNewTrigger(run, cooldown);
+        if (gate.blocked) {
+          return withCors(
+            json(
+              {
+                ok: false,
+                error: gate.error,
+                message: gate.message,
+                run: gate.run,
+                retry_after_min: gate.retry_after_min,
+              },
+              gate.code || 429,
+            ),
+            request,
+          );
+        }
+      }
+
       await dispatchWorkflow(env, bodyMarket);
+      await markCooldown(env, bodyMarket);
       return withCors(
         json({
           ok: true,
           market: bodyMarket,
           message: "掃描已排隊，約 5 分鐘後按 Reload 或等待自動更新。",
           previous_run: runSummary(run),
+          warning: apiError || undefined,
         }),
         request,
       );
