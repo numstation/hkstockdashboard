@@ -10,6 +10,11 @@ const WORKFLOWS = {
   hk: "280047321",
   us: "283958997",
 };
+const ON_DEMAND_WORKFLOW = "289018494";
+const ON_DEMAND_RUN_NAMES = {
+  hk: "scan_hk",
+  us: "scan_us",
+};
 const WORKFLOW_LABELS = {
   hk: "cloudflare-auto.yml",
   us: "cloudflare-auto-us.yml",
@@ -130,14 +135,44 @@ async function markCooldown(env, market) {
 }
 
 async function latestWorkflowRun(env, market) {
-  const wf = workflowId(market);
-  const res = await githubFetch(env, `/actions/workflows/${wf}/runs?per_page=1`);
-  if (!res.ok) {
-    return { run: null, apiError: githubAuthError(res.status, await res.text()) };
+  const scheduledId = workflowId(market);
+  const onDemandName = ON_DEMAND_RUN_NAMES[market] || ON_DEMAND_RUN_NAMES.hk;
+
+  const [scheduledRes, onDemandRes] = await Promise.all([
+    githubFetch(env, `/actions/workflows/${scheduledId}/runs?per_page=1`),
+    githubFetch(env, `/actions/workflows/${ON_DEMAND_WORKFLOW}/runs?per_page=15`),
+  ]);
+
+  if (!scheduledRes.ok && !onDemandRes.ok) {
+    const errRes = scheduledRes.ok ? onDemandRes : scheduledRes;
+    return { run: null, apiError: githubAuthError(errRes.status, await errRes.text()) };
   }
-  const data = await res.json();
-  const run = Array.isArray(data.workflow_runs) ? data.workflow_runs[0] : null;
-  return { run, apiError: null };
+
+  const candidates = [];
+
+  if (scheduledRes.ok) {
+    const scheduledData = await scheduledRes.json();
+    const scheduledRun = Array.isArray(scheduledData.workflow_runs)
+      ? scheduledData.workflow_runs[0]
+      : null;
+    if (scheduledRun) candidates.push(scheduledRun);
+  }
+
+  if (onDemandRes.ok) {
+    const onDemandData = await onDemandRes.json();
+    for (const run of onDemandData.workflow_runs || []) {
+      const name = String(run.name || "").toLowerCase();
+      const title = String(run.display_title || "").toLowerCase();
+      if (name === onDemandName || title === onDemandName) {
+        candidates.push(run);
+      }
+    }
+  }
+
+  candidates.sort(
+    (a, b) => Date.parse(b.created_at || "") - Date.parse(a.created_at || ""),
+  );
+  return { run: candidates[0] || null, apiError: null };
 }
 
 function runSummary(run) {

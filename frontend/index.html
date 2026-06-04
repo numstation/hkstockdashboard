@@ -4888,9 +4888,17 @@ ${tail}`;
 
         let data = null;
         try {
-          const url = dailyScanFilenameByModel(activeScoreModel);
-          const res = await fetch(`${url}?ts=${Date.now()}`, { cache: "no-store" });
-          if (res.ok) data = await res.json();
+          const urls = jsonUrlCandidates(dailyScanFilenameByModel(activeScoreModel));
+          for (const url of urls) {
+            const sep = url.includes("?") ? "&" : "?";
+            const res = await fetch(url + sep + "ts=" + Date.now(), { cache: "no-store" });
+            if (!res.ok) continue;
+            const text = await res.text();
+            const trimmed = text.trim();
+            if (!trimmed || trimmed.startsWith("<")) continue;
+            data = JSON.parse(trimmed);
+            break;
+          }
         } catch (_) {
           /* retry */
         }

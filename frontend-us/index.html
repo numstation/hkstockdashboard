@@ -4696,9 +4696,14 @@ ${tail}`;
 
         let data = null;
         try {
-          const url = dailyScanFilenameByModel(activeScoreModel);
-          const res = await fetch(`${url}?ts=${Date.now()}`, { cache: "no-store" });
-          if (res.ok) data = await res.json();
+          const urls = jsonUrlCandidates(dailyScanFilenameByModel(activeScoreModel));
+          for (const url of urls) {
+            const out = await fetchJsonAtUrl(url);
+            if (out?.data) {
+              data = out.data;
+              break;
+            }
+          }
         } catch (_) {
           /* retry */
         }
