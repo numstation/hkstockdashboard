@@ -196,10 +196,11 @@ If step 4 fails with `Missing CLOUDFLARE_API_TOKEN`, repeat step 2.
 
 | When | What happens |
 |------|----------------|
-| **Mon–Fri** every **30 min** (HK ~09:00–16:30) | **HK** scan → `daily_scan.json` → deploy (`cloudflare-auto.yml`) |
+| **Mon–Fri** every **30 min** (HK ~09:00–**17:30**) | **HK** scan → `daily_scan.json` → deploy (`cloudflare-auto.yml`) |
 | **Mon–Fri** every **30 min** (HKT **21:40–04:40**) | **US** scan → `daily_scan_us.json` → deploy (`cloudflare-auto-us.yml`) |
 | **You push** code | Dashboard workflow may also run (HK scan + deploy if token set) |
 | **Manual** | Actions → **Cloudflare auto update** or **Cloudflare auto update (US)** → Run workflow |
+| **Dashboard button** | **Scan now (~5m)** → `POST /api/refresh` → same GitHub workflow (see below) |
 
 US and HK use **different GitHub cron windows** because US cash session is evening–early-morning in Hong Kong (not the same as HKEX 09:00–16:30). US runs start **21:40 HKT** (10 minutes after US open ≈ 21:30 HKT in EDT) and repeat **every 30 minutes** through **04:40 HKT** (after US cash close). HK and US deploys use separate `DEPLOY_MARKET` scopes so neither overwrites the other’s JSON.
 
@@ -218,6 +219,58 @@ You do **not** need to run Terminal commands when this works.
 | No runs on schedule | Repo default branch must be `main` or `master`; cron is UTC |
 | US page stale after ~4:30pm HKT | Normal until evening US cron; HK deploy no longer clears US JSON |
 | HK page goes stale after US deploy | Fixed: US workflow sets `DEPLOY_MARKET=us` and pulls HK JSON from live |
+| **Scan now (~5m)** → `GITHUB_PAT not configured` | One-time Worker secret setup (see **On-demand refresh** below) |
+| **Scan now** → cooldown / already running | Wait 10 min or until the in-progress Actions run finishes |
+
+---
+
+## On-demand refresh (**Scan now ~5m**)
+
+The dashboard can trigger a **new scan + deploy** from the browser (not just reload cached JSON).
+
+| Button | What it does |
+|--------|----------------|
+| **Reload Data** | Fetch latest JSON already on Cloudflare (instant) |
+| **Scan now (~5m)** | Queue GitHub Actions scan → deploy → auto-reload when `last_updated` is newer |
+
+### One-time setup (after pushing Worker code)
+
+1. **GitHub fine-grained PAT** (repo `numstation/hkstockdashboard`):
+   - Permissions: **Actions → Read and write**, **Metadata → Read**
+   - Copy the token
+
+2. **Cloudflare Worker secrets** (from repo root):
+
+```bash
+cd cloudflare
+npx wrangler secret put GITHUB_PAT          # paste PAT
+# Optional anti-abuse (recommended):
+npx wrangler secret put REFRESH_SECRET      # pick a long random string
+```
+
+3. **If you set `REFRESH_SECRET`**, add the **same string** as GitHub repo secret:
+
+   - Settings → Secrets → **`REFRESH_PUBLIC_KEY`**
+   - CI injects it into the dashboard HTML on deploy
+
+4. **Deploy once** (push to `main` or run **Cloudflare auto update** workflow) so the Worker + button go live.
+
+### Behaviour
+
+- **Cooldown:** 10 minutes between triggers (Worker var `REFRESH_COOLDOWN_MIN`)
+- **Blocks** if a scan is already `queued` / `in_progress`
+- HK button → `cloudflare-auto.yml`; US button → `cloudflare-auto-us.yml`
+- Polls up to ~8 minutes, then reloads tables when deploy completes
+
+### Test
+
+```bash
+curl -s https://hkstockdashboard.chrislau.workers.dev/api/refresh/status?market=hk | python3 -m json.tool
+# POST (add -H "X-Refresh-Key: YOUR_SECRET" if REFRESH_SECRET is set):
+curl -s -X POST https://hkstockdashboard.chrislau.workers.dev/api/refresh \
+  -H "Content-Type: application/json" \
+  -d '{"market":"hk"}'
+```
 
 ---
 

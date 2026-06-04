@@ -44,6 +44,14 @@
       font-size: 13px; font-weight: 500; box-shadow: var(--shadow-sm);
     }
     .btn:hover { border-color: #d6d3d1; background: #fafaf9; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-scan {
+      border-color: #c7d2fe; background: #eef2ff; color: #3730a3;
+    }
+    .btn-scan:hover:not(:disabled) { background: #e0e7ff; border-color: #a5b4fc; }
+    .scan-refresh-status {
+      font-size: 11px; color: var(--muted); max-width: 11rem; line-height: 1.35; text-align: right;
+    }
     .cards { margin-top: 20px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
     .card {
       background: var(--card);
@@ -1116,6 +1124,8 @@
         <button id="modeBuyStockBtn" class="mode-btn" type="button">Buy Stock 極限爆發</button>
         <button id="modeBuyPutBtn" class="mode-btn" type="button">Buy Put 恐慌破底</button>
         <button id="reloadBtn" class="btn">Reload Data</button>
+        <button id="scanRefreshBtn" class="btn btn-scan" type="button" title="觸發 GitHub 掃描並部署（約 5 分鐘）">Scan now (~5m)</button>
+        <span id="scanRefreshStatus" class="scan-refresh-status" aria-live="polite"></span>
       </div>
     </div>
 
@@ -1367,6 +1377,8 @@
   <script>
     /** HK dashboard — US-only behavior lives in `frontend-us/index.html`. */
     const DASHBOARD_MARKET = "hk";
+    const DASHBOARD_REFRESH_KEY = "__DASHBOARD_REFRESH_KEY__";
+    let lastScanUpdatedIso = "";
     let rows = [];
     let sortKey = "tech_score";
     let sortAsc = false;
@@ -4842,6 +4854,99 @@ ${tail}`;
       renderMacroLineCharts(data?.chart_series || null);
     }
 
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function parseScanUpdatedMs(iso) {
+      if (!iso) return NaN;
+      const t = Date.parse(String(iso));
+      return Number.isFinite(t) ? t : NaN;
+    }
+
+    async function fetchScanRefreshStatus() {
+      try {
+        const res = await fetch(`/api/refresh/status?market=${DASHBOARD_MARKET}`, { cache: "no-store" });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function pollForNewScanDeploy(baselineIso, { maxMs = 480000, intervalMs = 10000 } = {}) {
+      const baselineMs = parseScanUpdatedMs(baselineIso);
+      const deadline = Date.now() + maxMs;
+      while (Date.now() < deadline) {
+        await sleep(intervalMs);
+        const st = await fetchScanRefreshStatus();
+        const run = st?.run;
+        const runDone =
+          run &&
+          String(run.status || "").toLowerCase() === "completed" &&
+          String(run.conclusion || "").toLowerCase() === "success";
+
+        let data = null;
+        try {
+          const url = dailyScanFilenameByModel(activeScoreModel);
+          const res = await fetch(`${url}?ts=${Date.now()}`, { cache: "no-store" });
+          if (res.ok) data = await res.json();
+        } catch (_) {
+          /* retry */
+        }
+        const lu = data?.last_updated ? String(data.last_updated) : "";
+        const luMs = parseScanUpdatedMs(lu);
+        const newer =
+          lu &&
+          ((Number.isFinite(baselineMs) && luMs > baselineMs) ||
+            (!Number.isFinite(baselineMs) && lu !== baselineIso));
+        if (newer && (runDone || luMs > Date.now() - 900000)) {
+          return lu;
+        }
+      }
+      return null;
+    }
+
+    async function triggerScanRefresh() {
+      const btn = document.getElementById("scanRefreshBtn");
+      const statusEl = document.getElementById("scanRefreshStatus");
+      if (!btn || btn.disabled) return;
+
+      const baseline = lastScanUpdatedIso || "";
+      btn.disabled = true;
+      if (statusEl) statusEl.textContent = "排隊中…";
+
+      try {
+        const headers = { "Content-Type": "application/json" };
+        if (DASHBOARD_REFRESH_KEY) headers["X-Refresh-Key"] = DASHBOARD_REFRESH_KEY;
+        const res = await fetch("/api/refresh", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ market: DASHBOARD_MARKET }),
+          cache: "no-store",
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = body.message || body.error || res.statusText || "觸發失敗";
+          throw new Error(msg);
+        }
+        if (statusEl) statusEl.textContent = "掃描中（約 5 分鐘）…";
+        const updated = await pollForNewScanDeploy(baseline);
+        if (updated) {
+          await loadData();
+          if (statusEl) statusEl.textContent = "已更新 " + fmtDateLocal(updated);
+        } else {
+          if (statusEl) statusEl.textContent = "掃描可能仍在進行，請稍後 Reload";
+        }
+      } catch (err) {
+        if (statusEl) {
+          statusEl.textContent = err instanceof Error ? err.message : String(err);
+        }
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
     async function loadData() {
       try {
       await loadHkStockNames();
@@ -4907,6 +5012,7 @@ ${tail}`;
         document.getElementById("schemaVersion").textContent = data.schema_version ?? "-";
         const lastUpEl = document.getElementById("lastUpdated");
         lastUpEl.textContent = fmtDateLocal(data.last_updated);
+        if (data.last_updated) lastScanUpdatedIso = String(data.last_updated);
         lastScanTradingDay = String(data.scan?.score_today_date || "").slice(0, 10);
         if (lastScanTradingDay.length !== 10 && data.last_updated) {
           lastScanTradingDay = String(data.last_updated).slice(0, 10);
@@ -4975,6 +5081,7 @@ ${tail}`;
     }
 
     document.getElementById("reloadBtn").addEventListener("click", loadData);
+    document.getElementById("scanRefreshBtn")?.addEventListener("click", triggerScanRefresh);
     const modeSellPutBtn = document.getElementById("modeSellPutBtn");
     const modeBuyStockBtn = document.getElementById("modeBuyStockBtn");
     if (modeSellPutBtn) {
