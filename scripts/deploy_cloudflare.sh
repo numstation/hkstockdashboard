@@ -279,14 +279,26 @@ else
 fi
 
 echo "==> Deploy to Cloudflare (worker name: hkstockdashboard)"
-if [[ -x "$CF/node_modules/.bin/wrangler" ]]; then
-  "$CF/node_modules/.bin/wrangler" deploy --config "$CF/wrangler.toml"
+WRANGLER="$CF/node_modules/.bin/wrangler"
+if [[ ! -x "$WRANGLER" ]]; then
+  WRANGLER="npx wrangler"
+fi
+( cd "$CF" && $WRANGLER deploy --config wrangler.toml )
+
+if [[ -n "${GITHUB_PAT:-}" ]]; then
+  echo "==> Sync Worker secret GITHUB_PAT (from env)"
+  printf '%s' "$GITHUB_PAT" | ( cd "$CF" && $WRANGLER secret put GITHUB_PAT --config wrangler.toml )
 else
-  ( cd "$CF" && npx wrangler deploy --config wrangler.toml )
+  echo "::warning:: GITHUB_PAT not set — Scan only button will fail until repo secret GITHUB_PAT is added"
+fi
+
+if [[ -n "${REFRESH_SECRET:-}" ]]; then
+  echo "==> Sync Worker secret REFRESH_SECRET"
+  printf '%s' "$REFRESH_SECRET" | ( cd "$CF" && $WRANGLER secret put REFRESH_SECRET --config wrangler.toml )
 fi
 
 echo "Done (${DEPLOY_MARKET}). Open:"
 echo "  HK: https://hkstockdashboard.chrislau.workers.dev/frontend/"
 echo "  US: https://hkstockdashboard.chrislau.workers.dev/frontend-us/"
-echo "On-demand Scan now: set Worker secret GITHUB_PAT once (see AUTO_UPDATE_SETUP.md)."
+echo "On-demand Scan only: add GitHub repo secret GITHUB_PAT (see AUTO_UPDATE_SETUP.md)."
 echo "Hard-refresh browser: Safari Develop→Empty Caches then reload; Chrome hold Shift+click Reload"
