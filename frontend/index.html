@@ -1124,7 +1124,7 @@
         <button id="modeBuyStockBtn" class="mode-btn" type="button">Buy Stock 極限爆發</button>
         <button id="modeBuyPutBtn" class="mode-btn" type="button">Buy Put 恐慌破底</button>
         <button id="reloadBtn" class="btn">Reload Data</button>
-        <button id="scanRefreshBtn" class="btn btn-scan" type="button" title="觸發 GitHub 掃描並部署（約 5 分鐘）">Scan now (~5m)</button>
+        <button id="scanRefreshBtn" class="btn btn-scan" type="button" title="觸發 GitHub 掃描並部署（約 5 分鐘）">Scan only</button>
         <span id="scanRefreshStatus" class="scan-refresh-status" aria-live="polite"></span>
       </div>
     </div>
@@ -4925,9 +4925,22 @@ ${tail}`;
           body: JSON.stringify({ market: DASHBOARD_MARKET }),
           cache: "no-store",
         });
-        const body = await res.json().catch(() => ({}));
+        let body = {};
+        const raw = await res.text();
+        try {
+          body = raw ? JSON.parse(raw) : {};
+        } catch (_) {
+          body = {};
+        }
         if (!res.ok) {
-          const msg = body.message || body.error || res.statusText || "觸發失敗";
+          let msg = body.message || body.error || "";
+          if (!msg && res.status === 404) {
+            msg = "掃描 API 未部署（請確認 Cloudflare Worker 已成功 deploy）";
+          } else if (!msg && res.status === 502) {
+            msg = "Worker 未設定 GITHUB_PAT（見 AUTO_UPDATE_SETUP.md）";
+          } else if (!msg) {
+            msg = res.statusText ? `${res.status} ${res.statusText}` : "觸發失敗";
+          }
           throw new Error(msg);
         }
         if (statusEl) statusEl.textContent = "掃描中（約 5 分鐘）…";
