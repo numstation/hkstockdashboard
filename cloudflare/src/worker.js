@@ -254,13 +254,15 @@ async function handleApi(request, env, url) {
       const cacheWait = await cacheCooldownHit(env, bodyMarket, cooldown);
       if (cacheWait != null) {
         return withCors(
-          json({
-            ok: false,
-            error: "cooldown",
-            message: `請 ${cacheWait} 分鐘後再觸發（避免 Yahoo 限流）。`,
-            retry_after_min: cacheWait,
-          }),
-          429,
+          json(
+            {
+              ok: false,
+              error: "cooldown",
+              message: `請 ${cacheWait} 分鐘後再觸發（避免 Yahoo 限流）。`,
+              retry_after_min: cacheWait,
+            },
+            429,
+          ),
           request,
         );
       }
