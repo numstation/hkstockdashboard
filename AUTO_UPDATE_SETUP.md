@@ -237,7 +237,7 @@ The dashboard can trigger a **new scan + deploy** from the browser (not just rel
 ### One-time setup
 
 1. **Create a GitHub fine-grained PAT** (repo `numstation/hkstockdashboard`):
-   - Permissions: **Actions → Read and write**, **Metadata → Read**
+   - Permissions: **Actions → Read and write**, **Contents → Read**, **Metadata → Read**
    - Copy the token (starts with `github_pat_…`)
 
 2. **Add GitHub repo secret** (CI syncs this to the Worker on every deploy):

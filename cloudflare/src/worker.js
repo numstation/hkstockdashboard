@@ -11,6 +11,11 @@
  */
 
 const WORKFLOWS = {
+  // Numeric IDs are stable; filename alone can 404 with fine-grained PATs.
+  hk: "280047321",
+  us: "283958997",
+};
+const WORKFLOW_LABELS = {
   hk: "cloudflare-auto.yml",
   us: "cloudflare-auto-us.yml",
 };
@@ -43,8 +48,12 @@ function parseMarket(url) {
   return m === "us" ? "us" : "hk";
 }
 
-function workflowFile(market) {
+function workflowId(market) {
   return WORKFLOWS[market] || WORKFLOWS.hk;
+}
+
+function workflowLabel(market) {
+  return WORKFLOW_LABELS[market] || WORKFLOW_LABELS.hk;
 }
 
 function cooldownMs(env) {
@@ -79,13 +88,21 @@ async function githubFetch(env, path, init = {}) {
 }
 
 async function latestWorkflowRun(env, market) {
-  const wf = workflowFile(market);
+  const wf = workflowId(market);
   const res = await githubFetch(
     env,
-    `/actions/workflows/${encodeURIComponent(wf)}/runs?per_page=1`,
+    `/actions/workflows/${wf}/runs?per_page=1`,
   );
   if (!res.ok) {
     const text = await res.text();
+    if (res.status === 401) {
+      throw new Error("GitHub token rejected — regenerate DASHBOARD_GITHUB_PAT");
+    }
+    if (res.status === 404) {
+      throw new Error(
+        "GitHub token cannot access Actions on this repo — add Contents: Read + Actions: Read and write on DASHBOARD_GITHUB_PAT",
+      );
+    }
     throw new Error(`GitHub runs API ${res.status}: ${text.slice(0, 200)}`);
   }
   const data = await res.json();
@@ -137,8 +154,8 @@ function runBlocksNewTrigger(run, cooldown) {
 }
 
 async function dispatchWorkflow(env, market) {
-  const wf = workflowFile(market);
-  const res = await githubFetch(env, `/actions/workflows/${encodeURIComponent(wf)}/dispatches`, {
+  const wf = workflowId(market);
+  const res = await githubFetch(env, `/actions/workflows/${wf}/dispatches`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ref: "main" }),
@@ -162,7 +179,7 @@ async function handleApi(request, env, url) {
         json({
           ok: true,
           market,
-          workflow: workflowFile(market),
+          workflow: workflowLabel(market),
           run: runSummary(run),
         }),
         request,
