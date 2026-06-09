@@ -1472,6 +1472,21 @@
       return Number.isNaN(t) ? 0 : t;
     }
 
+    /** YYYY-MM-DD for live 入市推介 entry_date — use scan trading day, not localized lastUpdated text (9/6/2026 → Sep 6 bug). */
+    function scanTradingDayIso() {
+      let day = String(lastScanTradingDay || "").slice(0, 10);
+      if (day.length !== 10) {
+        const ds = document.getElementById("lastUpdated")?.dataset?.scanDay;
+        if (ds && String(ds).length >= 10) day = String(ds).slice(0, 10);
+      }
+      if (day.length !== 10 && lastScanUpdatedIso) {
+        const iso = String(lastScanUpdatedIso).trim();
+        if (/^\d{4}-\d{2}-\d{2}/.test(iso)) day = iso.slice(0, 10);
+      }
+      if (day.length !== 10) day = new Date().toISOString().slice(0, 10);
+      return day;
+    }
+
     function numOrNaN(v) {
       if (typeof v === "number" && Number.isFinite(v)) return v;
       const n = parseFloat(String(v).replace(/,/g, ""));
@@ -3873,13 +3888,7 @@ ${tail}`;
     }
 
     function liveTriggerEntriesFromRows(scanRows, model) {
-      const today = (document.getElementById("lastUpdated")?.textContent || "").trim();
-      let day = "";
-      if (today && today !== "-") {
-        const t = parseSortTime(today);
-        if (t) day = new Date(t).toISOString().slice(0, 10);
-      }
-      if (!day) day = new Date().toISOString().slice(0, 10);
+      const day = scanTradingDayIso();
       const out = [];
       for (const r of scanRows || []) {
         let action = null;
