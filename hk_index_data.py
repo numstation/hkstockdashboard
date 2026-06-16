@@ -112,7 +112,27 @@ def _load_archive_index_sets() -> tuple[set[str], set[str]]:
 
 _archive_hsi, _archive_hscei = _load_archive_index_sets()
 _HSI_SET = frozenset(_archive_hsi)
-_HSCEI_SET = frozenset(norm_hk_ticker(t) for t in HSCEI_TICKERS) | frozenset(_archive_hscei)
+_HSCEI_BUILTIN = frozenset(norm_hk_ticker(t) for t in HSCEI_TICKERS)
+_HSCEI_SET = _HSCEI_BUILTIN | frozenset(_archive_hscei)
+
+
+def _load_archive_raw_tags() -> dict[str, str]:
+    """Map normalized ticker → raw 3rd-column tag from hkstocklist_archive_693.csv."""
+    out: dict[str, str] = {}
+    if not _ARCHIVE_CSV.is_file():
+        return out
+    with _ARCHIVE_CSV.open(encoding="utf-8-sig", newline="") as f:
+        for row in csv.reader(f):
+            if len(row) < 3:
+                continue
+            sym = _code_cell_to_ticker(row[0])
+            if not sym:
+                continue
+            out[sym] = str(row[2]).strip().upper() or "N/A"
+    return out
+
+
+_ARCHIVE_RAW_TAGS = _load_archive_raw_tags()
 
 
 def hk_index_membership(ticker: str) -> str:
@@ -143,3 +163,17 @@ def membership_map_for_tickers(tickers: list[str]) -> dict[str, str]:
             continue
         out[key] = hk_index_membership(key)
     return out
+
+
+def membership_detail(ticker: str) -> dict[str, str | bool]:
+    sym = norm_hk_ticker(str(ticker).strip().upper())
+    in_hsi = sym in _HSI_SET
+    in_ce_builtin = sym in _HSCEI_BUILTIN
+    in_ce = sym in _HSCEI_SET
+    return {
+        "ticker": sym,
+        "archive_tag": _ARCHIVE_RAW_TAGS.get(sym, ""),
+        "hsi_from_archive": in_hsi,
+        "hscei_from_list": in_ce_builtin,
+        "label": hk_index_membership(sym),
+    }
