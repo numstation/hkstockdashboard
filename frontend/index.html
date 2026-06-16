@@ -2023,7 +2023,12 @@ ${tail}`;
           const sep = url.includes("?") ? "&" : "?";
           const res = await fetch(url + sep + "ts=" + Date.now(), { cache: "no-store" });
           if (!res.ok) continue;
-          return await res.json();
+          const text = await res.text();
+          const cleaned = text
+            .replace(/\bNaN\b/g, "null")
+            .replace(/\b-Infinity\b/g, "null")
+            .replace(/\bInfinity\b/g, "null");
+          return JSON.parse(cleaned);
         } catch {
           /* try next */
         }

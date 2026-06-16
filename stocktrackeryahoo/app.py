@@ -5,6 +5,7 @@ Flask web interface for the mean-reversion trading strategy
 
 from flask import Flask, render_template, request, jsonify
 import json
+import math
 import pandas as pd
 import re
 import ta
@@ -305,6 +306,29 @@ def _resolve_repo_json_path(filename: str) -> str:
         return filename
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     return os.path.join(repo_root, os.path.basename(filename))
+
+
+def _sanitize_for_json(obj):
+    """Replace NaN/Inf with None so browsers can JSON.parse exported files."""
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_for_json(v) for v in obj]
+    return obj
+
+
+def _macro_field_usable(v) -> bool:
+    if v is None:
+        return False
+    if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+        return False
+    if isinstance(v, str) and str(v).strip().upper() in ("", "N/A", "NAN", "NONE", "—"):
+        return False
+    return True
 
 
 def breadth_history_filename_for_scan(scan_filename: str) -> str:
@@ -1798,7 +1822,18 @@ def _merge_macro_payload(prev: dict, new: dict) -> dict:
         merged["advanced"] = prev_adv
     elif prev_adv and new_adv:
         adv_out = dict(prev_adv)
-        adv_out.update(new_adv)
+        for k, v in new_adv.items():
+            if not isinstance(v, dict):
+                adv_out[k] = v
+                continue
+            prev_row = adv_out.get(k) if isinstance(adv_out.get(k), dict) else {}
+            row_out = dict(prev_row)
+            for fk, fv in v.items():
+                if _macro_field_usable(fv):
+                    row_out[fk] = fv
+                elif fk in prev_row and _macro_field_usable(prev_row.get(fk)):
+                    row_out[fk] = prev_row[fk]
+            adv_out[k] = row_out
         merged["advanced"] = adv_out
 
     bm = merged.get("breadth_markets") if isinstance(merged.get("breadth_markets"), dict) else {}
@@ -2362,8 +2397,9 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
         if stale_cs:
             print("Macro export: chart_series fetch empty — merged previous series.")
     try:
+        payload = _sanitize_for_json(payload)
         with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=4)
+            json.dump(payload, f, ensure_ascii=False, indent=4, allow_nan=False)
         return True
     except Exception as e:
         print(f"Error exporting macro snapshot: {e}")

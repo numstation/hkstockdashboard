@@ -215,7 +215,26 @@ def fetch_advanced_macro_data() -> dict:
         if pair:
             macro_data["USD/HKD (美元/港幣)"] = {"current": pair[0], "change_pct": pair[1]}
 
-    return macro_data
+    return _sanitize_macro_dict(macro_data)
+
+
+def _sanitize_macro_dict(data: dict) -> dict:
+    """Drop NaN/Inf floats so macro_snapshot.json is valid in browsers."""
+    import math
+
+    out: dict = {}
+    for name, row in (data or {}).items():
+        if not isinstance(row, dict):
+            out[name] = row
+            continue
+        clean: dict = {}
+        for k, v in row.items():
+            if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+                continue
+            clean[k] = v
+        if clean:
+            out[name] = clean
+    return out
 
 
 def _single_stock_ma_flags(ticker: str) -> dict[str, Any] | None:
