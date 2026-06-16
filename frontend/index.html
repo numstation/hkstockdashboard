@@ -1181,7 +1181,7 @@
           <thead class="sticky-head">
             <tr>
               <th data-key="ticker">代號 · 名稱</th>
-              <th data-key="hs_index" title="HSI = Hang Seng Index constituent. HSCEI = Hang Seng China Enterprises Index. N/A = neither (non‑HK tickers also N/A).">HSI / HSCEI</th>
+              <th data-key="hs_index" title="BOTH = HSI and HSCEI constituent. HSI or HSCEI = one index only. N/A = neither.">HSI / HSCEI</th>
               <th data-key="tech_score_d2" title="Score 2（前 2 個交易日）">Score 2</th>
               <th data-key="tech_score_d1" title="Score 1（前 1 個交易日）">Score 1</th>
               <th data-key="tech_score" title="Score 0（今日）">Score 0</th>
@@ -1545,7 +1545,7 @@
       const rs20 = Number.isFinite(rs20v) ? rs20v.toFixed(2) : "N/A";
       const vwap = fmtNum(r.vwap ?? r.VWAP, 2);
       const preset = String(r.ai_strategy_comment ?? "").trim();
-      const hsIx = String(r.hs_index ?? r.HS_Index ?? "N/A").trim();
+      const hsIx = String(hsIndexForRow(r) ?? "N/A").trim();
       const scoreModel =
         activeScoreModel === "buy_stock" ? "buy_stock" : activeScoreModel === "buy_put" ? "buy_put" : "sell_put";
       const tailSellPut = `請以專業量化交易員角度，僅依技術面（量／趨勢／MACD 動能）簡評：下行風險、支撐與 VWAP 安全墊、是否適合「賣 Put／收租」部署；嚴禁順勢追突破、加碼追價等買方用語（繁體中文）。`;
@@ -1788,7 +1788,7 @@ ${tail}`;
           return String(row?.score_arc_label ?? "");
         }
         if (sortKey === "close") return numOrNaN(row?.close ?? row?.Close);
-        if (sortKey === "hs_index") return String(row?.hs_index ?? row?.HS_Index ?? "");
+        if (sortKey === "hs_index") return hsIndexForRow(row);
         if (sortKey === "rvol" || sortKey === "macd_hist" || sortKey === "adx" || sortKey === "rs_20d" || sortKey === "vwap" || sortKey === "mfi" || sortKey === "dmi_gap") {
           const map = {
             rvol: "RVOL",
@@ -1875,7 +1875,7 @@ ${tail}`;
         const rs20 = Number.isFinite(rs20v) ? rs20v.toFixed(2) : "N/A";
         const vwap = fmtNum(r.vwap ?? r.VWAP, 2);
         const bandCell = bandIconHtml(r.signal ?? r.Signal ?? "N/A");
-        const hsIx = escapeHtml(String(r.hs_index ?? r.HS_Index ?? "N/A").trim() || "N/A");
+        const hsIx = escapeHtml(hsIndexForRow(r));
         tr.innerHTML = `
           <td class="col-ticker">${tickerCell}</td>
           <td class="muted" style="font-size:12px;white-space:nowrap;" title="HSI / HSCEI vs built-in index lists">${hsIx}</td>
@@ -2049,12 +2049,39 @@ ${tail}`;
     }
 
     let _hkStockNames = null;
+    let _hkIndexMembership = null;
 
     async function loadHkStockNames() {
       if (_hkStockNames) return _hkStockNames;
       const data = await fetchJsonSafe("hk_stock_names.json");
       _hkStockNames = data && typeof data === "object" && !Array.isArray(data) ? data : {};
       return _hkStockNames;
+    }
+
+    async function loadHkIndexMembership() {
+      if (_hkIndexMembership) return _hkIndexMembership;
+      const data = await fetchJsonSafe("hk_index_membership.json");
+      const m = data?.membership;
+      _hkIndexMembership = m && typeof m === "object" && !Array.isArray(m) ? m : {};
+      return _hkIndexMembership;
+    }
+
+    function formatHsIndexDisplay(v) {
+      const s = String(v ?? "N/A").trim();
+      if (!s || s === "N/A") return "N/A";
+      if (s === "HSI+HSCEI" || s === "BOTH") return "BOTH";
+      return s;
+    }
+
+    function hsIndexForRow(r) {
+      const sym = String(r?.ticker ?? r?.Ticker ?? "").trim().toUpperCase();
+      const keys = sym ? hkTickerLookupKeys(sym) : [];
+      for (const k of keys) {
+        if (_hkIndexMembership && _hkIndexMembership[k]) {
+          return formatHsIndexDisplay(_hkIndexMembership[k]);
+        }
+      }
+      return formatHsIndexDisplay(r?.hs_index ?? r?.HS_Index ?? "N/A");
     }
 
     function formatTickerCode(sym) {
@@ -4980,6 +5007,7 @@ ${tail}`;
     async function loadData() {
       try {
       await loadHkStockNames();
+      await loadHkIndexMembership();
       let data = null;
       let lastStatus = "?";
       let rejectMismatch = false;

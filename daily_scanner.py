@@ -91,28 +91,11 @@ HKCEI_TICKERS = [
      "09999.HK"]
 ]
 
-_HSI_TICKER_SET = frozenset(HSI_TICKERS)
-_HKCEI_TICKER_SET = frozenset(HKCEI_TICKERS)
-
-
-def hk_index_membership(ticker: str) -> str:
-    """
-    Tag vs built-in HSI / HSCEI (Hang Seng China Enterprises) constituent lists (.HK only).
-    Returns HSI, HSCEI, HSI+HSCEI when in both, or N/A.
-    """
-    s = str(ticker).strip().upper()
-    if not s.endswith(".HK"):
+try:
+    from hk_index_data import hk_index_membership
+except ImportError:
+    def hk_index_membership(ticker: str) -> str:  # type: ignore[misc]
         return "N/A"
-    sym = _norm_code(s)
-    in_hsi = sym in _HSI_TICKER_SET
-    in_ce = sym in _HKCEI_TICKER_SET
-    if in_hsi and in_ce:
-        return "HSI+HSCEI"
-    if in_hsi:
-        return "HSI"
-    if in_ce:
-        return "HSCEI"
-    return "N/A"
 
 
 # Default: Tech list when no args
