@@ -52,8 +52,8 @@ def _ticker_sort_key(t: str) -> tuple[int, str]:
 _HSI_SET = frozenset(_load_index_csv(_HSI_CSV))
 _HSCEI_SET = frozenset(_load_index_csv(_HSCEI_CSV))
 
-HSI_TICKERS = tuple(sorted(_HSI_SET, key=_ticker_sort_key))
-HSCEI_TICKERS = tuple(sorted(_HSCEI_SET, key=_ticker_sort_key))
+HSI_TICKERS = sorted(_HSI_SET, key=_ticker_sort_key)
+HSCEI_TICKERS = sorted(_HSCEI_SET, key=_ticker_sort_key)
 HKCEI_TICKERS = HSCEI_TICKERS  # alias used by daily_scanner
 
 
