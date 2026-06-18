@@ -20,8 +20,18 @@ UA = "Mozilla/5.0 (compatible; backtest-dashboard-guard/1.0)"
 
 
 def _fetch(url_path: str) -> dict | None:
-    url = f"{BASE_URL}{url_path}"
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    import time
+
+    sep = "&" if "?" in url_path else "?"
+    url = f"{BASE_URL}{url_path}{sep}_={int(time.time())}"
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": UA,
+            "Cache-Control": "no-cache, no-store",
+            "Pragma": "no-cache",
+        },
+    )
     try:
         with urllib.request.urlopen(req, timeout=90) as resp:
             raw = resp.read().decode("utf-8")
@@ -84,6 +94,16 @@ def _parse_last_updated(payload: dict | None) -> datetime | None:
         return None
 
 
+def _scan_trading_day(payload: dict | None) -> str | None:
+    if not isinstance(payload, dict):
+        return None
+    scan = payload.get("scan")
+    if not isinstance(scan, dict):
+        return None
+    day = str(scan.get("score_today_date") or "")[:10]
+    return day if len(day) == 10 else None
+
+
 def _check_us_scan_regression() -> list[str]:
     live = _fetch("/frontend-us/data/daily_scan_us.json")
     local = _read(ROOT / "frontend-us" / "data" / "daily_scan_us.json")
@@ -91,14 +111,22 @@ def _check_us_scan_regression() -> list[str]:
         return []
     live_ts = _parse_last_updated(live)
     local_ts = _parse_last_updated(local)
-    if not live_ts or not local_ts:
-        return []
-    if local_ts + timedelta(minutes=2) < live_ts:
+    live_day = _scan_trading_day(live)
+    local_day = _scan_trading_day(local)
+    if live_ts and local_ts and local_ts + timedelta(minutes=2) < live_ts:
         return [
             "US daily_scan_us.json: would downgrade "
             f"(live {live.get('last_updated')} → bundle {local.get('last_updated')})"
         ]
-    print(f"[guard] US scan: OK — bundle {local.get('last_updated')} (live {live.get('last_updated')})")
+    if live_day and local_day and local_day < live_day:
+        return [
+            "US daily_scan_us.json: would downgrade trading day "
+            f"(live score_today_date={live_day} → bundle {local_day})"
+        ]
+    print(
+        f"[guard] US scan: OK — bundle {local.get('last_updated')} "
+        f"day={local_day} (live {live.get('last_updated')} day={live_day})"
+    )
     return []
 
 

@@ -2033,9 +2033,9 @@ def export_closed_transactions_to_json(
         if entry_price is None or current_price is None:
             continue
         holding_days = _to_number(sig.get("holding_days"))
-        if holding_days is None:
+        if holding_days is None or holding_days <= 0:
             holding_days = _trading_days_since(entry_date, today)
-        if holding_days <= 0:
+        if holding_days is None or holding_days <= 0:
             continue
         atr = _to_number(sig.get("atr"))
         if atr is None:
@@ -2437,10 +2437,9 @@ def calculate_indicators(df):
     atr_indicator = ta.volatility.AverageTrueRange(df['high'], df['low'], df['close'], window=14)
     df['atr'] = atr_indicator.average_true_range()
     
-    # Calculate ADX (period 14) using Futu's formula with DMI+ and DMI-
-    # Both moving average periods are 14 (N=14, M=14)
-    from adx_futu import calculate_adx_futu_ewm
-    adx_result = calculate_adx_futu_ewm(df, n=14, m=14)
+    # Calculate ADX (period 14) with DMI+ and DMI- (N=14, M=14)
+    from adx_ewm import calculate_adx_ewm
+    adx_result = calculate_adx_ewm(df, n=14, m=14)
     df['adx'] = adx_result['adx']
     df['dmi_plus'] = adx_result['pdi']  # DMI+ (PDI)
     df['dmi_minus'] = adx_result['mdi']  # DMI- (MDI)

@@ -54,11 +54,20 @@ _fetch_live_json() {
   local url_path="$1"
   local dst="$2"
   local tmp="${dst}.tmp"
+  local bust="${3:-$(date +%s)}"
+  local url="${BASE_URL}${url_path}"
+  if [[ "$url_path" == *"?"* ]]; then
+    url="${url}&_=${bust}"
+  else
+    url="${url}?_=${bust}"
+  fi
 
   rm -f "$tmp" || true
   if ! curl -fsSL --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 90 \
+    -H "Cache-Control: no-cache, no-store" \
+    -H "Pragma: no-cache" \
     --user-agent "Mozilla/5.0 (compatible; backtest-dashboard/1.0)" \
-    "${BASE_URL}${url_path}" > "$tmp"; then
+    "$url" > "$tmp"; then
     rm -f "$tmp" || true
     echo "::warning:: live fetch failed: ${url_path}"
     return 1
@@ -190,6 +199,7 @@ PY
 _merge_us_scan_file() {
   local name="$1"
   local data_dir="$2"
+  local live_only="${3:-0}"
   local live_tmp="${data_dir}/${name}.live.tmp"
   local repo_a="${ROOT}/${name}"
   local repo_b="${ROOT}/frontend-us/data/${name}"
@@ -197,7 +207,11 @@ _merge_us_scan_file() {
 
   rm -f "$live_tmp" || true
   if _fetch_live_json "/frontend-us/data/${name}" "$live_tmp"; then
-    if [[ -f "$repo_a" ]] && _is_valid_json "$repo_a"; then
+    if [[ -f "$dest" ]] && _is_valid_json "$dest"; then
+      python3 "$ROOT/scripts/pick_newer_json.py" "$dest" "$live_tmp" "$dest" || cp "$live_tmp" "$dest"
+    elif [[ "$live_only" == "1" ]]; then
+      mv "$live_tmp" "$dest"
+    elif [[ -f "$repo_a" ]] && _is_valid_json "$repo_a"; then
       python3 "$ROOT/scripts/pick_newer_json.py" "$dest" "$live_tmp" "$repo_a" || cp "$live_tmp" "$dest"
     elif [[ -f "$repo_b" ]] && _is_valid_json "$repo_b"; then
       python3 "$ROOT/scripts/pick_newer_json.py" "$dest" "$live_tmp" "$repo_b" || cp "$live_tmp" "$dest"
@@ -205,6 +219,8 @@ _merge_us_scan_file() {
       mv "$live_tmp" "$dest"
     fi
     rm -f "$live_tmp" || true
+  elif [[ "$live_only" == "1" ]]; then
+    echo "::warning:: US preserve: live fetch failed for ${name} — keeping bundle copy (not git stale)"
   elif [[ -f "$repo_a" ]] && _is_valid_json "$repo_a"; then
     cp "$repo_a" "$dest"
   elif [[ -f "$repo_b" ]] && _is_valid_json "$repo_b"; then
@@ -237,7 +253,7 @@ _prepare_us_data() {
       python3 "$ROOT/scripts/export_us_stock_names.py" || true
     fi
     for f in daily_scan_us.json daily_scan_us_sell_put.json daily_scan_us_buy_stock.json daily_scan_us_buy_put.json; do
-      _merge_us_scan_file "$f" "$data_dir"
+      _merge_us_scan_file "$f" "$data_dir" "1"
     done
     _pull_live_market_data "us" "$data_dir" "0"
     _ensure_us_data_files "$data_dir"

@@ -4009,14 +4009,9 @@ ${tail}`;
       }
       const enriched = enrichHistoryFromScan(base, rows);
       closedTransactions = await loadClosedTransactionsMerged();
-      if (Array.isArray(closedTransactions) && closedTransactions.length) {
-        const closedKeys = new Set(closedTransactions.map((c) => String(c?._key || "")).filter(Boolean));
-        historySignals = enriched.filter((s) => !closedKeys.has(positionKey(s)));
-      } else {
-        const exited = applyPortfolioExitEngine(enriched, rows, closedTransactions);
-        historySignals = exited.active;
-        closedTransactions = exited.closed;
-      }
+      const exited = applyPortfolioExitEngine(enriched, rows, closedTransactions);
+      historySignals = exited.active;
+      closedTransactions = exited.closed;
       if (!historySignals.length) {
         document.getElementById("historyTbody").innerHTML = "";
       }

@@ -234,42 +234,126 @@ The dashboard can trigger a **new scan + deploy** from the browser (not just rel
 | **Reload Data** | Fetch latest JSON already on Cloudflare (instant) |
 | **Scan only** | Queue GitHub Actions scan → deploy → auto-reload when `last_updated` is newer |
 
-### One-time setup (private repo)
+### One-time setup (private repo) — simple guide
 
-Your `DASHBOARD_GITHUB_PAT` must be a **classic** token (`ghp_…`), **not** fine-grained (`github_pat_…`).
+**Skip SSO** — if you don't see "Configure SSO" anywhere, ignore it. Most accounts don't need it.
 
-#### Step A — Create token
+You need a **classic** GitHub password-for-apps called a **token**. It must start with **`ghp_`** (not `github_pat_`).
 
-1. Open **https://github.com/settings/tokens/new** (classic, not fine-grained)
-2. Note: `dashboard-scan`
-3. Expiration: your choice (90 days is fine)
-4. Scopes — tick **both** boxes:
-   - ✅ **repo** (full control of private repositories)
-   - ✅ **workflow** (update GitHub Action workflows)
-5. **Generate token** → copy the string starting with **`ghp_`**
+---
 
-#### Step B — Authorize for numstation (if shown)
+#### Part 1 — Create the token (5 minutes)
 
-On the same tokens page, next to your new token, if you see **numstation** with a **Configure SSO** or **Enable SSO** button → click it → **Authorize**.
+1. Open this link in your browser:  
+   **https://github.com/settings/tokens/new**
 
-Without this, GitHub returns **404** for private org repos.
+2. You should see **"New personal access token (classic)"** at the top.  
+   If you see "Fine-grained" instead, click **"Personal access tokens"** → **"Tokens (classic)"** → **"Generate new token (classic)"**.
 
-#### Step C — Save to GitHub secret
+3. Fill in:
+   - **Note:** type `dashboard-scan`
+   - **Expiration:** pick 90 days (or No expiration if you prefer)
 
-1. **https://github.com/numstation/hkstockdashboard/settings/secrets/actions**
-2. Click **DASHBOARD_GITHUB_PAT** → **Update** (or New if missing)
-3. Paste the full **`ghp_…`** string → **Update secret**  
-   (The “Updated” time should change to **now** — if it still shows an old time, the save did not work.)
+4. Under **Select scopes**, tick **only these two**:
+   - ☑ **repo** — click the main **repo** checkbox (all sub-boxes under it tick automatically)
+   - ☑ **workflow**
 
-#### Step D — Deploy token to Cloudflare
+5. Scroll down → click green **Generate token**
 
-Actions → **Cloudflare auto update** → **Run workflow** → wait ~5 min
+6. GitHub shows a green box with a long code starting with **`ghp_`**.  
+   Click **Copy** (or select all and copy).  
+   **Save it in Notes app** — you won't see it again.
 
-#### Step E — Test
+---
 
-Hard-refresh dashboard → **Scan only** → should show「掃描已排隊」
+#### Part 2 — Save token in GitHub (repo secret)
 
-**Fine-grained tokens** (`github_pat_…`) usually fail on this private repo unless the org owner approves them under Organization → Settings → Personal access tokens.
+1. Open:
+   **https://github.com/numstation/hkstockdashboard/settings/secrets/actions**
+
+2. You should see a heading **Repository secrets** and a green button **New repository secret**.
+
+3. **If `DASHBOARD_GITHUB_PAT` is already in the list** (you already have this):
+   - Find the row **`DASHBOARD_GITHUB_PAT`**
+   - On the **right side of that row**, click the **pencil icon** ✏️ (GitHub does **not** show a button called "Update")
+   - You get a page titled **Update secret**
+   - Paste your new **`ghp_…`** into the **Value** box
+   - Click green **Update secret**
+
+   **Can't find the pencil?** Delete and recreate instead:
+   - Click the **trash** icon 🗑 on that row → confirm delete
+   - Click **New repository secret**
+   - Name: `DASHBOARD_GITHUB_PAT`
+   - Value: paste **`ghp_…`**
+   - Click **Add secret**
+
+4. **If `DASHBOARD_GITHUB_PAT` is NOT in the list:**
+   - Click **New repository secret**
+   - Name: `DASHBOARD_GITHUB_PAT`
+   - Value: paste **`ghp_…`**
+   - Click **Add secret**
+
+5. Back on the list, **`DASHBOARD_GITHUB_PAT`** should show **Last updated** = today (e.g. a few seconds ago).
+
+**Wrong page?** Make sure the URL ends with **`/settings/secrets/actions`** — not "Codespaces secrets" or "Dependabot secrets".
+
+---
+
+#### Part 3 — Copy token to Cloudflare (important — do this too)
+
+GitHub secret alone is not enough until deploy runs. This step puts the token directly on the live website server:
+
+1. Open: **https://dash.cloudflare.com** → log in
+
+2. Left menu → **Workers & Pages**
+
+3. Click **`hkstockdashboard`**
+
+4. Tab **Settings** → section **Variables and Secrets**
+
+5. Under **Secrets**, click **Add**
+
+6. **Name:** `GITHUB_PAT` (exactly — not DASHBOARD_GITHUB_PAT)
+
+7. **Value:** paste the **same** `ghp_…` code again
+
+8. **Save**
+
+---
+
+#### Part 4 — Run deploy (sync everything)
+
+1. Open:  
+   **https://github.com/numstation/hkstockdashboard/actions/workflows/cloudflare-auto.yml**
+
+2. Click **Run workflow** (right side) → **Run workflow**
+
+3. Wait until the row shows a **green tick** (~5 minutes)
+
+---
+
+#### Part 5 — Test Scan only
+
+1. Open your dashboard:  
+   **https://hkstockdashboard.chrislau.workers.dev/frontend/**
+
+2. Hard refresh: **Cmd + Shift + R**
+
+3. Click **Scan only**
+
+4. You should see **「掃描已排隊」** or **「掃描中（約 5 分鐘）…」** — not a red error.
+
+---
+
+#### Still broken?
+
+| Check | What to verify |
+|-------|----------------|
+| Token type | Must start with **`ghp_`**, not `github_pat_` |
+| Scopes | Both **repo** and **workflow** were ticked |
+| Cloudflare secret name | Must be **`GITHUB_PAT`** on Workers page |
+| GitHub secret name | Must be **`DASHBOARD_GITHUB_PAT`** |
+| Deploy | Green ✓ on **Cloudflare auto update** **after** you saved the token |
 
 ### Behaviour
 

@@ -1,0 +1,4 @@
+# Copy to cloudflare/.dev.vars for local `wrangler dev` (never commit .dev.vars)
+
+# GITHUB_PAT=
+# REFRESH_SECRET=

@@ -13,6 +13,7 @@ venv/
 logs/
 .hourly_refresh.pid
 scan_cron.log
+.gh-cache/
 
 # OS / IDE
 .DS_Store

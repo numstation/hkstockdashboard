@@ -7,7 +7,7 @@ The app has been converted to Streamlit and is ready for deployment on Streamlit
 ### Main Files:
 - **`streamlit_app.py`** - Main Streamlit application (this is what Streamlit Cloud will run)
 - **`requirements.txt`** - Python dependencies
-- **`adx_futu.py`** - ADX calculation module (required)
+- **`adx_ewm.py`** - ADX calculation module (required)
 
 ### Deployment Steps:
 
@@ -35,7 +35,7 @@ The app has been converted to Streamlit and is ready for deployment on Streamlit
 
 ### If You Get Errors:
 
-1. **Import errors**: Make sure `adx_futu.py` is in the root directory
+1. **Import errors**: Make sure `adx_ewm.py` is in the root directory
 2. **Missing dependencies**: Check `requirements.txt` includes all packages
 3. **File not found**: Ensure `streamlit_app.py` is in the repository root
 

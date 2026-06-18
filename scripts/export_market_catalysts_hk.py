@@ -19,6 +19,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 HKT = timezone(timedelta(hours=8))
+
+try:
+    import yfinance_bootstrap
+
+    yfinance_bootstrap.enable()
+except Exception:
+    pass
 HKEX_STOCK_LIST_URL = "https://www1.hkexnews.hk/ncms/script/eds/activestock_sehk_c.json"
 HKEX_SEARCH_URL = "https://www1.hkexnews.hk/search/titleSearchServlet.do"
 HKEX_BASE = "https://www1.hkexnews.hk"
@@ -455,7 +462,7 @@ def _earnings_items(
     *,
     cache_path: Path,
     now_hkt: datetime,
-    horizon_days: int = 14,
+    horizon_days: int = 60,
     refresh: bool = False,
     sleep_sec: float = 0.08,
 ) -> list[dict]:
@@ -464,7 +471,9 @@ def _earnings_items(
         try:
             cached = json.loads(cache_path.read_text(encoding="utf-8"))
             lu = cached.get("last_updated")
-            if lu:
+            by_cached = cached.get("by_ticker")
+            has_rows = isinstance(by_cached, dict) and len(by_cached) > 0
+            if lu and has_rows:
                 dt = datetime.fromisoformat(str(lu))
                 if dt.tzinfo is None:
                     dt = dt.replace(tzinfo=HKT)

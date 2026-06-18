@@ -3,7 +3,7 @@
 ==========================================================================
   9988.HK — Veteran Trend-Following Backtest Engine
 ==========================================================================
-  Data:    yfinance (primary) → Alpha Vantage (fallback)
+  Data:    yfinance (primary) → Alpha Vantage (optional fallback via ALPHA_VANTAGE_API_KEY)
   Logic:   Strict entry (5 conditions) + structural exit + stop loss +
            month-end forced close
 
@@ -47,7 +47,12 @@ except ImportError:
 # ===========================================================================
 # Configuration
 # ===========================================================================
-API_KEY = os.environ.get("ALPHA_VANTAGE_API_KEY", "HBG9BOEUEDF3U0YQ")
+def _alpha_vantage_api_key() -> Optional[str]:
+    key = os.environ.get("ALPHA_VANTAGE_API_KEY", "").strip()
+    return key or None
+
+
+API_KEY = _alpha_vantage_api_key()
 # Default ticker when none given on command line. Any symbol works: 9988.HK, 0700.HK, SPY, AAPL, etc.
 DEFAULT_SYMBOL = "9988.HK"
 
@@ -169,7 +174,7 @@ def fetch_data_requests(symbol: str, api_key: str) -> pd.DataFrame:
             time.sleep(15 * attempt)
         else:
             time.sleep(2)
-        print(f"  [{attempt}/3] GET {url[:80]}...")
+        print(f"  [{attempt}/3] GET Alpha Vantage TIME_SERIES_DAILY for {symbol}...")
         resp = req_lib.get(url, timeout=30)
         resp.raise_for_status()
         payload = resp.json()
@@ -192,19 +197,25 @@ def fetch_data_requests(symbol: str, api_key: str) -> pd.DataFrame:
     raise SystemExit("Failed after retries.")
 
 
-def fetch_data(symbol: str, api_key: str) -> pd.DataFrame:
+def fetch_data(symbol: str, api_key: Optional[str] = None) -> pd.DataFrame:
     if _HAS_YF:
         try:
             return fetch_data_yfinance(symbol, period="1y")
         except Exception as e:
             print(f"  yfinance failed: {e}")
+    key = (api_key or "").strip() or None
+    if not key:
+        raise SystemExit(
+            "No market data source available. Install yfinance (primary), "
+            "or set ALPHA_VANTAGE_API_KEY for Alpha Vantage fallback."
+        )
     if _HAS_AV_LIB:
         try:
             time.sleep(2)
-            return fetch_data_av_lib(symbol, api_key)
+            return fetch_data_av_lib(symbol, key)
         except Exception as e:
             print(f"  alpha_vantage failed: {e}")
-    return fetch_data_requests(symbol, api_key)
+    return fetch_data_requests(symbol, key)
 
 
 # ===========================================================================

@@ -15,6 +15,9 @@ python3 "$ROOT/scripts/ensure_recent_breadth.py" --market HK --days 10 --sleep 0
 python3 run_scan_export_json.py --sleep 0.15 --skip-macro
 python3 scripts/export_triggers_from_scan.py
 
+echo "==> Close stale 入市推介 (stop/take-profit rules)"
+python3 "$ROOT/scripts/close_stale_portfolio_entries.py" || echo "::warning:: close_stale_portfolio_entries failed"
+
 echo "Running macro_snapshot export (大佬三原色 / VIX·DXY·市寬)"
 if python3 run_scan_export_json.py --macro-only; then
   echo "macro_snapshot.json updated"

@@ -26,7 +26,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: dashboard-refresh
+  # Same group as cloudflare-auto.yml / cloudflare-auto-us.yml — one deploy at a time.
+  group: cloudflare-dashboard-deploy
   cancel-in-progress: false
 
 jobs:

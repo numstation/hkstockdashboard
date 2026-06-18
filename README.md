@@ -1,6 +1,6 @@
 # 9988.HK (Alibaba) Backtesting Engine
 
-Backtest a **trend-following** strategy on **9988.HK** (Alibaba HK) using Alpha Vantage daily data + `backtesting.py` framework.
+Backtest a **trend-following** strategy on **9988.HK** (Alibaba HK) using **yfinance** daily data (Alpha Vantage optional fallback).
 
 ## Setup
 
@@ -8,11 +8,11 @@ Backtest a **trend-following** strategy on **9988.HK** (Alibaba HK) using Alpha 
 pip install -r requirements.txt
 ```
 
-Set your Alpha Vantage API key:
+Optional — Alpha Vantage fallback when yfinance fails (free key at [alphavantage.co](https://www.alphavantage.co/support/#api-key)):
+
 ```bash
 export ALPHA_VANTAGE_API_KEY=your_key
 ```
-Or edit `API_KEY` in `backtest_options.py`.
 
 **pandas_ta** (optional): requires Python >= 3.12. If unavailable, built-in fallback indicators are used.
 
@@ -23,7 +23,7 @@ python backtest_options.py
 ```
 
 The script will:
-1. Fetch ~100 days of daily data for **9988.HK** from Alpha Vantage.
+1. Fetch ~1 year of daily data for **9988.HK** from yfinance (Alpha Vantage if configured and yfinance fails).
 2. Print `df.head()` and `df.tail()` to confirm data.
 3. Compute indicators: SMA20, RSI14, ADX/PDI/MDI, OBV, VWAP, RVOL.
 4. Run the backtest via `backtesting.py`.

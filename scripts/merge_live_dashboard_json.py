@@ -23,8 +23,18 @@ UA = "Mozilla/5.0 (compatible; backtest-dashboard-merge/1.0)"
 
 
 def _fetch(url_path: str) -> dict | list | None:
-    url = f"{BASE_URL}{url_path}"
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    import time
+
+    sep = "&" if "?" in url_path else "?"
+    url = f"{BASE_URL}{url_path}{sep}_={int(time.time())}"
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": UA,
+            "Cache-Control": "no-cache, no-store",
+            "Pragma": "no-cache",
+        },
+    )
     try:
         with urllib.request.urlopen(req, timeout=90) as resp:
             raw = resp.read().decode("utf-8")

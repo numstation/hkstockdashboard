@@ -45,9 +45,8 @@ def _write_review_csv(rows: list[tuple[str, str, str]], dest: Path) -> None:
                 "code",
                 "ticker",
                 "name",
-                "archive_tag",
-                "hsi_from_archive",
-                "hscei_from_list",
+                "in_hsi",
+                "in_hscei",
                 "label",
                 "correct_label",
             ]
@@ -59,59 +58,8 @@ def _write_review_csv(rows: list[tuple[str, str, str]], dest: Path) -> None:
                     code,
                     ticker,
                     name,
-                    d["archive_tag"] or "(not in archive)",
-                    "Y" if d["hsi_from_archive"] else "N",
-                    "Y" if d["hscei_from_list"] else "N",
-                    d["label"],
-                    "",  # user fills in if wrong
-                ]
-            )
-
-
-def _write_full_archive_csv(dest: Path) -> None:
-    """All 693 rows from hkstocklist_archive_693.csv with computed label."""
-    src = ROOT / "hkstocklist_archive_693.csv"
-    if not src.is_file():
-        return
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    with src.open(encoding="utf-8-sig", newline="") as fin, dest.open(
-        "w", encoding="utf-8-sig", newline=""
-    ) as fout:
-        r = csv.reader(fin)
-        w = csv.writer(fout)
-        w.writerow(
-            [
-                "code",
-                "name",
-                "archive_tag",
-                "ticker",
-                "hsi_from_archive",
-                "hscei_from_list",
-                "label",
-                "correct_label",
-            ]
-        )
-        for row in r:
-            if len(row) < 3:
-                continue
-            code = str(row[0]).strip()
-            name = str(row[1]).strip()
-            archive_tag = str(row[2]).strip().upper()
-            digits = "".join(ch for ch in code if ch.isdigit())
-            if not digits:
-                continue
-            n = int(digits, 10)
-            sym = f"{n:04d}.HK" if n < 100_000 else f"{n}.HK"
-            ticker = norm_hk_ticker(sym)
-            d = membership_detail(ticker)
-            w.writerow(
-                [
-                    code,
-                    name,
-                    archive_tag,
-                    ticker,
-                    "Y" if d["hsi_from_archive"] else "N",
-                    "Y" if d["hscei_from_list"] else "N",
+                    "Y" if d["in_hsi"] else "N",
+                    "Y" if d["in_hscei"] else "N",
                     d["label"],
                     "",
                 ]
@@ -126,7 +74,7 @@ def main() -> int:
     json_dest.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "schema_version": "1.0",
-        "source": "hkstocklist_archive_693.csv + HSCEI list",
+        "source": "HSI.csv + HSCEI.csv",
         "labels": {"BOTH": "HSI and HSCEI constituent", "HSI": "HSI only", "HSCEI": "HSCEI only"},
         "membership": mapping,
     }
@@ -136,13 +84,9 @@ def main() -> int:
     _write_review_csv(rows, review_csv)
     _write_review_csv(rows, ROOT / "frontend/data/hk_index_membership_review.csv")
 
-    full_csv = ROOT / "hk_index_membership_archive693.csv"
-    _write_full_archive_csv(full_csv)
-
     both_n = sum(1 for v in mapping.values() if v == "BOTH")
     print(f"Wrote {json_dest} ({len(mapping)} tickers, {both_n} BOTH)")
-    print(f"Wrote {review_csv} (your hkstocklist universe — fill correct_label column)")
-    print(f"Wrote {full_csv} (full archive 693 for reference)")
+    print(f"Wrote {review_csv} (hkstocklist universe — fill correct_label if any mismatch)")
     return 0
 
 
