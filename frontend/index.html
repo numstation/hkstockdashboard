@@ -1679,11 +1679,23 @@ ${tail}`;
       return Number.isFinite(n) ? n : null;
     }
 
+    function southboundTickerBarValue(data) {
+      const net = num(data?.southbound_connect?.net_yi);
+      if (!Number.isFinite(net)) return null;
+      return `${net >= 0 ? "+" : ""}${net.toFixed(2)}億`;
+    }
+
     function renderMacroTickerBar(data) {
       const bar = document.getElementById("macroTickerBar");
       const scroll = document.getElementById("macroTickerScroll");
       if (!bar || !scroll) return;
-      const items = Array.isArray(data?.ticker_bar) ? data.ticker_bar : [];
+      const sbTickerVal = southboundTickerBarValue(data);
+      let items = Array.isArray(data?.ticker_bar) ? data.ticker_bar.slice() : [];
+      if (sbTickerVal) {
+        items = items.map((it) =>
+          it && it.id === "northbound" ? { ...it, value: sbTickerVal } : it,
+        );
+      }
       if (!items.length) {
         scroll.innerHTML =
           '<span class="macro-ticker-placeholder">宏觀快訊：請執行 macro 匯出（macro_snapshot.json）</span>';
@@ -4182,7 +4194,10 @@ ${tail}`;
       if (u.includes("GOLD") || u.includes("黃金")) return "黃金 (Gold)";
       if (u.includes("DXY") || u.includes("美元指數") || u.includes("美元")) return "美金指數 (DXY)";
       if (u.includes("BITCOIN") || u.includes("BTC")) return "比特幣 (BTC)";
-      if (u.includes("10Y") || u.includes("國債") || u.includes("美債")) return "美債 10Y";
+      if (/\b3M\b/.test(u)) return "美債 3M";
+      if (/\b5Y\b/.test(u)) return "美債 5Y";
+      if (/\b10Y\b/.test(u)) return "美債 10Y";
+      if (u.includes("國債") || u.includes("美債")) return "美債";
       if (u.includes("USD/HKD") || u.includes("港匯")) return "USD/HKD";
       return raw;
     }

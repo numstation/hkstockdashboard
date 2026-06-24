@@ -1026,6 +1026,23 @@ def _sma_last(closes: list[float], window: int = 20) -> float | None:
     return sum(tail) / float(window)
 
 
+def _sync_ticker_northbound_from_southbound(payload: dict) -> None:
+    """Keep scrolling ticker 北水 in sync with southbound_connect (single source of truth)."""
+    sb = payload.get("southbound_connect") if isinstance(payload.get("southbound_connect"), dict) else {}
+    net = sb.get("net_yi")
+    if not isinstance(net, (int, float)):
+        return
+    sign = "+" if net >= 0 else ""
+    val = f"{sign}{net:.2f}億"
+    tb = payload.get("ticker_bar")
+    if not isinstance(tb, list):
+        return
+    payload["ticker_bar"] = [
+        {**item, "value": val} if isinstance(item, dict) and item.get("id") == "northbound" else item
+        for item in tb
+    ]
+
+
 def _merge_southbound_histories(*hist_lists) -> list[dict]:
     """Merge daily 港股通 rows by date (d), keeping the latest net_yi per day."""
     by_d: dict[str, dict] = {}
@@ -1816,6 +1833,8 @@ def _merge_macro_payload(prev: dict, new: dict) -> dict:
                 out_tb.append(item)
         merged["ticker_bar"] = out_tb
 
+    _sync_ticker_northbound_from_southbound(merged)
+
     prev_adv = prev.get("advanced") if isinstance(prev.get("advanced"), dict) else {}
     new_adv = merged.get("advanced") if isinstance(merged.get("advanced"), dict) else {}
     if not new_adv and prev_adv:
@@ -2377,9 +2396,10 @@ def export_macro_snapshot_to_json(filename="macro_snapshot.json", schema_version
             dxy_chg=_num(dxy_chg),
             vix_val=_num(vix_val),
             vix_chg=_num(vix_chg),
-            southbound_yi=southbound_yi,
+            southbound_yi=sb_display_yi,
         ),
     }
+    _sync_ticker_northbound_from_southbound(payload)
     if isinstance(sb_display_yi, (int, float)):
         sign = "+" if sb_display_yi >= 0 else ""
         payload["metrics"].append(
