@@ -3138,8 +3138,38 @@ def health():
     return jsonify({
         'status': 'ok',
         'version': VERSION,
-        'message': 'SCSP神器 is running'
+        'message': 'SCSP神器 is running',
+        'analysis_api': True,
     })
+
+
+@app.after_request
+def _cors_api_headers(response):
+    """Allow Cloudflare dashboard to call analysis API cross-origin when not proxied."""
+    if request.path.startswith('/api/'):
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
+
+
+@app.route('/api/v1/stock/analyze', methods=['GET', 'POST', 'OPTIONS'])
+def api_stock_analyze_v1():
+    """HK Stock Hunter Pro — full analysis JSON (multi-factor + risk + AI report)."""
+    if request.method == 'OPTIONS':
+        return jsonify({}), 204
+    if request.method == 'GET':
+        input_code = (request.args.get('code') or request.args.get('stock_code') or '').strip()
+    else:
+        data = request.get_json(silent=True) or {}
+        input_code = (data.get('stock_code') or data.get('code') or '').strip()
+    try:
+        from analysis_service import run_stock_analysis_api
+        payload = run_stock_analysis_api(input_code)
+        status = 200 if payload.get('ok') else 400
+        return jsonify(payload), status
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
 
 
 @app.route('/analyze', methods=['POST'])

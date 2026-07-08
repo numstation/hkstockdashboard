@@ -323,6 +323,13 @@ if [[ -n "${REFRESH_SECRET:-}" ]]; then
   printf '%s' "$REFRESH_SECRET" | ( cd "$CF" && $WRANGLER secret put REFRESH_SECRET --config wrangler.toml )
 fi
 
+if [[ -n "${ANALYSIS_API_URL:-}" ]]; then
+  echo "==> Sync Worker secret ANALYSIS_API_URL (Railway analysis API)"
+  printf '%s' "$ANALYSIS_API_URL" | ( cd "$CF" && $WRANGLER secret put ANALYSIS_API_URL --config wrangler.toml )
+else
+  echo "::notice:: ANALYSIS_API_URL not set — HK Stock Hunter Pro tab needs Railway API + Worker secret (see RAILWAY_DEPLOY.md)"
+fi
+
 echo "Done (${DEPLOY_MARKET}). Open:"
 echo "  HK: https://hkstockdashboard.chrislau.workers.dev/frontend/"
 echo "  US: https://hkstockdashboard.chrislau.workers.dev/frontend-us/"

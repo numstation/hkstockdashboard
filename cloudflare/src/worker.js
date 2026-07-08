@@ -233,6 +233,53 @@ async function dispatchWorkflow(env, market) {
   throw new Error(githubAuthError(res.status, text));
 }
 
+async function handleStockAnalyze(request, env) {
+  const base = String(env.ANALYSIS_API_URL || "").trim().replace(/\/$/, "");
+  if (!base) {
+    return json(
+      {
+        ok: false,
+        error: "analysis_api_not_configured",
+        message:
+          "Set Worker secret ANALYSIS_API_URL to your Railway analysis API (e.g. https://xxx.up.railway.app).",
+      },
+      503,
+    );
+  }
+  let code = "";
+  try {
+    if (request.method === "GET") {
+      const u = new URL(request.url);
+      code = String(u.searchParams.get("code") || u.searchParams.get("stock_code") || "").trim();
+    } else {
+      const body = await request.json();
+      code = String(body?.stock_code || body?.code || "").trim();
+    }
+  } catch (_) {
+    code = "";
+  }
+  if (!code) {
+    return json({ ok: false, error: "missing_code", message: "Provide stock_code or code." }, 400);
+  }
+  const target = `${base}/api/v1/stock/analyze`;
+  const res = await fetch(target, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ stock_code: code }),
+  });
+  const text = await res.text();
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch (_) {
+    return json(
+      { ok: false, error: "upstream_invalid_json", message: text.slice(0, 200) },
+      502,
+    );
+  }
+  return json(payload, res.status);
+}
+
 async function handleApi(request, env, url) {
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: cors(request) });
@@ -348,6 +395,22 @@ async function handleApi(request, env, url) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/stock/analyze") {
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: cors(request) });
+      }
+      if (request.method === "GET" || request.method === "POST") {
+        try {
+          return withCors(await handleStockAnalyze(request, env), request);
+        } catch (err) {
+          return withCors(
+            json({ ok: false, error: "analysis_proxy_failed", message: String(err.message || err) }, 502),
+            request,
+          );
+        }
+      }
+      return withCors(json({ ok: false, error: "method_not_allowed" }, 405), request);
+    }
     if (url.pathname.startsWith("/api/")) {
       return handleApi(request, env, url);
     }

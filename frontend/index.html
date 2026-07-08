@@ -534,6 +534,53 @@
       color: var(--muted);
       font-weight: 500;
     }
+    /* HK Stock Hunter Pro tab */
+    #hunterTab .hunter-shell { padding: 8px 12px 20px; }
+    #hunterTab .hunter-toolbar {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px;
+    }
+    #hunterTab .hunter-input {
+      flex: 1 1 160px; min-width: 140px; max-width: 280px;
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px;
+    }
+    #hunterTab .hunter-hero {
+      display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start;
+      padding: 16px; border-radius: 12px; border: 1px solid var(--border);
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #e2e8f0; margin-bottom: 14px;
+    }
+    #hunterTab .hunter-hero-name { font-size: 1.35rem; font-weight: 700; }
+    #hunterTab .hunter-hero-code { color: #94a3b8; font-size: 0.95rem; margin-top: 2px; }
+    #hunterTab .hunter-hero-price { font-size: 2rem; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+    #hunterTab .hunter-hero-chg { text-align: right; font-size: 0.95rem; font-weight: 600; }
+    #hunterTab .hunter-rating {
+      display: inline-block; margin-top: 8px; padding: 4px 10px; border-radius: 999px;
+      font-size: 0.82rem; font-weight: 700; border: 1px solid rgba(148,163,184,0.35);
+    }
+    #hunterTab .hunter-rating.buy { color: #6ee7b7; border-color: #10b981; background: rgba(16,185,129,0.12); }
+    #hunterTab .hunter-rating.hold { color: #fcd34d; border-color: #f59e0b; background: rgba(245,158,11,0.12); }
+    #hunterTab .hunter-rating.sell { color: #fca5a5; border-color: #ef4444; background: rgba(239,68,68,0.12); }
+    #hunterTab .hunter-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 14px;
+    }
+    #hunterTab .hunter-card {
+      border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--card);
+    }
+    #hunterTab .hunter-card h4 { margin: 0 0 10px; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    #hunterTab .hunter-factor-row { margin-bottom: 8px; }
+    #hunterTab .hunter-factor-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+    #hunterTab .hunter-factor-bar { height: 8px; background: #e7e5e4; border-radius: 999px; overflow: hidden; }
+    #hunterTab .hunter-factor-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #0f766e, #14b8a6); }
+    #hunterTab .hunter-risk-score { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    #hunterTab .hunter-risk-label { font-size: 0.85rem; margin-top: 4px; color: var(--muted); }
+    #hunterTab .hunter-indicators { font-size: 12px; line-height: 1.65; color: var(--text); }
+    #hunterTab .hunter-copy-wrap { margin-top: 12px; }
+    #hunterTab .hunter-report {
+      width: 100%; min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px; line-height: 1.45; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+      background: #fafaf9; resize: vertical;
+    }
+    #hunterTab .hunter-status { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+    #hunterTab .hunter-status.err { color: var(--bad); }
     .market-catalysts-list {
       margin: 0;
       padding: 0 2px 8px;
@@ -1158,6 +1205,7 @@
       <button class="tab-btn" data-tab="historyTab">入市推介</button>
       <button class="tab-btn" data-tab="macroTab">大市風向</button>
       <button class="tab-btn" data-tab="newsTab">新聞公告</button>
+      <button class="tab-btn" data-tab="hunterTab">HK Stock Hunter Pro</button>
     </div>
 
     <section id="activeTab" class="tab-panel active">
@@ -1365,6 +1413,41 @@
         </p>
         <div id="marketCatalystsBody" class="market-catalysts-body"></div>
         <p id="marketCatalystsEmpty" class="market-catalysts-empty" style="display:none;padding:0 12px;">暫無 24 小時內催化劑。</p>
+      </div>
+    </section>
+
+    <section id="hunterTab" class="tab-panel">
+      <div class="hunter-shell">
+        <p class="news-tab-lead" style="margin-left:0;">
+          輸入任意港股／美股代碼，即時技術分析、多因子評分、風險雷達，一鍵複製報告給 AI。
+        </p>
+        <div class="hunter-toolbar">
+          <input type="text" id="hunterCodeInput" class="hunter-input" placeholder="700、0992、AAPL…" autocomplete="off" />
+          <button type="button" class="btn btn-primary" id="hunterAnalyzeBtn">分析</button>
+          <button type="button" class="btn btn-sm" id="hunterCopyBtn" disabled>📋 複製 AI 報告</button>
+        </div>
+        <p id="hunterStatus" class="hunter-status"></p>
+        <div id="hunterResults" style="display:none;">
+          <div class="hunter-hero" id="hunterHero"></div>
+          <div class="hunter-grid">
+            <div class="hunter-card" id="hunterFactorsCard">
+              <h4>Multi-Factor Quant · 多因子</h4>
+              <div id="hunterFactorsBody"></div>
+            </div>
+            <div class="hunter-card" id="hunterRiskCard">
+              <h4>Risk-Exit Radar · 倉位危險</h4>
+              <div id="hunterRiskBody"></div>
+            </div>
+            <div class="hunter-card">
+              <h4>Key Indicators · 技術指標</h4>
+              <div class="hunter-indicators" id="hunterIndicatorsBody"></div>
+            </div>
+          </div>
+          <div class="hunter-card hunter-copy-wrap">
+            <h4>AI Report · 複製給 Gemini / ChatGPT</h4>
+            <textarea id="hunterReportText" class="hunter-report" readonly></textarea>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -5250,6 +5333,237 @@ ${tail}`;
         renderLogTable();
       });
     });
+
+    let _hunterLastReport = "";
+
+    function hunterRatingClass(rating) {
+      const r = String(rating || "").toUpperCase();
+      if (r.includes("BUY")) return "buy";
+      if (r.includes("SELL")) return "sell";
+      return "hold";
+    }
+
+    function hunterFactorBar(label, score) {
+      const s = Math.max(0, Math.min(10, Number(score) || 0));
+      const pct = (s / 10) * 100;
+      return (
+        '<div class="hunter-factor-row">' +
+        '<div class="hunter-factor-label"><span>' +
+        label +
+        '</span><span>' +
+        s.toFixed(1) +
+        "/10</span></div>" +
+        '<div class="hunter-factor-bar"><div class="hunter-factor-fill" style="width:' +
+        pct +
+        '%"></div></div></div>"
+      );
+    }
+
+    function renderHunterResults(data) {
+      const results = document.getElementById("hunterResults");
+      const hero = document.getElementById("hunterHero");
+      const factorsBody = document.getElementById("hunterFactorsBody");
+      const riskBody = document.getElementById("hunterRiskBody");
+      const indicatorsBody = document.getElementById("hunterIndicatorsBody");
+      const reportText = document.getElementById("hunterReportText");
+      const copyBtn = document.getElementById("hunterCopyBtn");
+      if (!results || !hero) return;
+
+      const price = Number(data.current_price);
+      const chg = Number(data.price_change);
+      const chgPct = Number(data.price_change_percent);
+      const chgUp = !Number.isNaN(chg) && chg >= 0;
+      const chgColor = chgUp ? "#6ee7b7" : "#fca5a5";
+      const chgSign = chgUp ? "+" : "";
+      const factors = data.factors || {};
+      const risk = data.risk || {};
+      const signal = data.signal || {};
+      const ind = data.indicators || {};
+      const rating = factors.rating || "HOLD";
+      const ratingCls = hunterRatingClass(rating);
+
+      hero.innerHTML =
+        "<div>" +
+        '<div class="hunter-hero-name">' +
+        (data.stock_name || data.stock_code || "") +
+        "</div>" +
+        '<div class="hunter-hero-code">' +
+        (data.stock_code || "") +
+        (data.latest_data_date ? " · " + data.latest_data_date : "") +
+        "</div>" +
+        (signal.advice
+          ? '<div style="margin-top:10px;font-size:0.92rem;line-height:1.5;color:#cbd5e1;">' +
+            signal.advice +
+            "</div>"
+          : "") +
+        '<span class="hunter-rating ' +
+        ratingCls +
+        '">' +
+        rating +
+        (factors.composite != null ? " · " + Number(factors.composite).toFixed(1) + "/10" : "") +
+        "</span>" +
+        "</div>" +
+        "<div>" +
+        '<div class="hunter-hero-price">' +
+        (Number.isFinite(price) ? price.toFixed(2) : "—") +
+        "</div>" +
+        '<div class="hunter-hero-chg" style="color:' +
+        chgColor +
+        '">' +
+        (Number.isFinite(chg) && Number.isFinite(chgPct)
+          ? chgSign + chg.toFixed(2) + " (" + chgSign + chgPct.toFixed(2) + "%)"
+          : "—") +
+        "</div>" +
+        "</div>";
+
+      if (factorsBody) {
+        factorsBody.innerHTML =
+          hunterFactorBar("Momentum · 動能", factors.momentum) +
+          hunterFactorBar("Trend · 趨勢", factors.trend) +
+          hunterFactorBar("Flow · 資金", factors.flow) +
+          hunterFactorBar("Location · 位置", factors.location) +
+          (signal.commentary
+            ? '<p style="margin:10px 0 0;font-size:12px;line-height:1.55;color:var(--muted);">' +
+              signal.commentary +
+              "</p>"
+            : "");
+      }
+
+      if (riskBody) {
+        const rs = risk.score != null ? Number(risk.score) : null;
+        riskBody.innerHTML =
+          '<div class="hunter-risk-score">' +
+          (rs != null && Number.isFinite(rs) ? rs.toFixed(0) : "—") +
+          "</div>" +
+          '<div class="hunter-risk-label">' +
+          (risk.label || "Risk score") +
+          "</div>" +
+          '<div style="margin-top:12px;font-size:12px;line-height:1.6;">' +
+          "Tech " +
+          (risk.tech != null ? Number(risk.tech).toFixed(0) : "—") +
+          " · Trend " +
+          (risk.trend != null ? Number(risk.trend).toFixed(0) : "—") +
+          " · Flow " +
+          (risk.flow != null ? Number(risk.flow).toFixed(0) : "—") +
+          "</div>";
+      }
+
+      if (indicatorsBody) {
+        const fmt = (v, d) => (v == null || v === "" ? "—" : Number(v).toFixed(d));
+        indicatorsBody.innerHTML =
+          "RSI " +
+          fmt(ind.rsi, 1) +
+          " · ADX " +
+          fmt(ind.adx, 1) +
+          " · ADX slope " +
+          fmt(ind.adx_slope, 2) +
+          "<br/>+DI " +
+          fmt(ind.pdi, 1) +
+          " · −DI " +
+          fmt(ind.mdi, 1) +
+          " · RVOL " +
+          fmt(ind.rvol, 2) +
+          "<br/>MFI " +
+          fmt(ind.mfi, 1) +
+          " · VWAP " +
+          fmt(ind.vwap, 2) +
+          " · MACD hist " +
+          fmt(ind.macd_hist, 3) +
+          "<br/>RS 20d " +
+          (ind.rs_20d != null ? (Number(ind.rs_20d) ? "Outperform" : "Underperform") : "—");
+      }
+
+      _hunterLastReport = data.ai_report || "";
+      if (reportText) reportText.value = _hunterLastReport;
+      if (copyBtn) copyBtn.disabled = !_hunterLastReport;
+      results.style.display = "block";
+    }
+
+    async function runHunterAnalysis() {
+      const input = document.getElementById("hunterCodeInput");
+      const btn = document.getElementById("hunterAnalyzeBtn");
+      const status = document.getElementById("hunterStatus");
+      const code = (input && input.value ? input.value : "").trim();
+      if (!code) {
+        if (status) {
+          status.textContent = "請輸入股票代碼";
+          status.className = "hunter-status err";
+        }
+        return;
+      }
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "分析中…";
+      }
+      if (status) {
+        status.textContent = "正在分析 " + code + "（可能需要 30–60 秒）…";
+        status.className = "hunter-status";
+      }
+      try {
+        const res = await fetch("/api/stock/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ stock_code: code }),
+        });
+        const data = await res.json();
+        if (!data.ok) {
+          const msg =
+            data.message ||
+            data.error ||
+            (res.status === 503 ? "分析 API 尚未設定（Railway + ANALYSIS_API_URL）" : "分析失敗");
+          if (status) {
+            status.textContent = msg;
+            status.className = "hunter-status err";
+          }
+          return;
+        }
+        renderHunterResults(data);
+        if (status) {
+          status.textContent = "分析完成 · " + (data.timestamp || "");
+          status.className = "hunter-status";
+        }
+      } catch (err) {
+        if (status) {
+          status.textContent = "連線失敗：" + (err && err.message ? err.message : err);
+          status.className = "hunter-status err";
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "分析";
+        }
+      }
+    }
+
+    const hunterAnalyzeBtn = document.getElementById("hunterAnalyzeBtn");
+    if (hunterAnalyzeBtn) hunterAnalyzeBtn.addEventListener("click", runHunterAnalysis);
+    const hunterCodeInput = document.getElementById("hunterCodeInput");
+    if (hunterCodeInput) {
+      hunterCodeInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") runHunterAnalysis();
+      });
+    }
+    const hunterCopyBtn = document.getElementById("hunterCopyBtn");
+    if (hunterCopyBtn) {
+      hunterCopyBtn.addEventListener("click", async () => {
+        const text = _hunterLastReport || (document.getElementById("hunterReportText") || {}).value || "";
+        if (!text) return;
+        try {
+          await navigator.clipboard.writeText(text);
+          hunterCopyBtn.textContent = "✓ 已複製";
+          setTimeout(() => {
+            hunterCopyBtn.textContent = "📋 複製 AI 報告";
+          }, 2000);
+        } catch (_) {
+          const ta = document.getElementById("hunterReportText");
+          if (ta) {
+            ta.focus();
+            ta.select();
+            document.execCommand("copy");
+          }
+        }
+      });
+    }
 
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
