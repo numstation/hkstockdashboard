@@ -23,6 +23,9 @@ def install() -> None:
 
             return decorator
 
+        def after_request(self, f):
+            return f
+
         def run(self, *args, **kwargs) -> None:  # noqa: ARG002
             pass
 
