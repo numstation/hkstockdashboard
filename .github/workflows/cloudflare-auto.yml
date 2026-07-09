@@ -61,6 +61,7 @@ jobs:
           GITHUB_PAT: ${{ secrets.DASHBOARD_GITHUB_PAT }}
           REFRESH_PUBLIC_KEY: ${{ secrets.REFRESH_PUBLIC_KEY }}
           REFRESH_SECRET: ${{ secrets.REFRESH_PUBLIC_KEY }}
+          ANALYSIS_API_URL: ${{ secrets.ANALYSIS_API_URL }}
         run: |
           if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
             echo "::error::Missing GitHub secret CLOUDFLARE_API_TOKEN — site will NOT auto-update."

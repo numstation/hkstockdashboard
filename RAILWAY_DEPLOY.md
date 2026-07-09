@@ -62,6 +62,29 @@ Open: https://hkstockdashboard.chrislau.workers.dev/frontend/ → tab **HK Stock
 - `ANALYSIS_API_URL` is **not** required for other dashboard tabs (scan, macro, refresh).
 - Optional env on Railway: `ALPHA_VANTAGE_API_KEY` if yfinance fails for some symbols.
 
+## Cloudflare secret (choose one method)
+
+**Dashboard often fails** with *“Variables cannot be added to a Worker that only has static assets”* — use **Wrangler CLI** or **GitHub Actions secret** instead.
+
+### Method A — GitHub Actions (easiest if you already use CI deploy)
+
+1. GitHub → repo **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+2. Name: `ANALYSIS_API_URL`
+3. Value: `https://YOUR-APP.up.railway.app` (no trailing slash)
+4. Run workflow **Cloudflare auto update** (Actions tab → Run workflow)
+
+The deploy script runs `wrangler secret put ANALYSIS_API_URL` automatically.
+
+### Method B — Wrangler CLI (Mac Terminal)
+
+```bash
+cd cloudflare
+npx wrangler login
+printf 'https://YOUR-APP.up.railway.app' | npx wrangler secret put ANALYSIS_API_URL --config wrangler.toml
+```
+
+Do **not** use the Cloudflare dashboard **Static assets** page — secrets attach to the **Worker script** (`hkstockdashboard`), not the assets-only UI.
+
 ## Updating
 
 Push to `main` → Railway redeploys automatically. Re-run Cloudflare deploy only when `frontend/` or `cloudflare/` changes.
