@@ -59,7 +59,7 @@ Open: https://hkstockdashboard.chrislau.workers.dev/frontend/ → tab **HK Stock
 ## Notes
 
 - First analysis per ticker may take 30–60s (yfinance + indicators). Gunicorn timeout is 180s.
-- `ANALYSIS_API_URL` is **not** required for other dashboard tabs (scan, macro, refresh).
+- `ANALYSIS_API_URL` is set in `cloudflare/wrangler.toml` [vars] (Railway base URL). Override via GitHub secret or `wrangler secret put` if the domain changes.
 - Optional env on Railway: `ALPHA_VANTAGE_API_KEY` if yfinance fails for some symbols.
 
 ## Cloudflare secret (choose one method)

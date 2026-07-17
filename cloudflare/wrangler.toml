@@ -8,6 +8,7 @@ compatibility_date = "2024-11-01"
 [vars]
 GITHUB_REPO = "numstation/hkstockdashboard"
 REFRESH_COOLDOWN_MIN = "10"
+ANALYSIS_API_URL = "https://web-production-c9abe.up.railway.app"
 
 [assets]
 directory = "./public"
