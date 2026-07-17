@@ -324,10 +324,16 @@ if [[ -n "${REFRESH_SECRET:-}" ]]; then
 fi
 
 if [[ -n "${ANALYSIS_API_URL:-}" ]]; then
-  echo "==> Sync Worker secret ANALYSIS_API_URL (Railway analysis API)"
-  printf '%s' "$ANALYSIS_API_URL" | ( cd "$CF" && $WRANGLER secret put ANALYSIS_API_URL --config wrangler.toml )
+  if grep -q '^ANALYSIS_API_URL\s*=' "$CF/wrangler.toml" 2>/dev/null; then
+    echo "==> ANALYSIS_API_URL already in wrangler.toml [vars] — skip secret put"
+  else
+    echo "==> Sync Worker secret ANALYSIS_API_URL (Railway analysis API)"
+    printf '%s' "$ANALYSIS_API_URL" | ( cd "$CF" && $WRANGLER secret put ANALYSIS_API_URL --config wrangler.toml )
+  fi
+elif grep -q '^ANALYSIS_API_URL\s*=' "$CF/wrangler.toml" 2>/dev/null; then
+  echo "==> ANALYSIS_API_URL from wrangler.toml [vars]"
 else
-  echo "::notice:: ANALYSIS_API_URL not set — HK Stock Hunter Pro tab needs Railway API + Worker secret (see RAILWAY_DEPLOY.md)"
+  echo "::notice:: ANALYSIS_API_URL not set — HK Stock Hunter Pro tab needs Railway URL (see RAILWAY_DEPLOY.md)"
 fi
 
 echo "Done (${DEPLOY_MARKET}). Open:"
