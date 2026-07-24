@@ -148,15 +148,186 @@
     .empty { padding: 24px; color: var(--muted); }
     .footer { margin-top: 14px; color: var(--muted); font-size: 12px; }
     .footer-version { display: block; margin-top: 6px; font-size: 10px; opacity: 0.72; letter-spacing: 0.02em; }
-    .news-always-panel {
-      margin-top: 18px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px 0 10px;
-      box-shadow: var(--shadow-card);
+    /* News ticker strip — below macro banner, max 60px */
+    .news-ticker-bar {
+      position: sticky;
+      top: 34px;
+      z-index: 190;
+      width: 100%;
+      max-height: 60px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
     }
-    .news-always-panel .news-tab-lead { margin: 0 12px 12px; }
+    .news-ticker-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 60px;
+      max-height: 60px;
+      padding: 0 10px 0 12px;
+    }
+    .news-ticker-badge {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #64748b;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+    }
+    .news-ticker-viewport {
+      flex: 1;
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+    .news-ticker-viewport::-webkit-scrollbar { display: none; }
+    .news-ticker-track {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 4px 2px;
+    }
+    .news-ticker-chip {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: min(340px, 78vw);
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      font-size: 11px;
+      line-height: 1.25;
+      color: #334155;
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    a.news-ticker-chip:hover {
+      border-color: #cbd5e1;
+      background: #f1f5f9;
+    }
+    .news-ticker-chip .nt-ts {
+      flex-shrink: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 10px;
+      color: #64748b;
+      font-variant-numeric: tabular-nums;
+    }
+    .news-ticker-chip .nt-tone {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .news-ticker-chip .nt-tag {
+      flex-shrink: 0;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+    }
+    .news-ticker-chip .nt-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+    .news-ticker-expand {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      color: #475569;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .news-ticker-expand:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .news-ticker-empty {
+      margin: 0;
+      padding: 0 14px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .news-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 12px 24px;
+    }
+    .news-modal.is-open { display: flex; }
+    .news-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(2px);
+    }
+    .news-modal-panel {
+      position: relative;
+      z-index: 1;
+      width: min(720px, 100%);
+      max-height: min(82vh, 720px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+    }
+    .news-modal-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+    .news-modal-head h3 { margin: 0; font-size: 15px; flex: 1; min-width: 140px; }
+    .news-modal-body {
+      overflow-y: auto;
+      padding: 8px 0 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .news-modal-body .mc-block {
+      margin: 0 12px 10px;
+      border-color: #e2e8f0;
+      background: #fafafa;
+    }
+    .market-catalysts-list .mc-ts {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .market-catalysts-list .mc-tone {
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 2px;
+    }
     .chart-dash--hidden { display: none !important; }
     .chart-dash-head {
       display: flex;
@@ -1195,10 +1366,10 @@
       #hunterTab .hunter-toolbar { flex-direction: column; align-items: stretch; }
       #hunterTab .hunter-input { max-width: none; width: 100%; min-height: 44px; font-size: 16px; }
       #hunterTab .hunter-toolbar .btn { min-height: 44px; width: 100%; }
-      .news-always-panel { margin-top: 14px; }
-      .mc-block { padding: 12px; margin: 0 10px 10px; }
-      .market-catalysts-list li { font-size: 13px; line-height: 1.5; padding: 8px 0; }
-      .market-catalysts-body { padding: 0 2px 6px; }
+      .news-ticker-expand { padding: 8px 10px; font-size: 10px; }
+      .news-ticker-badge { display: none; }
+      .news-ticker-chip { max-width: 85vw; padding: 8px 12px; font-size: 12px; }
+      .news-modal { padding: 12px 8px; }
     }
     /* Top macro ticker (rolling strip) */
     .macro-ticker-bar {
@@ -1280,6 +1451,27 @@
       </div>
     </div>
   </div>
+  <div id="newsTickerBar" class="news-ticker-bar" role="region" aria-label="24H 龍頭新聞走馬燈">
+    <div class="news-ticker-row" id="newsTickerRow">
+      <span class="news-ticker-badge">NEWS</span>
+      <div class="news-ticker-viewport" id="newsTickerViewport">
+        <div id="newsTickerTrack" class="news-ticker-track"></div>
+      </div>
+      <button type="button" id="newsExpandBtn" class="news-ticker-expand" title="展開全部新聞">Expand All 📰</button>
+    </div>
+    <p id="marketCatalystsEmpty" class="news-ticker-empty" style="display:none;">暫無 24 小時內催化劑。</p>
+  </div>
+  <div id="newsModal" class="news-modal" aria-hidden="true">
+    <div class="news-modal-backdrop" id="newsModalBackdrop"></div>
+    <div class="news-modal-panel" role="dialog" aria-modal="true" aria-labelledby="newsModalTitle">
+      <div class="news-modal-head">
+        <h3 id="newsModalTitle">📰 24H 龍頭新聞與公告</h3>
+        <span id="marketCatalystsMeta" class="market-catalysts-meta"></span>
+        <button type="button" id="newsModalClose" class="btn-sm" aria-label="關閉">✕</button>
+      </div>
+      <div id="marketCatalystsBody" class="news-modal-body market-catalysts-body"></div>
+    </div>
+  </div>
   <div class="container">
     <div class="header">
       <div>
@@ -1301,18 +1493,6 @@
       <div class="card"><div class="k">Strategy</div><div id="strategy" class="v" style="font-size:16px">-</div></div>
       <div class="card"><div class="k">Total</div><div id="total" class="v">0</div></div>
       <div class="card"><div class="k">強弱分佈</div><div class="v" style="font-size:16px"><span id="buyPill" class="pill buy">強勢 0</span> <span id="waitPill" class="pill wait">觀望 0</span> <span id="sellPill" class="pill sell">危險 0</span></div><div id="pillHint" class="muted" style="font-size:11px;margin-top:6px">綠＝強勢 · 橙＝觀望 · 紅＝危險</div></div>
-    </div>
-
-    <div id="newsAlwaysPanel" class="news-always-panel">
-      <div class="macro-panel-head">
-        <h3 class="section-title" style="margin:0;">📰 24H 龍頭新聞與公告</h3>
-        <span id="marketCatalystsMeta" class="market-catalysts-meta"></span>
-      </div>
-      <p class="news-tab-lead">
-        核心 133 隻 · 龍頭新聞、聯交所公告、業績期分區顯示（已過濾券商評級雜訊）。
-      </p>
-      <div id="marketCatalystsBody" class="market-catalysts-body"></div>
-      <p id="marketCatalystsEmpty" class="market-catalysts-empty" style="display:none;padding:0 12px;">暫無 24 小時內催化劑。</p>
     </div>
 
     <p id="chartModeHint" class="chart-dash-hint">點上方策略按鈕（Sell Put／Buy Stock／Buy Put）以顯示對應市場快照圖表。</p>
@@ -4881,6 +5061,47 @@ ${tail}`;
       return "⚪";
     }
 
+    function marketCatalystToneLabel(tone) {
+      if (tone === "green") return "🟢 利好";
+      if (tone === "red") return "🔴 利空";
+      return "⚪ 消息";
+    }
+
+    function marketCatalystSectionTag(sectionKey) {
+      if (sectionKey === "hkex") return "HKEX";
+      if (sectionKey === "earnings") return "EPS";
+      return "NEWS";
+    }
+
+    function flattenMarketCatalystItems(sections) {
+      const flat = [];
+      for (const spec of MARKET_CATALYST_SECTIONS) {
+        for (const item of sections[spec.key] || []) {
+          if (!item || typeof item !== "object") continue;
+          flat.push({ item, spec });
+        }
+      }
+      flat.sort((a, b) => {
+        if (a.spec.key === "earnings" && b.spec.key !== "earnings") return 1;
+        if (b.spec.key === "earnings" && a.spec.key !== "earnings") return -1;
+        const ta = a.spec.showTime ? String(a.item.ts_hkt || "") : "";
+        const tb = b.spec.showTime ? String(b.item.ts_hkt || "") : "";
+        return tb.localeCompare(ta);
+      });
+      return flat;
+    }
+
+    function marketCatalystChipLabel(item, sectionKey) {
+      const tk = item?.ticker ? String(item.ticker).trim() : "";
+      const text = String(item.text || "").replace(/\s+/g, " ").trim();
+      const short = text.length > 64 ? text.slice(0, 61) + "…" : text;
+      let lead = "";
+      if (sectionKey === "hkex") lead = tk ? tk + " 公告 · " : "公告 · ";
+      else if (sectionKey === "earnings") lead = tk ? tk + " 業績 · " : "業績 · ";
+      else lead = tk ? tk + " · " : "";
+      return lead + short;
+    }
+
     function marketCatalystPrefix(item, sectionKey) {
       const tk = item?.ticker ? String(item.ticker) : "";
       const kind = String(item?.kind || sectionKey || "");
@@ -4939,48 +5160,58 @@ ${tail}`;
 
     function renderMarketCatalystLine(item, sectionKey, showTime) {
       const ts = escapeHtml(String(item.ts_hkt || "--:--"));
-      const emoji = marketCatalystToneEmoji(item.tone);
+      const toneLbl = marketCatalystToneLabel(item.tone);
       const prefix = marketCatalystPrefix(item, sectionKey);
       const text = escapeHtml(String(item.text || ""));
       const link = item.link ? String(item.link) : "";
       const body = link
         ? `<a class="mc-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${text}</a>`
         : text;
-      const timePart = showTime ? `<span class="mc-ts">[${ts} HKT]</span> ` : "";
-      return `${timePart}${prefix}${body} ${emoji}`;
+      const timePart = showTime
+        ? `<span class="mc-ts" style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">[${ts} HKT]</span> `
+        : "";
+      return `${timePart}<span class="mc-tone">${toneLbl}</span> ${prefix}${body}`;
     }
 
-    function renderMarketCatalysts(data) {
-      const bodyEl = document.getElementById("marketCatalystsBody");
-      const metaEl = document.getElementById("marketCatalystsMeta");
-      const emptyEl = document.getElementById("marketCatalystsEmpty");
+    function renderMarketCatalystTicker(flat) {
+      const track = document.getElementById("newsTickerTrack");
+      const row = document.getElementById("newsTickerRow");
+      if (!track) return;
+      track.innerHTML = "";
+      for (const { item, spec } of flat) {
+        const ts = spec.showTime ? String(item.ts_hkt || "--:--") : "";
+        const timeHtml = ts
+          ? `<span class="nt-ts">[${escapeHtml(ts)} HKT]</span>`
+          : "";
+        const toneHtml = `<span class="nt-tone">${marketCatalystToneLabel(item.tone)}</span>`;
+        const tagHtml = `<span class="nt-tag">${marketCatalystSectionTag(spec.key)}</span>`;
+        const textHtml = `<span class="nt-text">${escapeHtml(marketCatalystChipLabel(item, spec.key))}</span>`;
+        const link = item.link ? String(item.link) : "";
+        if (link) {
+          const a = document.createElement("a");
+          a.className = "news-ticker-chip";
+          a.href = link;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.innerHTML = timeHtml + toneHtml + tagHtml + textHtml;
+          track.appendChild(a);
+        } else {
+          const span = document.createElement("span");
+          span.className = "news-ticker-chip";
+          span.innerHTML = timeHtml + toneHtml + tagHtml + textHtml;
+          track.appendChild(span);
+        }
+      }
+      if (row) row.style.display = flat.length ? "flex" : "none";
+    }
+
+    function renderMarketCatalystsFullList(sections, bodyEl) {
       if (!bodyEl) return;
       bodyEl.innerHTML = "";
-
-      const sections = marketCatalystSectionsFromData(data);
-      const total = MARKET_CATALYST_SECTIONS.reduce(
-        (n, s) => n + (sections[s.key]?.length || 0),
-        0,
-      );
-
-      if (!data || total === 0) {
-        if (metaEl) metaEl.textContent = "";
-        if (emptyEl) emptyEl.style.display = "block";
-        return;
-      }
-      if (emptyEl) emptyEl.style.display = "none";
-      if (metaEl) {
-        metaEl.textContent = data.last_updated
-          ? "更新：" + fmtDateLocal(data.last_updated) + " · 核心 " + (data.universe_size || 133) + " 隻 · 分區顯示（非混合時間軸）"
-          : "";
-      }
-
       for (const spec of MARKET_CATALYST_SECTIONS) {
         const rows = sections[spec.key] || [];
-
         const wrap = document.createElement("div");
         wrap.className = "mc-block";
-
         const head = document.createElement("div");
         head.className = "mc-block-head";
         head.innerHTML = `
@@ -4988,7 +5219,6 @@ ${tail}`;
             <div class="mc-block-sub">${escapeHtml(spec.sub)}</div>
           `;
         wrap.appendChild(head);
-
         if (!rows.length) {
           const p = document.createElement("p");
           p.className = "mc-block-empty";
@@ -5007,6 +5237,47 @@ ${tail}`;
         }
         bodyEl.appendChild(wrap);
       }
+    }
+
+    function openNewsModal() {
+      const modal = document.getElementById("newsModal");
+      if (!modal) return;
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeNewsModal() {
+      const modal = document.getElementById("newsModal");
+      if (!modal) return;
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
+
+    function renderMarketCatalysts(data) {
+      const bodyEl = document.getElementById("marketCatalystsBody");
+      const metaEl = document.getElementById("marketCatalystsMeta");
+      const emptyEl = document.getElementById("marketCatalystsEmpty");
+      const sections = marketCatalystSectionsFromData(data);
+      const flat = flattenMarketCatalystItems(sections);
+      const total = flat.length;
+
+      if (!data || total === 0) {
+        if (metaEl) metaEl.textContent = "";
+        if (emptyEl) emptyEl.style.display = "flex";
+        renderMarketCatalystTicker([]);
+        if (bodyEl) bodyEl.innerHTML = "";
+        return;
+      }
+      if (emptyEl) emptyEl.style.display = "none";
+      if (metaEl) {
+        metaEl.textContent = data.last_updated
+          ? "更新：" + fmtDateLocal(data.last_updated) + " · 核心 " + (data.universe_size || 133) + " 隻"
+          : "";
+      }
+      renderMarketCatalystTicker(flat);
+      renderMarketCatalystsFullList(sections, bodyEl);
     }
 
     async function loadMarketCatalysts() {
@@ -5877,6 +6148,15 @@ ${tail}`;
     }
 
     syncScoreModeButtons();
+    const newsExpandBtn = document.getElementById("newsExpandBtn");
+    if (newsExpandBtn) newsExpandBtn.addEventListener("click", openNewsModal);
+    const newsModalClose = document.getElementById("newsModalClose");
+    if (newsModalClose) newsModalClose.addEventListener("click", closeNewsModal);
+    const newsModalBackdrop = document.getElementById("newsModalBackdrop");
+    if (newsModalBackdrop) newsModalBackdrop.addEventListener("click", closeNewsModal);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeNewsModal();
+    });
     loadData();
   </script>
 </body>
