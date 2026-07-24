@@ -52,7 +52,7 @@
     .scan-refresh-status {
       font-size: 11px; color: var(--muted); max-width: 11rem; line-height: 1.35; text-align: right;
     }
-    .cards { margin-top: 20px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+    .cards { margin-top: 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
     .card {
       background: var(--card);
       border: 1px solid var(--line);
@@ -147,6 +147,42 @@
     .muted { color: var(--muted); }
     .empty { padding: 24px; color: var(--muted); }
     .footer { margin-top: 14px; color: var(--muted); font-size: 12px; }
+    .footer-version { display: block; margin-top: 6px; font-size: 10px; opacity: 0.72; letter-spacing: 0.02em; }
+    .news-always-panel {
+      margin-top: 18px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 0 10px;
+      box-shadow: var(--shadow-card);
+    }
+    .news-always-panel .news-tab-lead { margin: 0 12px 12px; }
+    .chart-dash--hidden { display: none !important; }
+    .chart-dash-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .chart-dash-head h3 {
+      margin: 0;
+      padding: 0;
+      border: none;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      line-height: 1.35;
+    }
+    .chart-dash-hint {
+      margin: 0 0 10px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
     .tabs { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
     .tab-btn {
       border: 1px solid var(--line);
@@ -1122,11 +1158,47 @@
       .container { padding: 16px 12px 24px; max-width: 100%; }
       body { overflow-x: hidden; }
       .header { flex-direction: column; align-items: stretch; }
-      .mode-switch { justify-content: flex-start; }
+      .mode-switch { justify-content: flex-start; width: 100%; }
+      .mode-switch .mode-btn,
+      .mode-switch .btn { min-height: 44px; font-size: 13px; }
       .title { font-size: 1.25rem; }
       .table-x-scroll-hint { display: block; }
       th, td { padding: 10px 12px; font-size: 13px; }
       .table-x-scroll table { min-width: 820px; }
+      .cards { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .card { padding: 12px 14px; }
+      .card .k { font-size: 11px; }
+      .card .v { font-size: 17px !important; }
+      .tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        padding-bottom: 4px;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .tab-btn { flex-shrink: 0; padding: 10px 16px; font-size: 14px; min-height: 44px; }
+      .chart-cell { min-height: 250px; padding: 12px; }
+      .chart-cell .ttl { font-size: 13px; margin-bottom: 8px; }
+      .chart-cell canvas { max-height: 210px !important; min-height: 190px !important; }
+      .chart-cell--rank canvas,
+      .chart-cell--breadth canvas { min-height: 200px !important; max-height: 220px !important; }
+      #hunterTab .hunter-grid { grid-template-columns: 1fr; }
+      #hunterTab .hunter-risk-tiles { grid-template-columns: 1fr; gap: 10px; }
+      #hunterTab .hunter-ind-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      #hunterTab .hunter-ind-tile { padding: 10px 8px; }
+      #hunterTab .hunter-ind-tile-val { font-size: 1.2rem; }
+      #hunterTab .hunter-hero { grid-template-columns: 1fr; gap: 8px; }
+      #hunterTab .hunter-hero-price { text-align: left; font-size: 1.65rem; }
+      #hunterTab .hunter-hero-chg { text-align: left; }
+      #hunterTab .hunter-toolbar { flex-direction: column; align-items: stretch; }
+      #hunterTab .hunter-input { max-width: none; width: 100%; min-height: 44px; font-size: 16px; }
+      #hunterTab .hunter-toolbar .btn { min-height: 44px; width: 100%; }
+      .news-always-panel { margin-top: 14px; }
+      .mc-block { padding: 12px; margin: 0 10px 10px; }
+      .market-catalysts-list li { font-size: 13px; line-height: 1.5; padding: 8px 0; }
+      .market-catalysts-body { padding: 0 2px 6px; }
     }
     /* Top macro ticker (rolling strip) */
     .macro-ticker-bar {
@@ -1229,11 +1301,27 @@
       <div class="card"><div class="k">Strategy</div><div id="strategy" class="v" style="font-size:16px">-</div></div>
       <div class="card"><div class="k">Total</div><div id="total" class="v">0</div></div>
       <div class="card"><div class="k">強弱分佈</div><div class="v" style="font-size:16px"><span id="buyPill" class="pill buy">強勢 0</span> <span id="waitPill" class="pill wait">觀望 0</span> <span id="sellPill" class="pill sell">危險 0</span></div><div id="pillHint" class="muted" style="font-size:11px;margin-top:6px">綠＝強勢 · 橙＝觀望 · 紅＝危險</div></div>
-      <div class="card"><div class="k">Schema Version</div><div id="schemaVersion" class="v" style="font-size:16px">-</div></div>
     </div>
 
-    <div id="chartDashboard" class="chart-dash">
-      <h3>市場快照圖表（本輪掃描 · 訊號歷史）</h3>
+    <div id="newsAlwaysPanel" class="news-always-panel">
+      <div class="macro-panel-head">
+        <h3 class="section-title" style="margin:0;">📰 24H 龍頭新聞與公告</h3>
+        <span id="marketCatalystsMeta" class="market-catalysts-meta"></span>
+      </div>
+      <p class="news-tab-lead">
+        核心 133 隻 · 龍頭新聞、聯交所公告、業績期分區顯示（已過濾券商評級雜訊）。
+      </p>
+      <div id="marketCatalystsBody" class="market-catalysts-body"></div>
+      <p id="marketCatalystsEmpty" class="market-catalysts-empty" style="display:none;padding:0 12px;">暫無 24 小時內催化劑。</p>
+    </div>
+
+    <p id="chartModeHint" class="chart-dash-hint">點上方策略按鈕（Sell Put／Buy Stock／Buy Put）以顯示對應市場快照圖表。</p>
+
+    <div id="chartDashboard" class="chart-dash chart-dash--hidden">
+      <div class="chart-dash-head">
+        <h3 id="chartDashboardTitle">市場快照圖表</h3>
+        <button type="button" id="chartDashboardClose" class="btn-sm" aria-label="收起圖表">收起</button>
+      </div>
       <div class="chart-grid-3">
         <div class="chart-cell"><div class="ttl">訊號分佈</div><canvas id="chSignalPie" aria-label="Signals pie chart"></canvas></div>
         <div class="chart-cell chart-cell--rank"><div class="ttl">強勢股綜合評分排行 (Top 10)</div><canvas id="chRsiBar" aria-label="Top 10 quant score ranking"></canvas></div>
@@ -1245,15 +1333,14 @@
         <div class="chart-cell"><div class="ttl">尋寶象限圖：趨勢強度 vs 爆發量 (ADX vs RVOL)</div><canvas id="chScatter" aria-label="ADX vs RVOL quadrant"></canvas></div>
       </div>
       <p class="muted" style="margin:12px 0 0;font-size:11px;line-height:1.5;">
-        VIX／DXY／市寬等由「大市風向」讀取 <code>macro_snapshot.json</code>；133 隻新聞／公告見「新聞公告」分頁。</p>
+        圖表隨目前策略引擎更新；VIX／DXY／市寬等見「大市風向」。</p>
     </div>
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="activeTab">股票龍虎榜</button>
       <button class="tab-btn" data-tab="historyTab">入市推介</button>
       <button class="tab-btn" data-tab="macroTab">大市風向</button>
-      <button class="tab-btn" data-tab="newsTab">新聞公告</button>
-      <button class="tab-btn" data-tab="hunterTab">HK Stock Hunter Pro</button>
+      <button class="tab-btn" data-tab="hunterTab">個股追擊</button>
     </div>
 
     <section id="activeTab" class="tab-panel active">
@@ -1450,20 +1537,6 @@
       </div>
     </section>
 
-    <section id="newsTab" class="tab-panel">
-      <div class="table-wrap news-tab-shell" id="newsTabShell">
-        <div class="macro-panel-head">
-          <h3 class="section-title" style="margin:0;">📰 24H 龍頭新聞與公告</h3>
-          <span id="marketCatalystsMeta" class="market-catalysts-meta"></span>
-        </div>
-        <p class="news-tab-lead">
-          核心 133 隻 · 龍頭新聞、聯交所公告、業績期分區顯示（已過濾券商評級雜訊）。
-        </p>
-        <div id="marketCatalystsBody" class="market-catalysts-body"></div>
-        <p id="marketCatalystsEmpty" class="market-catalysts-empty" style="display:none;padding:0 12px;">暫無 24 小時內催化劑。</p>
-      </div>
-    </section>
-
     <section id="hunterTab" class="tab-panel">
       <div class="hunter-shell">
         <p class="news-tab-lead" style="margin-left:0;">
@@ -1498,6 +1571,7 @@
 
     <div class="footer">
       圖表 Chart.js · Macro（macro_snapshot）· 新聞公告（market_catalysts_hk）· TradingView 外連。
+      <span id="footerSchemaVersion" class="footer-version"></span>
     </div>
   </div>
 
@@ -1550,6 +1624,7 @@
     }
     let activeScoreModel = "sell_put";
     let activeFilter = "";
+    let _chartDashboardVisible = false;
     /** True after `daily_scan.json` was fetched and parsed successfully (file exists; may still have 0 rows). */
     let dailyScanJsonOk = false;
 
@@ -2146,6 +2221,45 @@ ${tail}`;
       }
       const primary = dailyScanFilenameByModel(m);
       return [...new Set([primary, ...tail])].flatMap((fn) => jsonUrlCandidates(fn));
+    }
+
+    function scoreModelChartLabel() {
+      if (activeScoreModel === "buy_stock") return "Buy Stock 極限爆發";
+      if (activeScoreModel === "buy_put") return "Buy Put 恐慌破底";
+      return "Sell Put 穩健收租";
+    }
+
+    function updateChartDashboardTitle() {
+      const t = document.getElementById("chartDashboardTitle");
+      if (t) t.textContent = "市場快照 · " + scoreModelChartLabel();
+    }
+
+    function showChartDashboard() {
+      _chartDashboardVisible = true;
+      const el = document.getElementById("chartDashboard");
+      if (el) el.classList.remove("chart-dash--hidden");
+      const hint = document.getElementById("chartModeHint");
+      if (hint) hint.style.display = "none";
+      updateChartDashboardTitle();
+    }
+
+    function hideChartDashboard() {
+      _chartDashboardVisible = false;
+      const el = document.getElementById("chartDashboard");
+      if (el) el.classList.add("chart-dash--hidden");
+      const hint = document.getElementById("chartModeHint");
+      if (hint) hint.style.display = "block";
+      destroyCharts(_chartsOverview);
+    }
+
+    function setFooterSchemaVersion(version) {
+      const fv = document.getElementById("footerSchemaVersion");
+      if (!fv) return;
+      if (version == null || version === "") {
+        fv.textContent = "";
+        return;
+      }
+      fv.textContent = "schema v" + String(version);
     }
 
     function syncScoreModeButtons() {
@@ -4863,33 +4977,17 @@ ${tail}`;
 
       for (const spec of MARKET_CATALYST_SECTIONS) {
         const rows = sections[spec.key] || [];
-        if (!rows.length && spec.collapsed) continue;
 
-        const wrap = document.createElement(spec.collapsed ? "details" : "div");
-        wrap.className = spec.collapsed ? "mc-subsection" : "mc-block";
-        if (spec.collapsed) wrap.open = false;
+        const wrap = document.createElement("div");
+        wrap.className = "mc-block";
 
-        const head = document.createElement(spec.collapsed ? "summary" : "div");
-        head.className = spec.collapsed ? "" : "mc-block-head";
-        if (spec.collapsed) {
-          head.innerHTML = `${escapeHtml(spec.title)} <span class="muted" style="font-weight:500;">(${rows.length})</span>`;
-        } else {
-          head.innerHTML = `
+        const head = document.createElement("div");
+        head.className = "mc-block-head";
+        head.innerHTML = `
             <div class="mc-block-title">${escapeHtml(spec.title)}</div>
             <div class="mc-block-sub">${escapeHtml(spec.sub)}</div>
           `;
-        }
         wrap.appendChild(head);
-
-        if (!spec.collapsed) {
-          /* title + sub already in mc-block-head */
-        } else if (rows.length) {
-          const sub = document.createElement("p");
-          sub.className = "mc-block-sub";
-          sub.style.margin = "0 0 8px";
-          sub.textContent = spec.sub;
-          wrap.appendChild(sub);
-        }
 
         if (!rows.length) {
           const p = document.createElement("p");
@@ -5210,7 +5308,7 @@ ${tail}`;
       } else {
         dailyScanJsonOk = true;
         setEmptyState("emptyState", false);
-        document.getElementById("schemaVersion").textContent = data.schema_version ?? "-";
+        setFooterSchemaVersion(data.schema_version);
         const lastUpEl = document.getElementById("lastUpdated");
         lastUpEl.textContent = fmtDateLocal(data.last_updated);
         if (data.last_updated) lastScanUpdatedIso = String(data.last_updated);
@@ -5266,7 +5364,11 @@ ${tail}`;
         console.error("Dashboard secondary load failed:", err);
       }
       try {
-        renderOverviewCharts(rows, historySignals, breadthDailyHistory);
+        if (_chartDashboardVisible) {
+          renderOverviewCharts(rows, historySignals, breadthDailyHistory);
+        } else {
+          destroyCharts(_chartsOverview);
+        }
       } catch (err) {
         console.error("Overview charts failed:", err);
       }
@@ -5289,6 +5391,7 @@ ${tail}`;
       modeSellPutBtn.addEventListener("click", () => {
         activeScoreModel = "sell_put";
         syncScoreModeButtons();
+        showChartDashboard();
         renderHistoryTable();
         loadData();
       });
@@ -5297,6 +5400,7 @@ ${tail}`;
       modeBuyStockBtn.addEventListener("click", () => {
         activeScoreModel = "buy_stock";
         syncScoreModeButtons();
+        showChartDashboard();
         renderHistoryTable();
         loadData();
       });
@@ -5306,9 +5410,14 @@ ${tail}`;
       modeBuyPutBtn.addEventListener("click", () => {
         activeScoreModel = "buy_put";
         syncScoreModeButtons();
+        showChartDashboard();
         renderHistoryTable();
         loadData();
       });
+    }
+    const chartDashboardClose = document.getElementById("chartDashboardClose");
+    if (chartDashboardClose) {
+      chartDashboardClose.addEventListener("click", hideChartDashboard);
     }
     document.querySelectorAll("#stocksTable th[data-key]").forEach((th) => {
       th.addEventListener("click", () => {
