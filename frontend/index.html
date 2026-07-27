@@ -1140,6 +1140,9 @@
       border-radius: 14px;
       padding: 18px 18px 16px;
       box-shadow: var(--shadow-card);
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
     }
     .chart-dash h3 {
       margin: 0 0 16px 0;
@@ -1154,14 +1157,18 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px;
+      width: 100%;
+      min-width: 0;
     }
-    @media (max-width: 700px) { .chart-grid-3 { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) { .chart-grid-3 { grid-template-columns: 1fr; gap: 12px; } }
     .chart-cell {
       background: #fafaf9;
       border: 1px solid var(--line);
       border-radius: 12px;
       padding: 14px;
-      min-height: 260px;
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
     }
     .chart-cell .ttl {
       font-size: 12px;
@@ -1171,22 +1178,33 @@
       color: #57534e;
       margin-bottom: 10px;
       line-height: 1.35;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
-    .chart-cell canvas { max-height: 220px !important; }
-    .chart-cell--breadth { min-height: 280px; }
-    .chart-cell--breadth canvas { min-height: 240px !important; max-height: 260px !important; }
-    .chart-breadth-hint { font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
-    /* Top-10 horizontal bar: compact height + autoSkip off so each ticker shows. */
-    .chart-cell--rank {
-      min-height: 270px;
+    .chart-breadth-hint {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+      margin-bottom: 6px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
     }
-    .chart-cell--rank canvas {
-      min-height: 210px !important;
-      max-height: 240px !important;
+    .chart-canvas-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      height: 220px;
+      overflow: hidden;
     }
-    @media (max-width: 700px) {
-      .chart-cell--rank { min-height: 250px; }
-      .chart-cell--rank canvas { min-height: 200px !important; max-height: 230px !important; }
+    .chart-cell--rank .chart-canvas-wrap { height: 250px; }
+    .chart-cell--breadth .chart-canvas-wrap { height: 240px; }
+    .chart-cell--scatter .chart-canvas-wrap { height: 240px; }
+    .chart-canvas-wrap canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
     }
     .macro-chart-grid {
       display: grid;
@@ -1350,11 +1368,16 @@
         margin-top: 16px;
       }
       .tab-btn { flex-shrink: 0; padding: 10px 16px; font-size: 14px; min-height: 44px; }
-      .chart-cell { min-height: 250px; padding: 12px; }
-      .chart-cell .ttl { font-size: 13px; margin-bottom: 8px; }
-      .chart-cell canvas { max-height: 210px !important; min-height: 190px !important; }
-      .chart-cell--rank canvas,
-      .chart-cell--breadth canvas { min-height: 200px !important; max-height: 220px !important; }
+      .chart-dash { padding: 12px 10px; margin-top: 16px; border-radius: 12px; }
+      .chart-dash-head { margin-bottom: 10px; padding-bottom: 10px; }
+      .chart-dash-head h3 { font-size: 0.95rem; min-width: 0; }
+      .chart-cell { padding: 10px; }
+      .chart-cell .ttl { font-size: 12px; margin-bottom: 8px; }
+      .chart-breadth-hint { font-size: 9px; margin-bottom: 4px; }
+      .chart-canvas-wrap { height: 200px; }
+      .chart-cell--rank .chart-canvas-wrap { height: 268px; }
+      .chart-cell--breadth .chart-canvas-wrap { height: 216px; }
+      .chart-cell--scatter .chart-canvas-wrap { height: 220px; }
       #hunterTab .hunter-grid { grid-template-columns: 1fr; }
       #hunterTab .hunter-risk-tiles { grid-template-columns: 1fr; gap: 10px; }
       #hunterTab .hunter-ind-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -1503,14 +1526,14 @@
         <button type="button" id="chartDashboardClose" class="btn-sm" aria-label="收起圖表">收起</button>
       </div>
       <div class="chart-grid-3">
-        <div class="chart-cell"><div class="ttl">訊號分佈</div><canvas id="chSignalPie" aria-label="Signals pie chart"></canvas></div>
-        <div class="chart-cell chart-cell--rank"><div class="ttl">強勢股綜合評分排行 (Top 10)</div><canvas id="chRsiBar" aria-label="Top 10 quant score ranking"></canvas></div>
+        <div class="chart-cell"><div class="ttl">訊號分佈</div><div class="chart-canvas-wrap"><canvas id="chSignalPie" aria-label="Signals pie chart"></canvas></div></div>
+        <div class="chart-cell chart-cell--rank"><div class="ttl">強勢股綜合評分排行 (Top 10)</div><div class="chart-canvas-wrap"><canvas id="chRsiBar" aria-label="Top 10 quant score ranking"></canvas></div></div>
         <div class="chart-cell chart-cell--breadth">
           <div class="ttl">每日訊號市寬（強勢 / 觀望 / 危險）</div>
           <div id="breadthChartHint" class="chart-breadth-hint">資料來源：breadth_daily_history.json · 堆疊柱狀＋強勢佔比折線</div>
-          <canvas id="chHistDaily" aria-label="Stacked daily signal breadth"></canvas>
+          <div class="chart-canvas-wrap"><canvas id="chHistDaily" aria-label="Stacked daily signal breadth"></canvas></div>
         </div>
-        <div class="chart-cell"><div class="ttl">尋寶象限圖：趨勢強度 vs 爆發量 (ADX vs RVOL)</div><canvas id="chScatter" aria-label="ADX vs RVOL quadrant"></canvas></div>
+        <div class="chart-cell chart-cell--scatter"><div class="ttl">尋寶象限圖：趨勢強度 vs 爆發量 (ADX vs RVOL)</div><div class="chart-canvas-wrap"><canvas id="chScatter" aria-label="ADX vs RVOL quadrant"></canvas></div></div>
       </div>
       <p class="muted" style="margin:12px 0 0;font-size:11px;line-height:1.5;">
         圖表隨目前策略引擎更新；VIX／DXY／市寬等見「大市風向」。</p>
@@ -2582,6 +2605,18 @@ ${tail}`;
       return `${code} ${compact}`;
     }
 
+    function isChartCompact() {
+      return window.matchMedia("(max-width: 639px)").matches;
+    }
+
+    function chartBarTickerLabel(row) {
+      if (isChartCompact()) {
+        const sym = String(row?.ticker ?? row?.Ticker ?? "").trim();
+        return formatTickerCode(sym);
+      }
+      return chartTickerLabel(row);
+    }
+
     function tickerCellHtml(sym, row) {
       const raw = String(sym || (row?.ticker ?? row?.Ticker) || "").trim();
       const code = formatTickerCode(raw);
@@ -2701,14 +2736,17 @@ ${tail}`;
           ctx.stroke();
         }
         ctx.setLineDash([]);
-        ctx.font = "600 11px system-ui, -apple-system, Segoe UI, sans-serif";
+        const compact = chart.width < 420;
+        ctx.font = compact
+          ? "600 9px system-ui, -apple-system, Segoe UI, sans-serif"
+          : "600 11px system-ui, -apple-system, Segoe UI, sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         const labels = [
-          { cx: (L + x20) / 2, cy: (T + y1) / 2, t: "Vol spike", sub: "弱趨勢" },
-          { cx: (x20 + R) / 2, cy: (T + y1) / 2, t: "Breakout Zone", sub: "" },
-          { cx: (L + x20) / 2, cy: (y1 + B) / 2, t: "Quiet range", sub: "縮量盤整" },
-          { cx: (x20 + R) / 2, cy: (y1 + B) / 2, t: "Trend", sub: "低爆量" },
+          { cx: (L + x20) / 2, cy: (T + y1) / 2, t: compact ? "Spike" : "Vol spike", sub: compact ? "" : "弱趨勢" },
+          { cx: (x20 + R) / 2, cy: (T + y1) / 2, t: compact ? "Breakout" : "Breakout Zone", sub: "" },
+          { cx: (L + x20) / 2, cy: (y1 + B) / 2, t: compact ? "Range" : "Quiet range", sub: compact ? "" : "縮量盤整" },
+          { cx: (x20 + R) / 2, cy: (y1 + B) / 2, t: "Trend", sub: compact ? "" : "低爆量" },
         ];
         for (const { cx, cy, t, sub } of labels) {
           if (!Number.isFinite(cx) || !Number.isFinite(cy)) continue;
@@ -2716,10 +2754,14 @@ ${tail}`;
           ctx.fillStyle = "rgba(100,116,139,0.42)";
           ctx.fillText(t, cx, sub ? cy - 7 : cy);
           if (sub) {
-            ctx.font = "500 10px system-ui, -apple-system, Segoe UI, sans-serif";
+            ctx.font = compact
+              ? "500 8px system-ui, -apple-system, Segoe UI, sans-serif"
+              : "500 10px system-ui, -apple-system, Segoe UI, sans-serif";
             ctx.fillStyle = "rgba(100,116,139,0.32)";
             ctx.fillText(sub, cx, cy + 8);
-            ctx.font = "600 11px system-ui, -apple-system, Segoe UI, sans-serif";
+            ctx.font = compact
+              ? "600 9px system-ui, -apple-system, Segoe UI, sans-serif"
+              : "600 11px system-ui, -apple-system, Segoe UI, sans-serif";
           }
         }
         ctx.restore();
@@ -2784,6 +2826,8 @@ ${tail}`;
       const lineEl = document.getElementById("chHistDaily");
       const hintEl = document.getElementById("breadthChartHint");
       if (!lineEl) return;
+      const compact = isChartCompact();
+      const tickFont = compact ? 8 : 9;
       const days = Object.keys(byDay || {}).sort();
       if (!days.length) {
         if (hintEl) {
@@ -2850,8 +2894,17 @@ ${tail}`;
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: "index", intersect: false },
+            layout: { padding: compact ? { left: 0, right: 2, top: 0, bottom: 0 } : undefined },
             plugins: {
-              legend: { position: "top", labels: { color: text, boxWidth: 12, font: { size: 10 }, padding: 8 } },
+              legend: {
+                position: compact ? "bottom" : "top",
+                labels: {
+                  color: text,
+                  boxWidth: compact ? 10 : 12,
+                  font: { size: compact ? 9 : 10 },
+                  padding: compact ? 6 : 8,
+                },
+              },
               tooltip: {
                 mode: "index",
                 intersect: false,
@@ -2873,24 +2926,45 @@ ${tail}`;
             scales: {
               x: {
                 stacked: true,
-                ticks: { maxRotation: 55, font: { size: 9 }, color: text, maxTicksLimit: 16 },
+                ticks: {
+                  maxRotation: compact ? 40 : 55,
+                  minRotation: compact ? 40 : 0,
+                  font: { size: tickFont },
+                  color: text,
+                  maxTicksLimit: compact ? 7 : 16,
+                },
                 grid: { color: CHART_THEME.grid },
               },
               y: {
                 stacked: true,
                 position: "left",
                 beginAtZero: true,
-                ticks: { color: text, precision: 0 },
+                ticks: { color: text, precision: 0, font: { size: tickFont } },
                 grid: { color: CHART_THEME.grid },
-                title: { display: true, text: "訊號數", color: text, font: { size: 11 } },
+                title: {
+                  display: !compact,
+                  text: "訊號數",
+                  color: text,
+                  font: { size: 11 },
+                },
               },
               yPct: {
                 position: "right",
                 beginAtZero: true,
                 max: 100,
                 grid: { drawOnChartArea: false },
-                ticks: { color: text, callback: (v) => v + "%" },
-                title: { display: true, text: "強勢 %", color: text, font: { size: 10 } },
+                ticks: {
+                  color: text,
+                  font: { size: tickFont },
+                  callback: (v) => v + "%",
+                  maxTicksLimit: compact ? 5 : undefined,
+                },
+                title: {
+                  display: !compact,
+                  text: "強勢 %",
+                  color: text,
+                  font: { size: 10 },
+                },
               },
             },
           },
@@ -2902,6 +2976,8 @@ ${tail}`;
       if (typeof Chart === "undefined") return;
       destroyCharts(_chartsOverview);
       const text = CHART_THEME.tick;
+      const compact = isChartCompact();
+      const tickFont = compact ? 9 : 11;
 
       const pieEl = document.getElementById("chSignalPie");
       if (!pieEl) return;
@@ -2932,7 +3008,15 @@ ${tail}`;
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-              legend: { position: "bottom", labels: { color: text, boxWidth: 12, font: { size: 11 } } },
+              legend: {
+                position: "bottom",
+                labels: {
+                  color: text,
+                  boxWidth: compact ? 10 : 12,
+                  font: { size: tickFont },
+                  padding: compact ? 8 : 10,
+                },
+              },
             },
           },
         }),
@@ -2942,7 +3026,7 @@ ${tail}`;
       if (barEl) {
         const scored = (scanRows || [])
           .map((r) => ({
-            t: chartTickerLabel(r),
+            t: chartBarTickerLabel(r),
             sym: String(r.ticker ?? r.Ticker ?? "?").trim() || "?",
             score: rowTechScore(r),
             rs: rowRs20(r),
@@ -2981,7 +3065,9 @@ ${tail}`;
                   tooltip: {
                     callbacks: {
                       title(items) {
-                        return items.length ? String(items[0].label) : "";
+                        const i = items[0]?.dataIndex;
+                        const x = i != null ? display[i] : null;
+                        return x ? chartTickerLabel(x.raw) : (items.length ? String(items[0].label) : "");
                       },
                       label(items) {
                         const i = items[0].dataIndex;
@@ -2993,14 +3079,25 @@ ${tail}`;
                     },
                   },
                 },
-                layout: { padding: { left: 4, right: 6, top: 2, bottom: 2 } },
+                layout: { padding: compact ? { left: 0, right: 4, top: 0, bottom: 0 } : { left: 4, right: 6, top: 2, bottom: 2 } },
                 scales: {
-                  x: { min: 0, max: 100, ticks: { color: text }, grid: { color: CHART_THEME.grid }, title: { display: true, text: "Score (0–100)", color: text, font: { size: 11 } } },
+                  x: {
+                    min: 0,
+                    max: 100,
+                    ticks: { color: text, font: { size: tickFont }, maxTicksLimit: compact ? 5 : undefined },
+                    grid: { color: CHART_THEME.grid },
+                    title: {
+                      display: !compact,
+                      text: "Score (0–100)",
+                      color: text,
+                      font: { size: 11 },
+                    },
+                  },
                   y: {
                     ticks: {
                       autoSkip: false,
                       color: text,
-                      font: { size: 10 },
+                      font: { size: compact ? 9 : 10 },
                     },
                     grid: { display: false },
                   },
@@ -3048,14 +3145,15 @@ ${tail}`;
                     data: pts.map((p) => ({ x: p.x, y: p.y })),
                     backgroundColor: pts.map((p) => p.col),
                     borderColor: pts.map((p) => p.col),
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
+                    pointRadius: compact ? 4 : 6,
+                    pointHoverRadius: compact ? 6 : 8,
                   },
                 ],
               },
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: { padding: compact ? { left: 0, right: 0, top: 2, bottom: 0 } : undefined },
                 plugins: {
                   legend: { display: false },
                   tooltip: {
@@ -3078,15 +3176,25 @@ ${tail}`;
                   x: {
                     min: 0,
                     max: maxAdx,
-                    title: { display: true, text: "ADX（趨勢強度）", color: text, font: { size: 11 } },
-                    ticks: { color: text },
+                    title: {
+                      display: true,
+                      text: compact ? "ADX" : "ADX（趨勢強度）",
+                      color: text,
+                      font: { size: tickFont },
+                    },
+                    ticks: { color: text, font: { size: tickFont }, maxTicksLimit: compact ? 5 : undefined },
                     grid: { color: CHART_THEME.grid },
                   },
                   y: {
                     min: 0,
                     max: maxRv,
-                    title: { display: true, text: "RVOL（相對成交量）", color: text, font: { size: 11 } },
-                    ticks: { color: text },
+                    title: {
+                      display: true,
+                      text: compact ? "RVOL" : "RVOL（相對成交量）",
+                      color: text,
+                      font: { size: tickFont },
+                    },
+                    ticks: { color: text, font: { size: tickFont }, maxTicksLimit: compact ? 5 : undefined },
                     grid: { color: CHART_THEME.grid },
                   },
                 },
@@ -6156,6 +6264,20 @@ ${tail}`;
     if (newsModalBackdrop) newsModalBackdrop.addEventListener("click", closeNewsModal);
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") closeNewsModal();
+    });
+    let _overviewResizeTimer = null;
+    window.addEventListener("resize", () => {
+      if (!_chartDashboardVisible || !_chartsOverview.length) return;
+      clearTimeout(_overviewResizeTimer);
+      _overviewResizeTimer = setTimeout(() => {
+        for (const c of _chartsOverview) {
+          try {
+            c.resize();
+          } catch (_) {
+            /* noop */
+          }
+        }
+      }, 120);
     });
     loadData();
   </script>
