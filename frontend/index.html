@@ -2617,6 +2617,56 @@ ${tail}`;
       return chartTickerLabel(row);
     }
 
+    function rankBarLabelParts(row, compact) {
+      const sym = String(row?.ticker ?? row?.Ticker ?? "").trim();
+      const code = formatTickerCode(sym);
+      if (compact) return { code, name: "" };
+      const name = stockNameForRow(row) || "";
+      const short = name.split(/\s+/).slice(0, 3).join(" ");
+      const trimmed = short.length > 12 ? `${short.slice(0, 11)}…` : short;
+      return { code, name: trimmed };
+    }
+
+    function rankBarLeftPadding(rows, compact) {
+      if (compact) return 46;
+      let width = 50;
+      for (const row of rows) {
+        const { name } = rankBarLabelParts(row, false);
+        width = Math.max(width, 46 + name.length * 11);
+      }
+      return Math.min(width + 10, 168);
+    }
+
+    /** Left-aligned code + name column for Top-10 horizontal bar chart. */
+    const rankBarLeftLabelsPlugin = {
+      id: "rankBarLeftLabels",
+      afterDraw(chart) {
+        const cfg = chart.options.plugins?.rankBarLeftLabels;
+        if (!cfg?.parts?.length) return;
+        const yScale = chart.scales?.y;
+        if (!yScale || !chart.ctx) return;
+        const { ctx } = chart;
+        const codeX = 6;
+        const nameX = 44;
+        const tickSize = cfg.compact ? 9 : 10;
+        ctx.save();
+        cfg.parts.forEach((parts, i) => {
+          const y = yScale.getPixelForTick(i);
+          if (!Number.isFinite(y)) return;
+          ctx.textBaseline = "middle";
+          ctx.textAlign = "left";
+          ctx.font = `600 ${tickSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+          ctx.fillStyle = cfg.textColor || "#44403c";
+          ctx.fillText(parts.code, codeX, y);
+          if (parts.name) {
+            ctx.font = `500 ${tickSize}px "Noto Sans TC", Inter, sans-serif`;
+            ctx.fillText(parts.name, nameX, y);
+          }
+        });
+        ctx.restore();
+      },
+    };
+
     function tickerCellHtml(sym, row) {
       const raw = String(sym || (row?.ticker ?? row?.Ticker) || "").trim();
       const code = formatTickerCode(raw);
@@ -3042,17 +3092,21 @@ ${tail}`;
         const top10 = scored.slice(0, 10);
         const display = [...top10].reverse();
         if (display.length) {
+          const rankParts = display.map((x) => rankBarLabelParts(x.raw, compact));
+          const rankLeftPad = rankBarLeftPadding(display.map((x) => x.raw), compact);
           _chartsOverview.push(
             new Chart(barEl, {
               type: "bar",
+              plugins: [rankBarLeftLabelsPlugin],
               data: {
-                labels: display.map((x) => x.t),
+                labels: rankParts.map((p) => p.code),
                 datasets: [
                   {
                     label: "綜合評分",
                     data: display.map((x) => x.score),
                     backgroundColor: display.map((x) => scoreBandBarColor(x.raw)),
                     borderRadius: 4,
+                    barThickness: compact ? 14 : 16,
                   },
                 ],
               },
@@ -3062,6 +3116,11 @@ ${tail}`;
                 indexAxis: "y",
                 plugins: {
                   legend: { display: false },
+                  rankBarLeftLabels: {
+                    parts: rankParts,
+                    compact,
+                    textColor: text,
+                  },
                   tooltip: {
                     callbacks: {
                       title(items) {
@@ -3079,7 +3138,11 @@ ${tail}`;
                     },
                   },
                 },
-                layout: { padding: compact ? { left: 0, right: 4, top: 0, bottom: 0 } : { left: 4, right: 6, top: 2, bottom: 2 } },
+                layout: {
+                  padding: compact
+                    ? { left: rankLeftPad, right: 4, top: 0, bottom: 0 }
+                    : { left: rankLeftPad, right: 6, top: 2, bottom: 2 },
+                },
                 scales: {
                   x: {
                     min: 0,
@@ -3095,11 +3158,14 @@ ${tail}`;
                   },
                   y: {
                     ticks: {
+                      display: false,
                       autoSkip: false,
-                      color: text,
-                      font: { size: compact ? 9 : 10 },
                     },
+                    border: { display: false },
                     grid: { display: false },
+                    afterFit(axis) {
+                      axis.width = 0;
+                    },
                   },
                 },
               },
