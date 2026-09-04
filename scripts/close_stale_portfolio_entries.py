@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from portfolio_reconcile import (  # noqa: E402
+    closed_row_covers_entry,
     consolidate_closed_transactions,
     is_open_signal,
     position_slot,
@@ -156,6 +157,10 @@ def close_stale(
         if not decision.get("triggered"):
             continue
         key = f"{entry_date}|{sym}|{action.upper()}|{model}"
+        if closed_row_covers_entry(closed_rows, sym, model, entry_date):
+            for o in opens:
+                o["status"] = "superseded"
+            continue
         if key in key_set:
             for o in opens:
                 o["status"] = "closed"

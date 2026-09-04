@@ -1833,7 +1833,7 @@
 
     let historySignals = [];
     let closedTransactions = [];
-    const CLOSED_TX_LS_KEY = "hkstockdashboard_closed_transactions_v1";
+    const CLOSED_TX_LS_KEY = "hkstockdashboard_closed_transactions_v2";
     let breadthDailyHistory = null;
     /** Trading day of the loaded scan (YYYY-MM-DD); avoids labelling stale scan as browser "today". */
     let lastScanTradingDay = "";
@@ -4099,6 +4099,43 @@ ${tail}`;
       return count;
     }
 
+    function tradingDaysBetween(startDateStr, endDateStr) {
+      const t0 = parseSortTime(startDateStr);
+      const t1 = parseSortTime(endDateStr);
+      if (!t0 || !t1 || t1 <= t0) return 0;
+      let count = 0;
+      const cur = new Date(t0);
+      const end = new Date(t1);
+      cur.setHours(12, 0, 0, 0);
+      end.setHours(12, 0, 0, 0);
+      while (cur < end) {
+        const dow = cur.getDay();
+        if (dow !== 0 && dow !== 6) count += 1;
+        cur.setDate(cur.getDate() + 1);
+      }
+      return count;
+    }
+
+    function isContinuationEntry(prevExit, newEntry) {
+      const entry = String(newEntry || "").slice(0, 10);
+      const exitD = String(prevExit || "").slice(0, 10);
+      if (!entry || !exitD) return false;
+      if (entry <= exitD) return true;
+      return tradingDaysBetween(exitD, entry) <= 1;
+    }
+
+    function lastExitBySlot(closedList) {
+      const map = new Map();
+      for (const c of closedList || []) {
+        const slot = `${String(c.ticker || "").toUpperCase()}|${String(c.score_model || "").toLowerCase()}`;
+        const ex = String(c.exit_date || "").slice(0, 10);
+        if (!ex) continue;
+        const prev = map.get(slot);
+        if (!prev || ex > prev) map.set(slot, ex);
+      }
+      return map;
+    }
+
     function positionSlot(s) {
       const sym = String(s.ticker ?? "").trim().toUpperCase();
       const model = String(s.score_model || activeScoreModel || "").toLowerCase();
@@ -4227,7 +4264,7 @@ ${tail}`;
     }
 
     function consolidateClosedRows(rows) {
-      const groups = new Map();
+      const sameDay = new Map();
       for (const r of rows || []) {
         if (!r || typeof r !== "object") continue;
         const gkey = [
@@ -4235,24 +4272,43 @@ ${tail}`;
           String(r.score_model || "").toLowerCase(),
           String(r.exit_date || "").slice(0, 10),
         ].join("|");
-        const prev = groups.get(gkey);
+        const prev = sameDay.get(gkey);
         if (!prev || String(r.entry_date || "") < String(prev.entry_date || "")) {
-          groups.set(gkey, r);
+          sameDay.set(gkey, r);
         }
       }
-      return [...groups.values()].sort((a, b) => String(b.exit_date || "").localeCompare(String(a.exit_date || "")));
+      const bySlot = new Map();
+      for (const r of sameDay.values()) {
+        const slot = `${String(r.ticker || "").toUpperCase()}|${String(r.score_model || "").toLowerCase()}`;
+        if (!bySlot.has(slot)) bySlot.set(slot, []);
+        bySlot.get(slot).push(r);
+      }
+      const out = [];
+      for (const list of bySlot.values()) {
+        list.sort((a, b) => {
+          const ex = String(a.exit_date || "").slice(0, 10).localeCompare(String(b.exit_date || "").slice(0, 10));
+          if (ex) return ex;
+          return String(a.entry_date || "").localeCompare(String(b.entry_date || ""));
+        });
+        const kept = [];
+        for (const row of list) {
+          const entry = String(row.entry_date || "").slice(0, 10);
+          if (kept.length && isContinuationEntry(String(kept[kept.length - 1].exit_date || "").slice(0, 10), entry)) {
+            continue;
+          }
+          kept.push(row);
+        }
+        out.push(...kept);
+      }
+      return out.sort((a, b) => String(b.exit_date || "").localeCompare(String(a.exit_date || "")));
     }
 
     async function loadClosedTransactionsMerged() {
       const serverRows = await loadClosedTransactionsServer();
       const localRows = loadClosedTransactionsLocal();
-      if (Array.isArray(serverRows) && serverRows.length) {
-        try { localStorage.removeItem(CLOSED_TX_LS_KEY); } catch (_) {}
-      }
-      const source = Array.isArray(serverRows) && serverRows.length ? serverRows : localRows;
       const merged = [];
       const seen = new Set();
-      for (const r of source) {
+      for (const r of [...(serverRows || []), ...(localRows || [])]) {
         if (!r || typeof r !== "object") continue;
         if (!tickerMatchesDashboardMarket(r.ticker)) continue;
         const k0 = String(r._key || "").trim();
@@ -4313,12 +4369,19 @@ ${tail}`;
       const scanMap = buildScanRowMap(scanRows);
       let closedStore = consolidateClosedRows(Array.isArray(initialClosedStore) ? [...initialClosedStore] : []);
       const closedKeys = new Set(closedStore.map((c) => c._key).filter(Boolean));
+      const lastExit = lastExitBySlot(closedStore);
       const active = [];
       let changed = false;
 
       for (const s of dedupeOpenSignalsBySlot(enrichedSignals)) {
+        const model = String(s.score_model || "").toLowerCase();
+        if (!s.action || model !== activeScoreModel) continue;
         const key = positionKey(s);
         if (closedKeys.has(key)) continue;
+        const slot = positionSlot(s);
+        const prevExit = lastExit.get(slot);
+        const entry = String(s.entry_date || (s.date ? String(s.date).slice(0, 10) : "")).slice(0, 10);
+        if (prevExit && (entry <= prevExit || isContinuationEntry(prevExit, entry))) continue;
 
         const position = buildExitPosition(s, scanMap.get(String(s.ticker ?? "").trim().toUpperCase()));
         const exit = checkExitConditions(position);
@@ -4327,6 +4390,7 @@ ${tail}`;
           if (!closedKeys.has(rec._key)) {
             closedStore.push(rec);
             closedKeys.add(rec._key);
+            lastExit.set(slot, String(rec.exit_date || "").slice(0, 10));
             changed = true;
           }
         } else {
@@ -4602,6 +4666,9 @@ ${tail}`;
             return st !== "closed" && st !== "superseded" && tickerMatchesDashboardMarket(s?.ticker);
           })
         : [];
+      closedTransactions = await loadClosedTransactionsMerged();
+      const lastExit = lastExitBySlot(closedTransactions);
+      const openSlots = new Set(base.map((s) => positionSlot(s)));
       const live = liveTriggerEntriesFromRows(rows, activeScoreModel);
       const keys = new Set(
         base
@@ -4609,14 +4676,18 @@ ${tail}`;
           .map((s) => `${s.entry_date || String(s.date || "").slice(0, 10)}|${s.ticker}|${s.action}|${s.score_model}`),
       );
       for (const s of live) {
+        const slot = positionSlot(s);
+        if (openSlots.has(slot)) continue;
+        const prevExit = lastExit.get(slot);
+        if (prevExit) continue;
         const k = `${s.entry_date}|${s.ticker}|${s.action}|${s.score_model}`;
         if (!keys.has(k)) {
           base = base.concat([s]);
           keys.add(k);
+          openSlots.add(slot);
         }
       }
       const enriched = enrichHistoryFromScan(base, rows);
-      closedTransactions = await loadClosedTransactionsMerged();
       const exited = applyPortfolioExitEngine(enriched, rows, closedTransactions);
       historySignals = exited.active;
       closedTransactions = exited.closed;

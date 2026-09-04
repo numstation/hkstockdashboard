@@ -1,21 +1,21 @@
 {
-    "schema_version": "19.0",
-    "last_updated": "2026-06-01T16:56:29+08:00",
-    "closed": [
-        {
-            "_key": "2026-05-29|IBM|BUY_CALL|buy_stock",
-            "exit_date": "2026-06-01",
-            "entry_date": "2026-05-29",
-            "ticker": "IBM",
-            "score_model": "buy_stock",
-            "strategy_label": "buy_stock",
-            "action": "BUY_CALL",
-            "entry_price": 264.22,
-            "exit_price": 297.8,
-            "final_pnl_pct": 12.71,
-            "holding_days": 3,
-            "exit_type": "take_profit",
-            "exit_reason": "🚀 動能衝頂食糊 (Hit +15% / 3x ATR)"
-        }
-    ]
+  "schema_version": "19.0",
+  "last_updated": "2026-09-03T16:53:13+08:00",
+  "closed": [
+    {
+      "_key": "2026-05-29|IBM|BUY_CALL|buy_stock",
+      "exit_date": "2026-06-01",
+      "entry_date": "2026-05-29",
+      "ticker": "IBM",
+      "score_model": "buy_stock",
+      "strategy_label": "buy_stock",
+      "action": "BUY_CALL",
+      "entry_price": 264.22,
+      "exit_price": 297.8,
+      "final_pnl_pct": 12.71,
+      "holding_days": 3,
+      "exit_type": "take_profit",
+      "exit_reason": "🚀 動能衝頂食糊 (Hit +15% / 3x ATR)"
+    }
+  ]
 }
