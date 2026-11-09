@@ -2,6 +2,10 @@
 # Deploy: bash ../scripts/deploy_cloudflare.sh
 
 name = "hkstockdashboard"
+# Chrislau@numstation.com's Account. The deploy token can also see a second
+# account ("Noon Sofa"); non-interactive wrangler aborts unless this is set.
+# Keep in sync with CLOUDFLARE_ACCOUNT_ID in the deploy workflows.
+account_id = "00de92daaee5095fa3ba77cb45d94d57"
 main = "src/worker.js"
 compatibility_date = "2024-11-01"
 
