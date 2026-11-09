@@ -305,6 +305,15 @@ else
 fi
 
 echo "==> Deploy to Cloudflare (worker name: hkstockdashboard)"
+# Chrislau@numstation.com's Account. wrangler.toml account_id is authoritative
+# for Wrangler 3 (config wins over this env). Set the env too so a missing
+# config field cannot fall through to the interactive account picker, and so
+# this cannot target the temporary "Noon Sofa" account.
+export CLOUDFLARE_ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-00de92daaee5095fa3ba77cb45d94d57}"
+if [[ "$CLOUDFLARE_ACCOUNT_ID" != "00de92daaee5095fa3ba77cb45d94d57" ]]; then
+  echo "::error::Refusing to deploy: CLOUDFLARE_ACCOUNT_ID must be Chrislau@numstation.com's Account (00de92daaee5095fa3ba77cb45d94d57), got ${CLOUDFLARE_ACCOUNT_ID}"
+  exit 1
+fi
 WRANGLER="$CF/node_modules/.bin/wrangler"
 if [[ ! -x "$WRANGLER" ]]; then
   WRANGLER="npx wrangler"
